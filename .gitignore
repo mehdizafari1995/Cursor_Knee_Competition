@@ -31,6 +31,9 @@ data/
 reports/*
 !reports/.gitkeep
 
+# Pipeline artifacts (submission.csv, metrics.json, plots, model.pt)
+outputs/
+
 # Credentials
 .env
 .env.*

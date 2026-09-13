@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cursor-knee-competition"
+version = "0.1.0"
+description = "End-to-end knee osteoarthritis KL-grade classification pipeline"
+requires-python = ">=3.10"
+
+[tool.setuptools]
+packages = ["knee"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+addopts = "-q"
+testpaths = ["tests"]

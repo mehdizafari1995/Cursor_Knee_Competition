@@ -1,0 +1,4 @@
+{
+  "name": "Cursor Knee Competition",
+  "install": "bash .cursor/install.sh"
+}

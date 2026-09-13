@@ -1,0 +1,65 @@
+# Enforces docs/citation_and_figure_policy.md section 6. Force-adding anything
+# matched here is a policy breach, not a workaround.
+
+# PDFs and article full text
+*.pdf
+*.epub
+
+# Figures and extracted images
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.tif
+*.tiff
+*.bmp
+*.webp
+*.svg
+literature/figures/
+
+# DICOM and other medical imaging
+*.dcm
+*.dicom
+*.nii
+*.nii.gz
+*.mha
+*.mhd
+*.nrrd
+data/
+
+# Generated reports and audit artefacts
+reports/*
+!reports/.gitkeep
+
+# Credentials
+.env
+.env.*
+*.pem
+*.key
+kaggle.json
+.kaggle/
+secrets/
+
+# Model checkpoints and serialised weights
+*.ckpt
+*.pt
+*.pth
+*.h5
+*.hdf5
+*.onnx
+*.safetensors
+*.pkl
+*.joblib
+checkpoints/
+wandb/
+mlruns/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+*.egg-info/

@@ -6,28 +6,46 @@ against `docs/citation_and_figure_policy.md`.
 
 ## 1. Target registry
 
-The competition defines **twelve** prediction targets. They are transcribed verbatim
-from the official competition data dictionary and confirmed against the label columns
-of the training CSV by the `competition-data-auditor` agent. They are not invented,
-guessed or renamed here.
+RSNA Knee Abnormality Detection is a **study-level multi-label** problem: each knee
+MRI study is scored for **twelve independent binary findings**, and the leaderboard
+metric is the macro-averaged ROC AUC across them.
 
-| Slot | `target_id` | Competition column name | Source of truth | Status |
-| --- | --- | --- | --- | --- |
-| 1 | TBD | TBD | competition data dictionary | unpopulated |
-| 2 | TBD | TBD | competition data dictionary | unpopulated |
-| 3 | TBD | TBD | competition data dictionary | unpopulated |
-| 4 | TBD | TBD | competition data dictionary | unpopulated |
-| 5 | TBD | TBD | competition data dictionary | unpopulated |
-| 6 | TBD | TBD | competition data dictionary | unpopulated |
-| 7 | TBD | TBD | competition data dictionary | unpopulated |
-| 8 | TBD | TBD | competition data dictionary | unpopulated |
-| 9 | TBD | TBD | competition data dictionary | unpopulated |
-| 10 | TBD | TBD | competition data dictionary | unpopulated |
-| 11 | TBD | TBD | competition data dictionary | unpopulated |
-| 12 | TBD | TBD | competition data dictionary | unpopulated |
+The single source of truth for the twelve targets is `TARGET_KEYS` and `TARGET_NAMES`
+in `knee/config.py`, which also define the `submission.csv` column order. This table
+mirrors that tuple, in the same order. It is never edited independently: change
+`knee/config.py` first, then this table.
+`tests/test_agent_configuration.py` fails if the two drift apart.
 
-Populating this table is a prerequisite for ontology work. Until a slot is filled,
-`clinical-ontology` must stop and ask the coordinator rather than assume a target.
+| Slot | `target_id` (submission column) | Label | Ontology record |
+| --- | --- | --- | --- |
+| 1 | `acl_injury` | ACL injury | pending |
+| 2 | `mcl_injury` | MCL injury | pending |
+| 3 | `medial_meniscus_injury` | Medial meniscus injury | pending |
+| 4 | `lateral_meniscus_injury` | Lateral meniscus injury | pending |
+| 5 | `medial_compartment_oa` | Medial-compartment osteoarthritis | pending |
+| 6 | `lateral_compartment_oa` | Lateral-compartment osteoarthritis | pending |
+| 7 | `patellofemoral_oa` | Patellofemoral osteoarthritis | pending |
+| 8 | `joint_effusion` | Joint effusion | pending |
+| 9 | `synovitis` | Synovitis | pending |
+| 10 | `baker_cyst` | Baker cyst | pending |
+| 11 | `bone_contusion` | Bone contusion | pending |
+| 12 | `fracture` | Fracture | pending |
+
+`clinical-ontology` populates one record per row and flips `Ontology record` to
+`drafted`, then to `verified` once `evidence-verifier` returns a clean report. It
+must never add, drop or rename a target: a target that is not in `knee/config.py`
+does not exist for this project, and any mismatch against the official competition
+data dictionary is escalated to the coordinator rather than fixed in this table.
+
+Two scope notes that bound the ontology work:
+
+- **Weak supervision.** Training labels may be derived from free-text multilingual
+  radiology reports, so the `negation_cues` and `uncertainty_terms` fields directly
+  affect label quality and are not merely descriptive. Collect them in every report
+  language the data contains.
+- **Image-only inference.** Test-time prediction consumes MRI images only, with no
+  report text. Ontology terminology therefore supports label extraction and error
+  analysis, never an inference-time feature.
 
 ## 2. Files
 
@@ -105,12 +123,13 @@ docs/ontology/index.json                 registry of target_id -> file, with sta
 ## 5. Lifecycle
 
 1. `literature-searcher` populates `literature/` under `docs/literature_protocol.md`.
-2. `competition-data-auditor` confirms the twelve target column names from the data.
-3. Coordinator fills the target registry in section 1.
-4. `clinical-ontology` drafts records; `verification.status` starts as `unverified`.
-5. `evidence-verifier` audits and returns per-claim verdicts; unsupported claims are
+2. `competition-data-auditor` reconciles the twelve `TARGET_KEYS` in `knee/config.py`
+   against the label columns of the real competition data and reports any mismatch
+   to the coordinator.
+3. `clinical-ontology` drafts records; `verification.status` starts as `unverified`.
+4. `evidence-verifier` audits and returns per-claim verdicts; unsupported claims are
    removed by `clinical-ontology`, not by the verifier.
-6. Coordinator promotes records to `verified` only after a clean verification report.
+5. Coordinator promotes records to `verified` only after a clean verification report.
 
 ## 6. What an agent returns
 

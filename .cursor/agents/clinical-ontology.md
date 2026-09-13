@@ -12,7 +12,7 @@ Read `docs/clinical_ontology_schema.md` first and emit records that validate aga
 
 ## When invoked
 
-1. Confirm the canonical list of the twelve competition targets from the target registry in `docs/clinical_ontology_schema.md`. If a slot is still a placeholder, stop and ask the coordinator rather than inventing a target name.
+1. Take the canonical twelve targets from `TARGET_KEYS` in `knee/config.py`, mirrored in the target registry in `docs/clinical_ontology_schema.md`. Never add, drop or rename a target; report any mismatch to the coordinator instead of resolving it yourself.
 2. Work one target at a time. For each target populate every field the schema requires:
    - `definition`, `synonyms`, `abbreviations`
    - `anatomy` (structures and compartments involved)
@@ -23,8 +23,9 @@ Read `docs/clinical_ontology_schema.md` first and emit records that validate aga
    - `postoperative_terms` (repair, reconstruction, resection, hardware, expected postoperative appearance)
    - `grading_or_severity` where the literature defines a scale
 3. Attach at least one citation to every individual claim, not one citation per target. A claim with no citation is deleted, not kept as "common knowledge".
-4. Quote sparingly and mark quotations. Prefer paraphrase plus citation.
-5. Write output to the paths named in the schema and keep the machine-readable form as the source of truth.
+4. Treat `negation_cues` and `uncertainty_terms` as label-quality work, not decoration: training labels are weakly supervised from free-text multilingual radiology reports, so a missed negation becomes a wrong label. Collect terms in every report language present in the data.
+5. Quote sparingly and mark quotations. Prefer paraphrase plus citation.
+6. Write output to the paths named in the schema and keep the machine-readable form as the source of truth.
 
 ## Hard rules
 

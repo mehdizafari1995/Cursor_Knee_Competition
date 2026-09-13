@@ -6,12 +6,15 @@ or `docs/`.
 
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 from pathlib import Path
 
 import pytest
 import yaml
+
+from knee.config import NUM_TARGETS, TARGET_KEYS, TARGET_NAMES
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 AGENTS_DIR = REPO_ROOT / ".cursor" / "agents"
@@ -284,14 +287,48 @@ class TestCitationAndFigurePolicy:
             assert artefact in text
 
 
+REGISTRY_ROW = re.compile(
+    r"^\|\s*(?P<slot>\d+)\s*\|\s*`(?P<target_id>[^`]+)`\s*\|\s*(?P<label>[^|]+?)\s*\|",
+    re.MULTILINE,
+)
+
+
+def registry_rows(text: str) -> list[tuple[int, str, str]]:
+    return [
+        (int(m.group("slot")), m.group("target_id"), m.group("label"))
+        for m in REGISTRY_ROW.finditer(text)
+    ]
+
+
 class TestClinicalOntologySchema:
     def test_registry_has_exactly_twelve_target_slots(self, ontology_schema_text):
-        text = ontology_schema_text
-        slots = [int(m) for m in re.findall(r"^\|\s*(\d+)\s*\|", text, re.MULTILINE)]
-        assert slots == list(range(1, 13))
+        slots = [row[0] for row in registry_rows(ontology_schema_text)]
+        assert slots == list(range(1, NUM_TARGETS + 1))
+        assert NUM_TARGETS == 12
 
-    def test_registry_targets_are_not_invented(self, ontology_schema_text):
-        assert "competition data dictionary" in flat(ontology_schema_text)
+    def test_registry_target_ids_match_the_code_in_order(self, ontology_schema_text):
+        documented = [row[1] for row in registry_rows(ontology_schema_text)]
+        assert documented == list(TARGET_KEYS), (
+            "the target registry has drifted from TARGET_KEYS in knee/config.py"
+        )
+
+    def test_registry_labels_match_the_code(self, ontology_schema_text):
+        documented = [row[2] for row in registry_rows(ontology_schema_text)]
+        assert documented == list(TARGET_NAMES)
+
+    def test_registry_names_its_single_source_of_truth(self, ontology_schema_text):
+        text = flat(ontology_schema_text)
+        assert "knee/config.py" in text
+        assert "single source of truth" in text
+
+    def test_registry_forbids_adding_or_renaming_targets(self, ontology_schema_text):
+        assert "never add, drop or rename a target" in flat(ontology_schema_text)
+
+    def test_schema_records_the_rsna_scope(self, ontology_schema_text):
+        text = flat(ontology_schema_text)
+        assert "macro-averaged roc auc" in text
+        assert "weak supervision" in text
+        assert "image-only inference" in text
 
     def test_schema_covers_every_required_field(self, ontology_schema_text):
         for field in (
@@ -319,13 +356,34 @@ class TestGitignorePolicy:
     @pytest.mark.parametrize(
         "pattern",
         ["*.pdf", "*.png", "*.dcm", "*.nii", "*.ckpt", "*.pt", "*.safetensors",
-         "reports/*", "data/", "kaggle.json", ".env"],
+         "reports/*", "data/", "outputs/", "kaggle.json", ".env", ".venv/"],
     )
     def test_restricted_artefact_is_ignored(self, gitignore_patterns, pattern):
         assert pattern in gitignore_patterns
 
     def test_report_placeholder_stays_tracked(self, gitignore_patterns):
         assert "!reports/.gitkeep" in gitignore_patterns
+
+
+class TestProjectConfiguration:
+    def test_environment_install_script_exists(self):
+        env = json.loads((REPO_ROOT / ".cursor" / "environment.json").read_text())
+        assert "install" in env, "environment.json must declare an install step"
+        assert (REPO_ROOT / ".cursor" / "install.sh").is_file(), (
+            "environment.json references install.sh, which must exist or setup fails"
+        )
+        assert "install.sh" in env["install"]
+
+    def test_requirements_cover_the_test_dependencies(self):
+        text = flat((REPO_ROOT / "requirements.txt").read_text())
+        assert "pytest" in text
+        assert "pyyaml" in text, "the agent-configuration tests need PyYAML"
+
+    def test_agents_md_points_at_the_single_source_of_truth(self):
+        text = flat((REPO_ROOT / "AGENTS.md").read_text())
+        assert "knee/config.py" in text
+        assert "twelve" in text
+        assert "macro-averaged roc auc" in text
 
 
 class TestNoRestrictedArtefactsTracked:

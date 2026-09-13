@@ -1,8 +1,20 @@
 # Agent Instructions
 
-Knee-MRI competition repository. The main Cursor Agent acts as **coordinator**: it
-plans work, delegates to the project subagents in `.cursor/agents/`, merges their
-output, and is the only party that grants approvals.
+RSNA Knee Abnormality Detection repository. The main Cursor Agent acts as
+**coordinator**: it plans work, delegates to the project subagents in
+`.cursor/agents/`, merges their output, and is the only party that grants approvals.
+
+## The task
+
+Study-level multi-label knee MRI: each study is scored for **twelve independent
+binary findings**, evaluated by macro-averaged ROC AUC. Training labels may be
+weakly supervised from free-text multilingual radiology reports; inference is
+image-only.
+
+`TARGET_KEYS` in `knee/config.py` is the single source of truth for the twelve
+targets and their `submission.csv` column order. `docs/clinical_ontology_schema.md`
+mirrors it, and the test suite fails if the two drift apart. No agent adds, drops or
+renames a target.
 
 ## Subagents
 
@@ -41,9 +53,13 @@ These are binding on the coordinator and every subagent. Full text in
 ## Development
 
 ```bash
-pip install -r requirements.txt
-python -m pytest tests/ -q
+bash .cursor/install.sh        # creates .venv and installs pinned dependencies
+source .venv/bin/activate
+pytest                         # pyproject.toml points this at tests/
+python -m knee.pipeline        # end-to-end run, writes to outputs/
 ```
 
-`tests/test_agent_configuration.py` validates the agent definitions and the policy
-docs. Run it after editing anything under `.cursor/agents/` or `docs/`.
+Run the whole suite, not one file. `tests/test_pipeline.py` covers the modelling
+pipeline; `tests/test_agent_configuration.py` validates the agent definitions, the
+policy docs and the target registry. Run both after editing anything under
+`.cursor/agents/`, `docs/` or `knee/config.py`.

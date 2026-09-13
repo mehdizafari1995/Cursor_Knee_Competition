@@ -30,6 +30,7 @@ data/
 # Generated reports and audit artefacts
 reports/*
 !reports/.gitkeep
+!reports/*.md
 
 # Pipeline artifacts (submission.csv, metrics.json, plots, model.pt)
 outputs/

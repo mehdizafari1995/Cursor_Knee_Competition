@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import json
 import re
+import subprocess
 import unicodedata
 from pathlib import Path
 
@@ -16,6 +17,8 @@ ROOT = Path(__file__).resolve().parents[1]
 LITERATURE = ROOT / "literature"
 PAPERS = LITERATURE / "papers.csv"
 CLAIMS = LITERATURE / "claims.jsonl"
+REJECTED_CLAIMS = LITERATURE / "rejected_claims.jsonl"
+REPORTS = ROOT / "reports"
 
 REQUIRED_COLUMNS = [
     "pmid",
@@ -70,6 +73,11 @@ def read_papers() -> list[dict[str, str]]:
         return list(csv.DictReader(handle))
 
 
+def read_jsonl(path: Path) -> list[dict]:
+    with path.open(encoding="utf-8") as handle:
+        return [json.loads(line) for line in handle if line.strip()]
+
+
 def normalized_title(title: str) -> str:
     ascii_title = unicodedata.normalize("NFKD", title).encode("ascii", "ignore").decode()
     return re.sub(r"[^a-z0-9]+", " ", ascii_title.lower()).strip()
@@ -82,8 +90,32 @@ def test_required_pilot_files_exist():
         "papers.ris",
         "ontology.yaml",
         "claims.jsonl",
+        "rejected_claims.jsonl",
     ):
         assert (LITERATURE / relative_path).is_file()
+    for report in (
+        "literature_pilot.md",
+        "evidence_verification.md",
+        "claim_remediation.md",
+    ):
+        assert (REPORTS / report).is_file()
+
+
+def test_reviewable_markdown_reports_are_tracked():
+    tracked = set(
+        subprocess.run(
+            ["git", "ls-files"],
+            cwd=ROOT,
+            capture_output=True,
+            check=True,
+            text=True,
+        ).stdout.splitlines()
+    )
+    assert {
+        "reports/literature_pilot.md",
+        "reports/evidence_verification.md",
+        "reports/claim_remediation.md",
+    } <= tracked
 
 
 def test_papers_have_exact_required_columns_and_bounded_size():
@@ -134,8 +166,7 @@ def test_every_claim_has_a_resolvable_identifier_present_in_papers():
     known_pmcids = {row["pmcid"] for row in papers if row["pmcid"]}
     known_dois = {row["doi"].lower() for row in papers if row["doi"]}
 
-    with CLAIMS.open(encoding="utf-8") as handle:
-        claims = [json.loads(line) for line in handle if line.strip()]
+    claims = read_jsonl(CLAIMS)
     assert claims
     for claim in claims:
         assert claim.get("claim_id")
@@ -152,6 +183,61 @@ def test_every_claim_has_a_resolvable_identifier_present_in_papers():
                 or identifiers["pmcid"] in known_pmcids
                 or (identifiers["doi"] or "").lower() in known_dois
             ), claim["claim_id"]
+
+
+def test_rejected_claims_are_preserved_but_removed_from_active_evidence():
+    active = read_jsonl(CLAIMS)
+    rejected = read_jsonl(REJECTED_CLAIMS)
+    active_ids = {claim["claim_id"] for claim in active}
+    rejected_ids = {claim["claim_id"] for claim in rejected}
+
+    assert len(active) == 99
+    assert len(rejected) == 55
+    assert active_ids.isdisjoint(rejected_ids)
+    assert {claim["prior_verdict"] for claim in rejected} == {
+        "partially_supported",
+        "unsupported",
+    }
+    assert sum(claim["prior_verdict"] == "partially_supported" for claim in rejected) == 53
+    assert sum(claim["prior_verdict"] == "unsupported" for claim in rejected) == 2
+
+    required = {
+        "claim_id",
+        "original_claim",
+        "cited_identifiers",
+        "prior_verdict",
+        "rejection_reason",
+        "remediation_action",
+        "remediated_at_utc",
+    }
+    for claim in rejected:
+        assert required <= claim.keys()
+        assert claim["original_claim"]
+        assert claim["cited_identifiers"]
+        assert claim["rejection_reason"]
+        assert claim["remediation_action"] == "removed_from_active_evidence"
+        assert any(
+            identifier.get(key)
+            for identifier in claim["cited_identifiers"]
+            for key in ("pmid", "pmcid", "doi")
+        )
+
+
+def test_each_target_retains_at_least_three_active_clinical_claims():
+    counts = {target: 0 for target in TARGET_KEYS}
+    for claim in read_jsonl(CLAIMS):
+        target = claim.get("target_id")
+        if target in counts:
+            counts[target] += 1
+    assert all(count >= 3 for count in counts.values()), counts
+
+
+def test_active_supporting_quotes_are_at_most_25_words():
+    for claim in read_jsonl(CLAIMS):
+        for citation in claim["citations"]:
+            quote = citation.get("quote")
+            if quote:
+                assert len(quote.split()) <= 25, claim["claim_id"]
 
 
 def test_licenses_use_allowed_verbatim_values():

@@ -1,6 +1,6 @@
 {
   "schema_version": "pilot-1.0",
-  "generated_at_utc": "2026-09-13T23:29:14.065164+00:00",
+  "generated_at_utc": "2026-09-13T23:52:41.069171+00:00",
   "source_of_truth": "knee/config.py::TARGET_KEYS",
   "target_registry": [
     "acl_injury",
@@ -88,24 +88,7 @@
           ]
         }
       ],
-      "anatomy": [
-        {
-          "structure": "anterior cruciate ligament attached between tibia and femur",
-          "compartment": null,
-          "laterality_relevant": true,
-          "citations": [
-            {
-              "pmid": "38646275",
-              "pmcid": "PMC11027445",
-              "doi": "10.7759/cureus.56532",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/38646275/",
-              "licence": null,
-              "quote": "ACL repair where the torn ligament is affixed back to the tibia or femur",
-              "locator": "Abstract"
-            }
-          ]
-        }
-      ],
+      "anatomy": [],
       "mri_findings": [
         {
           "finding": "MRI can contribute to diagnosis of ACL rupture.",
@@ -143,64 +126,8 @@
           ]
         }
       ],
-      "negation_cues": [
-        {
-          "phrase": "No",
-          "scope": "Negates target finding entities within its syntactic scope; coordinated lists require scope handling.",
-          "citations": [
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "negative word No",
-              "locator": "PMC BioC full text, offset 2582"
-            },
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "Proper identification of negation and its scope is essential",
-              "locator": "PMC BioC full text, offset 14321"
-            }
-          ]
-        }
-      ],
-      "uncertainty_terms": [
-        {
-          "phrase": "cannot be completely excluded",
-          "strength": "moderate",
-          "citations": [
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "cannot be completely excluded",
-              "locator": "PMC BioC full text, offset 14321"
-            }
-          ]
-        },
-        {
-          "phrase": "unlikely",
-          "strength": "low",
-          "citations": [
-            {
-              "pmid": "30503390",
-              "pmcid": null,
-              "doi": "10.1016/j.acra.2018.10.017",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/30503390/",
-              "licence": null,
-              "quote": "\"diagnostic of,\" \"unlikely\" and \"represents\"",
-              "locator": "Abstract"
-            }
-          ]
-        }
-      ],
+      "negation_cues": [],
+      "uncertainty_terms": [],
       "postoperative_terms": [
         {
           "term": "ACL reconstruction",
@@ -241,14 +168,15 @@
       "notes": [],
       "provenance": {
         "created_at_utc": "2026-09-13T23:29:14.065164+00:00",
-        "updated_at_utc": "2026-09-13T23:29:14.065164+00:00",
+        "updated_at_utc": "2026-09-13T23:52:41.069171+00:00",
         "corpus_snapshot": "literature/ontology_source_records.jsonl",
         "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
       },
       "verification": {
         "status": "unverified",
         "verified_at_utc": null,
-        "report": null
+        "report": "reports/evidence_verification.md",
+        "review_state": "pending_fresh_evidence_audit"
       }
     },
     {
@@ -357,64 +285,8 @@
           ]
         }
       ],
-      "negation_cues": [
-        {
-          "phrase": "No",
-          "scope": "Negates target finding entities within its syntactic scope; coordinated lists require scope handling.",
-          "citations": [
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "negative word No",
-              "locator": "PMC BioC full text, offset 2582"
-            },
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "Proper identification of negation and its scope is essential",
-              "locator": "PMC BioC full text, offset 14321"
-            }
-          ]
-        }
-      ],
-      "uncertainty_terms": [
-        {
-          "phrase": "cannot be completely excluded",
-          "strength": "moderate",
-          "citations": [
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "cannot be completely excluded",
-              "locator": "PMC BioC full text, offset 14321"
-            }
-          ]
-        },
-        {
-          "phrase": "unlikely",
-          "strength": "low",
-          "citations": [
-            {
-              "pmid": "30503390",
-              "pmcid": null,
-              "doi": "10.1016/j.acra.2018.10.017",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/30503390/",
-              "licence": null,
-              "quote": "\"diagnostic of,\" \"unlikely\" and \"represents\"",
-              "locator": "Abstract"
-            }
-          ]
-        }
-      ],
+      "negation_cues": [],
+      "uncertainty_terms": [],
       "postoperative_terms": [
         {
           "term": "surgical treatment of significant MCL tear",
@@ -439,14 +311,15 @@
       "notes": [],
       "provenance": {
         "created_at_utc": "2026-09-13T23:29:14.065164+00:00",
-        "updated_at_utc": "2026-09-13T23:29:14.065164+00:00",
+        "updated_at_utc": "2026-09-13T23:52:41.069171+00:00",
         "corpus_snapshot": "literature/ontology_source_records.jsonl",
         "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
       },
       "verification": {
         "status": "unverified",
         "verified_at_utc": null,
-        "report": null
+        "report": "reports/evidence_verification.md",
+        "review_state": "pending_fresh_evidence_audit"
       }
     },
     {
@@ -566,116 +439,10 @@
           ]
         }
       ],
-      "sequences": [
-        {
-          "sequence": "Multiparametric knee MRI; retained source does not prescribe one sequence",
-          "plane": "any",
-          "why_informative": "High-resolution all-plane analysis depicts tear morphology, stability and repairability.",
-          "citations": [
-            {
-              "pmid": "40142829",
-              "pmcid": "PMC11942698",
-              "doi": "10.3390/jcm14062020",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/40142829/",
-              "licence": "CC BY",
-              "quote": "MRI enables the analysis of meniscal abnormalities in all spatial planes",
-              "locator": "PMC BioC full text, offset 26961"
-            }
-          ]
-        }
-      ],
-      "negation_cues": [
-        {
-          "phrase": "No",
-          "scope": "Negates target finding entities within its syntactic scope; coordinated lists require scope handling.",
-          "citations": [
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "negative word No",
-              "locator": "PMC BioC full text, offset 2582"
-            },
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "Proper identification of negation and its scope is essential",
-              "locator": "PMC BioC full text, offset 14321"
-            }
-          ]
-        }
-      ],
-      "uncertainty_terms": [
-        {
-          "phrase": "cannot be completely excluded",
-          "strength": "moderate",
-          "citations": [
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "cannot be completely excluded",
-              "locator": "PMC BioC full text, offset 14321"
-            }
-          ]
-        },
-        {
-          "phrase": "unlikely",
-          "strength": "low",
-          "citations": [
-            {
-              "pmid": "30503390",
-              "pmcid": null,
-              "doi": "10.1016/j.acra.2018.10.017",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/30503390/",
-              "licence": null,
-              "quote": "\"diagnostic of,\" \"unlikely\" and \"represents\"",
-              "locator": "Abstract"
-            }
-          ]
-        }
-      ],
-      "postoperative_terms": [
-        {
-          "term": "partial meniscectomy",
-          "procedure": "arthroscopic partial resection",
-          "expected_appearance": "reduced meniscal tissue volume is expected",
-          "citations": [
-            {
-              "pmid": "40142829",
-              "pmcid": "PMC11942698",
-              "doi": "10.3390/jcm14062020",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/40142829/",
-              "licence": "CC BY",
-              "quote": "partial meniscectomy and meniscal repair techniques",
-              "locator": "PMC BioC full text, offset 35730"
-            }
-          ]
-        },
-        {
-          "term": "meniscal repair",
-          "procedure": "inside-out, outside-in, or all-inside suturing",
-          "expected_appearance": "sutures or fixation devices may be present",
-          "citations": [
-            {
-              "pmid": "40142829",
-              "pmcid": "PMC11942698",
-              "doi": "10.3390/jcm14062020",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/40142829/",
-              "licence": "CC BY",
-              "quote": "partial meniscectomy and meniscal repair techniques",
-              "locator": "PMC BioC full text, offset 35730"
-            }
-          ]
-        }
-      ],
+      "sequences": [],
+      "negation_cues": [],
+      "uncertainty_terms": [],
+      "postoperative_terms": [],
       "grading_or_severity": [
         {
           "scale": "MRI intrameniscal grade (retained review)",
@@ -718,14 +485,15 @@
       "notes": [],
       "provenance": {
         "created_at_utc": "2026-09-13T23:29:14.065164+00:00",
-        "updated_at_utc": "2026-09-13T23:29:14.065164+00:00",
+        "updated_at_utc": "2026-09-13T23:52:41.069171+00:00",
         "corpus_snapshot": "literature/ontology_source_records.jsonl",
         "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
       },
       "verification": {
         "status": "unverified",
         "verified_at_utc": null,
-        "report": null
+        "report": "reports/evidence_verification.md",
+        "review_state": "pending_fresh_evidence_audit"
       }
     },
     {
@@ -845,116 +613,10 @@
           ]
         }
       ],
-      "sequences": [
-        {
-          "sequence": "Multiparametric knee MRI; retained source does not prescribe one sequence",
-          "plane": "any",
-          "why_informative": "High-resolution all-plane analysis depicts tear morphology, stability and repairability.",
-          "citations": [
-            {
-              "pmid": "40142829",
-              "pmcid": "PMC11942698",
-              "doi": "10.3390/jcm14062020",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/40142829/",
-              "licence": "CC BY",
-              "quote": "MRI enables the analysis of meniscal abnormalities in all spatial planes",
-              "locator": "PMC BioC full text, offset 26961"
-            }
-          ]
-        }
-      ],
-      "negation_cues": [
-        {
-          "phrase": "No",
-          "scope": "Negates target finding entities within its syntactic scope; coordinated lists require scope handling.",
-          "citations": [
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "negative word No",
-              "locator": "PMC BioC full text, offset 2582"
-            },
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "Proper identification of negation and its scope is essential",
-              "locator": "PMC BioC full text, offset 14321"
-            }
-          ]
-        }
-      ],
-      "uncertainty_terms": [
-        {
-          "phrase": "cannot be completely excluded",
-          "strength": "moderate",
-          "citations": [
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "cannot be completely excluded",
-              "locator": "PMC BioC full text, offset 14321"
-            }
-          ]
-        },
-        {
-          "phrase": "unlikely",
-          "strength": "low",
-          "citations": [
-            {
-              "pmid": "30503390",
-              "pmcid": null,
-              "doi": "10.1016/j.acra.2018.10.017",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/30503390/",
-              "licence": null,
-              "quote": "\"diagnostic of,\" \"unlikely\" and \"represents\"",
-              "locator": "Abstract"
-            }
-          ]
-        }
-      ],
-      "postoperative_terms": [
-        {
-          "term": "partial meniscectomy",
-          "procedure": "arthroscopic partial resection",
-          "expected_appearance": "reduced meniscal tissue volume is expected",
-          "citations": [
-            {
-              "pmid": "40142829",
-              "pmcid": "PMC11942698",
-              "doi": "10.3390/jcm14062020",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/40142829/",
-              "licence": "CC BY",
-              "quote": "partial meniscectomy and meniscal repair techniques",
-              "locator": "PMC BioC full text, offset 35730"
-            }
-          ]
-        },
-        {
-          "term": "meniscal repair",
-          "procedure": "inside-out, outside-in, or all-inside suturing",
-          "expected_appearance": "sutures or fixation devices may be present",
-          "citations": [
-            {
-              "pmid": "40142829",
-              "pmcid": "PMC11942698",
-              "doi": "10.3390/jcm14062020",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/40142829/",
-              "licence": "CC BY",
-              "quote": "partial meniscectomy and meniscal repair techniques",
-              "locator": "PMC BioC full text, offset 35730"
-            }
-          ]
-        }
-      ],
+      "sequences": [],
+      "negation_cues": [],
+      "uncertainty_terms": [],
+      "postoperative_terms": [],
       "grading_or_severity": [
         {
           "scale": "MRI intrameniscal grade (retained review)",
@@ -997,68 +659,23 @@
       "notes": [],
       "provenance": {
         "created_at_utc": "2026-09-13T23:29:14.065164+00:00",
-        "updated_at_utc": "2026-09-13T23:29:14.065164+00:00",
+        "updated_at_utc": "2026-09-13T23:52:41.069171+00:00",
         "corpus_snapshot": "literature/ontology_source_records.jsonl",
         "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
       },
       "verification": {
         "status": "unverified",
         "verified_at_utc": null,
-        "report": null
+        "report": "reports/evidence_verification.md",
+        "review_state": "pending_fresh_evidence_audit"
       }
     },
     {
       "target_id": "medial_compartment_oa",
       "competition_column": "medial_compartment_oa",
       "label": "Medial-compartment osteoarthritis",
-      "definition": {
-        "text": "Pilot operational concept for osteoarthritic structural change localized to the medial tibiofemoral compartment.",
-        "citations": [
-          {
-            "pmid": "33560326",
-            "pmcid": "PMC8225295",
-            "doi": "10.1001/jama.2020.22171",
-            "source_url": "https://pubmed.ncbi.nlm.nih.gov/33560326/",
-            "licence": null,
-            "quote": "pathologic changes in cartilage, bone, synovium, ligament, muscle, and periarticular fat",
-            "locator": "Abstract"
-          },
-          {
-            "pmid": "34275494",
-            "pmcid": "PMC8287755",
-            "doi": "10.1186/s13287-021-02478-4",
-            "source_url": "https://pubmed.ncbi.nlm.nih.gov/34275494/",
-            "licence": "CC BY",
-            "quote": "tricompartmental structure comprising the patellofemoral (PF) joint and medial and lateral tibiofemoral (TF) joints",
-            "locator": "PMC BioC full text, offset 1890"
-          }
-        ]
-      },
-      "synonyms": [
-        {
-          "term": "medial tibiofemoral OA",
-          "citations": [
-            {
-              "pmid": "33560326",
-              "pmcid": "PMC8225295",
-              "doi": "10.1001/jama.2020.22171",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/33560326/",
-              "licence": null,
-              "quote": "pathologic changes in cartilage, bone, synovium, ligament, muscle, and periarticular fat",
-              "locator": "Abstract"
-            },
-            {
-              "pmid": "34275494",
-              "pmcid": "PMC8287755",
-              "doi": "10.1186/s13287-021-02478-4",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34275494/",
-              "licence": "CC BY",
-              "quote": "tricompartmental structure comprising the patellofemoral (PF) joint and medial and lateral tibiofemoral (TF) joints",
-              "locator": "PMC BioC full text, offset 1890"
-            }
-          ]
-        }
-      ],
+      "definition": null,
+      "synonyms": [],
       "abbreviations": [
         {
           "short": "OA",
@@ -1077,31 +694,6 @@
         }
       ],
       "anatomy": [
-        {
-          "structure": "femoral and tibial articular surfaces of the medial tibiofemoral compartment",
-          "compartment": "medial tibiofemoral",
-          "laterality_relevant": true,
-          "citations": [
-            {
-              "pmid": "34275494",
-              "pmcid": "PMC8287755",
-              "doi": "10.1186/s13287-021-02478-4",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34275494/",
-              "licence": "CC BY",
-              "quote": "tricompartmental structure comprising the patellofemoral (PF) joint and medial and lateral tibiofemoral (TF) joints",
-              "locator": "PMC BioC full text, offset 1890"
-            },
-            {
-              "pmid": "34918423",
-              "pmcid": "PMC9106804",
-              "doi": "10.1002/jmri.27978",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34918423/",
-              "licence": "CC BY-NC-ND",
-              "quote": "medial and lateral menisci (MM and LM)",
-              "locator": "PMC BioC full text, offset 15709"
-            }
-          ]
-        },
         {
           "structure": "cartilage, subchondral bone, synovium, ligaments and periarticular tissues",
           "compartment": "medial tibiofemoral",
@@ -1176,64 +768,8 @@
           ]
         }
       ],
-      "negation_cues": [
-        {
-          "phrase": "No",
-          "scope": "Negates target finding entities within its syntactic scope; coordinated lists require scope handling.",
-          "citations": [
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "negative word No",
-              "locator": "PMC BioC full text, offset 2582"
-            },
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "Proper identification of negation and its scope is essential",
-              "locator": "PMC BioC full text, offset 14321"
-            }
-          ]
-        }
-      ],
-      "uncertainty_terms": [
-        {
-          "phrase": "cannot be completely excluded",
-          "strength": "moderate",
-          "citations": [
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "cannot be completely excluded",
-              "locator": "PMC BioC full text, offset 14321"
-            }
-          ]
-        },
-        {
-          "phrase": "unlikely",
-          "strength": "low",
-          "citations": [
-            {
-              "pmid": "30503390",
-              "pmcid": null,
-              "doi": "10.1016/j.acra.2018.10.017",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/30503390/",
-              "licence": null,
-              "quote": "\"diagnostic of,\" \"unlikely\" and \"represents\"",
-              "locator": "Abstract"
-            }
-          ]
-        }
-      ],
+      "negation_cues": [],
+      "uncertainty_terms": [],
       "postoperative_terms": [
         {
           "term": "total joint replacement",
@@ -1313,68 +849,23 @@
       "notes": [],
       "provenance": {
         "created_at_utc": "2026-09-13T23:29:14.065164+00:00",
-        "updated_at_utc": "2026-09-13T23:29:14.065164+00:00",
+        "updated_at_utc": "2026-09-13T23:52:41.069171+00:00",
         "corpus_snapshot": "literature/ontology_source_records.jsonl",
         "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
       },
       "verification": {
         "status": "unverified",
         "verified_at_utc": null,
-        "report": null
+        "report": "reports/evidence_verification.md",
+        "review_state": "pending_fresh_evidence_audit"
       }
     },
     {
       "target_id": "lateral_compartment_oa",
       "competition_column": "lateral_compartment_oa",
       "label": "Lateral-compartment osteoarthritis",
-      "definition": {
-        "text": "Pilot operational concept for osteoarthritic structural change localized to the lateral tibiofemoral compartment.",
-        "citations": [
-          {
-            "pmid": "33560326",
-            "pmcid": "PMC8225295",
-            "doi": "10.1001/jama.2020.22171",
-            "source_url": "https://pubmed.ncbi.nlm.nih.gov/33560326/",
-            "licence": null,
-            "quote": "pathologic changes in cartilage, bone, synovium, ligament, muscle, and periarticular fat",
-            "locator": "Abstract"
-          },
-          {
-            "pmid": "34275494",
-            "pmcid": "PMC8287755",
-            "doi": "10.1186/s13287-021-02478-4",
-            "source_url": "https://pubmed.ncbi.nlm.nih.gov/34275494/",
-            "licence": "CC BY",
-            "quote": "tricompartmental structure comprising the patellofemoral (PF) joint and medial and lateral tibiofemoral (TF) joints",
-            "locator": "PMC BioC full text, offset 1890"
-          }
-        ]
-      },
-      "synonyms": [
-        {
-          "term": "lateral tibiofemoral OA",
-          "citations": [
-            {
-              "pmid": "33560326",
-              "pmcid": "PMC8225295",
-              "doi": "10.1001/jama.2020.22171",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/33560326/",
-              "licence": null,
-              "quote": "pathologic changes in cartilage, bone, synovium, ligament, muscle, and periarticular fat",
-              "locator": "Abstract"
-            },
-            {
-              "pmid": "34275494",
-              "pmcid": "PMC8287755",
-              "doi": "10.1186/s13287-021-02478-4",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34275494/",
-              "licence": "CC BY",
-              "quote": "tricompartmental structure comprising the patellofemoral (PF) joint and medial and lateral tibiofemoral (TF) joints",
-              "locator": "PMC BioC full text, offset 1890"
-            }
-          ]
-        }
-      ],
+      "definition": null,
+      "synonyms": [],
       "abbreviations": [
         {
           "short": "OA",
@@ -1393,31 +884,6 @@
         }
       ],
       "anatomy": [
-        {
-          "structure": "femoral and tibial articular surfaces of the lateral tibiofemoral compartment",
-          "compartment": "lateral tibiofemoral",
-          "laterality_relevant": true,
-          "citations": [
-            {
-              "pmid": "34275494",
-              "pmcid": "PMC8287755",
-              "doi": "10.1186/s13287-021-02478-4",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34275494/",
-              "licence": "CC BY",
-              "quote": "tricompartmental structure comprising the patellofemoral (PF) joint and medial and lateral tibiofemoral (TF) joints",
-              "locator": "PMC BioC full text, offset 1890"
-            },
-            {
-              "pmid": "34918423",
-              "pmcid": "PMC9106804",
-              "doi": "10.1002/jmri.27978",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34918423/",
-              "licence": "CC BY-NC-ND",
-              "quote": "medial and lateral menisci (MM and LM)",
-              "locator": "PMC BioC full text, offset 15709"
-            }
-          ]
-        },
         {
           "structure": "cartilage, subchondral bone, synovium, ligaments and periarticular tissues",
           "compartment": "lateral tibiofemoral",
@@ -1492,64 +958,8 @@
           ]
         }
       ],
-      "negation_cues": [
-        {
-          "phrase": "No",
-          "scope": "Negates target finding entities within its syntactic scope; coordinated lists require scope handling.",
-          "citations": [
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "negative word No",
-              "locator": "PMC BioC full text, offset 2582"
-            },
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "Proper identification of negation and its scope is essential",
-              "locator": "PMC BioC full text, offset 14321"
-            }
-          ]
-        }
-      ],
-      "uncertainty_terms": [
-        {
-          "phrase": "cannot be completely excluded",
-          "strength": "moderate",
-          "citations": [
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "cannot be completely excluded",
-              "locator": "PMC BioC full text, offset 14321"
-            }
-          ]
-        },
-        {
-          "phrase": "unlikely",
-          "strength": "low",
-          "citations": [
-            {
-              "pmid": "30503390",
-              "pmcid": null,
-              "doi": "10.1016/j.acra.2018.10.017",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/30503390/",
-              "licence": null,
-              "quote": "\"diagnostic of,\" \"unlikely\" and \"represents\"",
-              "locator": "Abstract"
-            }
-          ]
-        }
-      ],
+      "negation_cues": [],
+      "uncertainty_terms": [],
       "postoperative_terms": [
         {
           "term": "total joint replacement",
@@ -1629,14 +1039,15 @@
       "notes": [],
       "provenance": {
         "created_at_utc": "2026-09-13T23:29:14.065164+00:00",
-        "updated_at_utc": "2026-09-13T23:29:14.065164+00:00",
+        "updated_at_utc": "2026-09-13T23:52:41.069171+00:00",
         "corpus_snapshot": "literature/ontology_source_records.jsonl",
         "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
       },
       "verification": {
         "status": "unverified",
         "verified_at_utc": null,
-        "report": null
+        "report": "reports/evidence_verification.md",
+        "review_state": "pending_fresh_evidence_audit"
       }
     },
     {
@@ -1786,50 +1197,8 @@
           ]
         }
       ],
-      "sequences": [
-        {
-          "sequence": "MRI; sequence not fixed by retained review",
-          "plane": "any",
-          "why_informative": "Can detect cartilage internal derangement before macroscopic cartilage loss.",
-          "citations": [
-            {
-              "pmid": "34275494",
-              "pmcid": "PMC8287755",
-              "doi": "10.1186/s13287-021-02478-4",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34275494/",
-              "licence": "CC BY",
-              "quote": "CMP may be reversible or may progress to develop patellofemoral osteoarthritis",
-              "locator": "Abstract"
-            }
-          ]
-        }
-      ],
-      "negation_cues": [
-        {
-          "phrase": "No",
-          "scope": "Negates target finding entities within its syntactic scope; coordinated lists require scope handling.",
-          "citations": [
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "negative word No",
-              "locator": "PMC BioC full text, offset 2582"
-            },
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "Proper identification of negation and its scope is essential",
-              "locator": "PMC BioC full text, offset 14321"
-            }
-          ]
-        }
-      ],
+      "sequences": [],
+      "negation_cues": [],
       "uncertainty_terms": [
         {
           "phrase": "cannot be completely excluded",
@@ -1862,24 +1231,7 @@
           ]
         }
       ],
-      "postoperative_terms": [
-        {
-          "term": "patellar resurfacing",
-          "procedure": "salvage procedure for advanced patellofemoral OA",
-          "expected_appearance": "patellar prosthesis may be present",
-          "citations": [
-            {
-              "pmid": "34275494",
-              "pmcid": "PMC8287755",
-              "doi": "10.1186/s13287-021-02478-4",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34275494/",
-              "licence": "CC BY",
-              "quote": "patellar resurfacing prosthesis",
-              "locator": "PMC BioC full text, offset 13592"
-            }
-          ]
-        }
-      ],
+      "postoperative_terms": [],
       "grading_or_severity": [
         {
           "scale": "Outerbridge chondromalacia grades",
@@ -1902,35 +1254,20 @@
           ]
         }
       ],
-      "differentials": [
-        {
-          "entity": "patellofemoral pain without documented chondral abnormality",
-          "distinguishing_feature": "Symptoms alone are nonspecific; retained source separates the pain catch-all usage from visible cartilage change.",
-          "citations": [
-            {
-              "pmid": "34275494",
-              "pmcid": "PMC8287755",
-              "doi": "10.1186/s13287-021-02478-4",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34275494/",
-              "licence": "CC BY",
-              "quote": "tricompartmental structure comprising the patellofemoral (PF) joint and medial and lateral tibiofemoral (TF) joints",
-              "locator": "PMC BioC full text, offset 1890"
-            }
-          ]
-        }
-      ],
+      "differentials": [],
       "disagreements": [],
       "notes": [],
       "provenance": {
         "created_at_utc": "2026-09-13T23:29:14.065164+00:00",
-        "updated_at_utc": "2026-09-13T23:29:14.065164+00:00",
+        "updated_at_utc": "2026-09-13T23:52:41.069171+00:00",
         "corpus_snapshot": "literature/ontology_source_records.jsonl",
         "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
       },
       "verification": {
         "status": "unverified",
         "verified_at_utc": null,
-        "report": null
+        "report": "reports/evidence_verification.md",
+        "review_state": "pending_fresh_evidence_audit"
       }
     },
     {
@@ -1956,7 +1293,14 @@
             "source_url": "https://pubmed.ncbi.nlm.nih.gov/38776073/",
             "licence": null,
             "quote": "effusion-synovitis on magnetic resonance imaging",
-            "locator": "Abstract"
+            "locator": "Abstract",
+            "correction": {
+              "type": "erratum",
+              "pmid": "39325448",
+              "doi": "10.1001/jama.2024.20532",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/39325448/",
+              "notice": "Corrected by the cited JAMA erratum."
+            }
           }
         ]
       },
@@ -1991,54 +1335,8 @@
         }
       ],
       "abbreviations": [],
-      "anatomy": [
-        {
-          "structure": "knee joint cavity",
-          "compartment": null,
-          "laterality_relevant": true,
-          "citations": [
-            {
-              "pmid": "38776073",
-              "pmcid": "PMC11112499",
-              "doi": "10.1001/jama.2024.6063",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/38776073/",
-              "licence": null,
-              "quote": "effusion-synovitis on magnetic resonance imaging",
-              "locator": "Abstract"
-            }
-          ]
-        }
-      ],
-      "mri_findings": [
-        {
-          "finding": "Effusion may be scored jointly with synovitis on non-contrast MRI.",
-          "signal": "fluid signal; exact sequence characteristics not reported in retained source",
-          "morphology": "intra-articular fluid",
-          "secondary_signs": [
-            "synovitis"
-          ],
-          "citations": [
-            {
-              "pmid": "34968719",
-              "pmcid": null,
-              "doi": "10.1016/j.joca.2021.12.003",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34968719/",
-              "licence": null,
-              "quote": "inflammation (as measured by effusion, synovitis, baker's cysts",
-              "locator": "Abstract"
-            },
-            {
-              "pmid": "38776073",
-              "pmcid": "PMC11112499",
-              "doi": "10.1001/jama.2024.6063",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/38776073/",
-              "licence": null,
-              "quote": "effusion-synovitis on magnetic resonance imaging",
-              "locator": "Abstract"
-            }
-          ]
-        }
-      ],
+      "anatomy": [],
+      "mri_findings": [],
       "sequences": [
         {
           "sequence": "non-contrast MRI",
@@ -2057,64 +1355,8 @@
           ]
         }
       ],
-      "negation_cues": [
-        {
-          "phrase": "No",
-          "scope": "Negates target finding entities within its syntactic scope; coordinated lists require scope handling.",
-          "citations": [
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "negative word No",
-              "locator": "PMC BioC full text, offset 2582"
-            },
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "Proper identification of negation and its scope is essential",
-              "locator": "PMC BioC full text, offset 14321"
-            }
-          ]
-        }
-      ],
-      "uncertainty_terms": [
-        {
-          "phrase": "cannot be completely excluded",
-          "strength": "moderate",
-          "citations": [
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "cannot be completely excluded",
-              "locator": "PMC BioC full text, offset 14321"
-            }
-          ]
-        },
-        {
-          "phrase": "unlikely",
-          "strength": "low",
-          "citations": [
-            {
-              "pmid": "30503390",
-              "pmcid": null,
-              "doi": "10.1016/j.acra.2018.10.017",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/30503390/",
-              "licence": null,
-              "quote": "\"diagnostic of,\" \"unlikely\" and \"represents\"",
-              "locator": "Abstract"
-            }
-          ]
-        }
-      ],
+      "negation_cues": [],
+      "uncertainty_terms": [],
       "postoperative_terms": [],
       "grading_or_severity": [],
       "differentials": [
@@ -2172,14 +1414,15 @@
       "notes": [],
       "provenance": {
         "created_at_utc": "2026-09-13T23:29:14.065164+00:00",
-        "updated_at_utc": "2026-09-13T23:29:14.065164+00:00",
+        "updated_at_utc": "2026-09-13T23:52:41.069171+00:00",
         "corpus_snapshot": "literature/ontology_source_records.jsonl",
         "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
       },
       "verification": {
         "status": "unverified",
         "verified_at_utc": null,
-        "report": null
+        "report": "reports/evidence_verification.md",
+        "review_state": "pending_fresh_evidence_audit"
       }
     },
     {
@@ -2211,7 +1454,14 @@
               "source_url": "https://pubmed.ncbi.nlm.nih.gov/38776073/",
               "licence": null,
               "quote": "effusion-synovitis on magnetic resonance imaging",
-              "locator": "Abstract"
+              "locator": "Abstract",
+              "correction": {
+                "type": "erratum",
+                "pmid": "39325448",
+                "doi": "10.1001/jama.2024.20532",
+                "source_url": "https://pubmed.ncbi.nlm.nih.gov/39325448/",
+                "notice": "Corrected by the cited JAMA erratum."
+              }
             }
           ]
         }
@@ -2235,36 +1485,7 @@
           ]
         }
       ],
-      "mri_findings": [
-        {
-          "finding": "Contrast-enhanced MRI can assess synovitis; non-contrast MRI literature may report a combined effusion/synovitis feature.",
-          "signal": "enhancement; exact sequence parameters not reported in retained source",
-          "morphology": "synovial inflammatory change",
-          "secondary_signs": [
-            "joint effusion"
-          ],
-          "citations": [
-            {
-              "pmid": "34968719",
-              "pmcid": null,
-              "doi": "10.1016/j.joca.2021.12.003",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34968719/",
-              "licence": null,
-              "quote": "synovitis (measured with ultrasound or contrast enhanced MRI)",
-              "locator": "Abstract"
-            },
-            {
-              "pmid": "34968719",
-              "pmcid": null,
-              "doi": "10.1016/j.joca.2021.12.003",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34968719/",
-              "licence": null,
-              "quote": "inflammation (as measured by effusion, synovitis, baker's cysts",
-              "locator": "Abstract"
-            }
-          ]
-        }
-      ],
+      "mri_findings": [],
       "sequences": [
         {
           "sequence": "contrast-enhanced MRI",
@@ -2283,64 +1504,8 @@
           ]
         }
       ],
-      "negation_cues": [
-        {
-          "phrase": "No",
-          "scope": "Negates target finding entities within its syntactic scope; coordinated lists require scope handling.",
-          "citations": [
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "negative word No",
-              "locator": "PMC BioC full text, offset 2582"
-            },
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "Proper identification of negation and its scope is essential",
-              "locator": "PMC BioC full text, offset 14321"
-            }
-          ]
-        }
-      ],
-      "uncertainty_terms": [
-        {
-          "phrase": "cannot be completely excluded",
-          "strength": "moderate",
-          "citations": [
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "cannot be completely excluded",
-              "locator": "PMC BioC full text, offset 14321"
-            }
-          ]
-        },
-        {
-          "phrase": "unlikely",
-          "strength": "low",
-          "citations": [
-            {
-              "pmid": "30503390",
-              "pmcid": null,
-              "doi": "10.1016/j.acra.2018.10.017",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/30503390/",
-              "licence": null,
-              "quote": "\"diagnostic of,\" \"unlikely\" and \"represents\"",
-              "locator": "Abstract"
-            }
-          ]
-        }
-      ],
+      "negation_cues": [],
+      "uncertainty_terms": [],
       "postoperative_terms": [],
       "grading_or_severity": [],
       "differentials": [
@@ -2398,14 +1563,15 @@
       "notes": [],
       "provenance": {
         "created_at_utc": "2026-09-13T23:29:14.065164+00:00",
-        "updated_at_utc": "2026-09-13T23:29:14.065164+00:00",
+        "updated_at_utc": "2026-09-13T23:52:41.069171+00:00",
         "corpus_snapshot": "literature/ontology_source_records.jsonl",
         "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
       },
       "verification": {
         "status": "unverified",
         "verified_at_utc": null,
-        "report": null
+        "report": "reports/evidence_verification.md",
+        "review_state": "pending_fresh_evidence_audit"
       }
     },
     {
@@ -2510,64 +1676,8 @@
           ]
         }
       ],
-      "negation_cues": [
-        {
-          "phrase": "No",
-          "scope": "Negates target finding entities within its syntactic scope; coordinated lists require scope handling.",
-          "citations": [
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "negative word No",
-              "locator": "PMC BioC full text, offset 2582"
-            },
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "Proper identification of negation and its scope is essential",
-              "locator": "PMC BioC full text, offset 14321"
-            }
-          ]
-        }
-      ],
-      "uncertainty_terms": [
-        {
-          "phrase": "cannot be completely excluded",
-          "strength": "moderate",
-          "citations": [
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "cannot be completely excluded",
-              "locator": "PMC BioC full text, offset 14321"
-            }
-          ]
-        },
-        {
-          "phrase": "unlikely",
-          "strength": "low",
-          "citations": [
-            {
-              "pmid": "30503390",
-              "pmcid": null,
-              "doi": "10.1016/j.acra.2018.10.017",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/30503390/",
-              "licence": null,
-              "quote": "\"diagnostic of,\" \"unlikely\" and \"represents\"",
-              "locator": "Abstract"
-            }
-          ]
-        }
-      ],
+      "negation_cues": [],
+      "uncertainty_terms": [],
       "postoperative_terms": [],
       "grading_or_severity": [],
       "differentials": [
@@ -2611,14 +1721,15 @@
       "notes": [],
       "provenance": {
         "created_at_utc": "2026-09-13T23:29:14.065164+00:00",
-        "updated_at_utc": "2026-09-13T23:29:14.065164+00:00",
+        "updated_at_utc": "2026-09-13T23:52:41.069171+00:00",
         "corpus_snapshot": "literature/ontology_source_records.jsonl",
         "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
       },
       "verification": {
         "status": "unverified",
         "verified_at_utc": null,
-        "report": null
+        "report": "reports/evidence_verification.md",
+        "review_state": "pending_fresh_evidence_audit"
       }
     },
     {
@@ -2668,28 +1779,7 @@
           ]
         }
       ],
-      "mri_findings": [
-        {
-          "finding": "Post-traumatic bone contusion may be overlooked on radiographs and identified by MRI evaluation.",
-          "signal": "bone-marrow signal abnormality; exact pulse-sequence pattern not recovered in pilot",
-          "morphology": null,
-          "secondary_signs": [
-            "ligament injury",
-            "joint fluid/hematoma"
-          ],
-          "citations": [
-            {
-              "pmid": "36524486",
-              "pmcid": null,
-              "doi": "10.26355/eurrev_202212_30537",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/36524486/",
-              "licence": null,
-              "quote": "bone contusion, intraarticular fluid/hematoma formation, and fractures that cannot be detected by radiographs",
-              "locator": "Abstract"
-            }
-          ]
-        }
-      ],
+      "mri_findings": [],
       "sequences": [
         {
           "sequence": "MRI; sequence not specified by retained source",
@@ -2708,64 +1798,8 @@
           ]
         }
       ],
-      "negation_cues": [
-        {
-          "phrase": "No",
-          "scope": "Negates target finding entities within its syntactic scope; coordinated lists require scope handling.",
-          "citations": [
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "negative word No",
-              "locator": "PMC BioC full text, offset 2582"
-            },
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "Proper identification of negation and its scope is essential",
-              "locator": "PMC BioC full text, offset 14321"
-            }
-          ]
-        }
-      ],
-      "uncertainty_terms": [
-        {
-          "phrase": "cannot be completely excluded",
-          "strength": "moderate",
-          "citations": [
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "cannot be completely excluded",
-              "locator": "PMC BioC full text, offset 14321"
-            }
-          ]
-        },
-        {
-          "phrase": "unlikely",
-          "strength": "low",
-          "citations": [
-            {
-              "pmid": "30503390",
-              "pmcid": null,
-              "doi": "10.1016/j.acra.2018.10.017",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/30503390/",
-              "licence": null,
-              "quote": "\"diagnostic of,\" \"unlikely\" and \"represents\"",
-              "locator": "Abstract"
-            }
-          ]
-        }
-      ],
+      "negation_cues": [],
+      "uncertainty_terms": [],
       "postoperative_terms": [],
       "grading_or_severity": [],
       "differentials": [
@@ -2789,43 +1823,22 @@
       "notes": [],
       "provenance": {
         "created_at_utc": "2026-09-13T23:29:14.065164+00:00",
-        "updated_at_utc": "2026-09-13T23:29:14.065164+00:00",
+        "updated_at_utc": "2026-09-13T23:52:41.069171+00:00",
         "corpus_snapshot": "literature/ontology_source_records.jsonl",
         "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
       },
       "verification": {
         "status": "unverified",
         "verified_at_utc": null,
-        "report": null
+        "report": "reports/evidence_verification.md",
+        "review_state": "pending_fresh_evidence_audit"
       }
     },
     {
       "target_id": "fracture",
       "competition_column": "fracture",
       "label": "Fracture",
-      "definition": {
-        "text": "Pilot concept spanning acute traumatic, stress/fatigue, insufficiency and avulsion fractures involving the knee.",
-        "citations": [
-          {
-            "pmid": "27002328",
-            "pmcid": null,
-            "doi": "10.1007/s10140-016-1390-5",
-            "source_url": "https://pubmed.ncbi.nlm.nih.gov/27002328/",
-            "licence": null,
-            "quote": "Stress fracture, in its most inclusive description, includes both fatigue and insufficiency fracture",
-            "locator": "Abstract"
-          },
-          {
-            "pmid": "37321295",
-            "pmcid": null,
-            "doi": "10.1016/j.jisako.2023.06.001",
-            "source_url": "https://pubmed.ncbi.nlm.nih.gov/37321295/",
-            "licence": null,
-            "quote": "Tibial spine fractures (TSFs) are avulsion fractures",
-            "locator": "Abstract"
-          }
-        ]
-      },
+      "definition": null,
       "synonyms": [
         {
           "term": "stress fracture",
@@ -2965,64 +1978,8 @@
           ]
         }
       ],
-      "negation_cues": [
-        {
-          "phrase": "No",
-          "scope": "Negates target finding entities within its syntactic scope; coordinated lists require scope handling.",
-          "citations": [
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "negative word No",
-              "locator": "PMC BioC full text, offset 2582"
-            },
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "Proper identification of negation and its scope is essential",
-              "locator": "PMC BioC full text, offset 14321"
-            }
-          ]
-        }
-      ],
-      "uncertainty_terms": [
-        {
-          "phrase": "cannot be completely excluded",
-          "strength": "moderate",
-          "citations": [
-            {
-              "pmid": "31711539",
-              "pmcid": "PMC6849161",
-              "doi": "10.1186/s13326-019-0211-7",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
-              "licence": "CC BY",
-              "quote": "cannot be completely excluded",
-              "locator": "PMC BioC full text, offset 14321"
-            }
-          ]
-        },
-        {
-          "phrase": "unlikely",
-          "strength": "low",
-          "citations": [
-            {
-              "pmid": "30503390",
-              "pmcid": null,
-              "doi": "10.1016/j.acra.2018.10.017",
-              "source_url": "https://pubmed.ncbi.nlm.nih.gov/30503390/",
-              "licence": null,
-              "quote": "\"diagnostic of,\" \"unlikely\" and \"represents\"",
-              "locator": "Abstract"
-            }
-          ]
-        }
-      ],
+      "negation_cues": [],
+      "uncertainty_terms": [],
       "postoperative_terms": [
         {
           "term": "arthroscopic fixation",
@@ -3078,14 +2035,15 @@
       "notes": [],
       "provenance": {
         "created_at_utc": "2026-09-13T23:29:14.065164+00:00",
-        "updated_at_utc": "2026-09-13T23:29:14.065164+00:00",
+        "updated_at_utc": "2026-09-13T23:52:41.069171+00:00",
         "corpus_snapshot": "literature/ontology_source_records.jsonl",
         "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
       },
       "verification": {
         "status": "unverified",
         "verified_at_utc": null,
-        "report": null
+        "report": "reports/evidence_verification.md",
+        "review_state": "pending_fresh_evidence_audit"
       }
     }
   ],

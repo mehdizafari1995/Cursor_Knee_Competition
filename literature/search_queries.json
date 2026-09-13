@@ -13,7 +13,7 @@
   "email": "rsna-knee-literature@users.noreply.github.com",
   "ncbi_api_key_used": false,
   "maximum_request_rate_per_second": 2.7777777777777777,
-  "combined_unique_records": 84,
+  "combined_unique_records": 89,
   "searches": [
     {
       "query_id": "Q01_ligaments",
@@ -339,6 +339,63 @@
       "target_abnormalities": []
     },
     {
+      "query_id": "PMC01_knee_mri_oa",
+      "question": "Which open-access PMC records retrieved by a bounded search address knee MRI?",
+      "query": "(knee[Title/Abstract]) AND (\"Magnetic Resonance Imaging\"[MeSH Terms] OR MRI[Title/Abstract] OR \"MR imaging\"[Title/Abstract]) AND open access[filter]",
+      "query_translation": "\"knee\"[Title/Abstract] AND (\"Magnetic Resonance Imaging\"[MeSH Terms] OR \"MRI\"[Title/Abstract] OR \"MR imaging\"[Title/Abstract]) AND \"open access\"[Filter]",
+      "database": "pmc",
+      "executed_at_utc": "2026-09-13T23:31:35.077869+00:00",
+      "limits": {
+        "date_range": null,
+        "language": null,
+        "publication_type": null,
+        "open_access_filter": true,
+        "result_order": "relevance",
+        "per_query_retention_cap": 5
+      },
+      "hit_count": 4585,
+      "retained_count": 5,
+      "screening_rule": "Retain up to the first 5 PMC records sorted by relevance with PMIDs resolvable through PMC esummary and PubMed efetch; global deduplication is PMID, then DOI, then normalized title.",
+      "tool_version": "rsna-knee-literature-pilot/1.1",
+      "retained_pmids": [
+        "34593750",
+        "34696737",
+        "17659090",
+        "24588860",
+        "29350638"
+      ],
+      "retained_pmcids": [
+        "PMC8491558",
+        "PMC8546952",
+        "PMC1959197",
+        "PMC3973891",
+        "PMC6179065"
+      ],
+      "target_abnormalities": [],
+      "oa_web_service_results": {
+        "PMC8491558": {
+          "http_status": 404,
+          "license": null
+        },
+        "PMC8546952": {
+          "http_status": 404,
+          "license": null
+        },
+        "PMC1959197": {
+          "http_status": 404,
+          "license": null
+        },
+        "PMC3973891": {
+          "http_status": 404,
+          "license": null
+        },
+        "PMC6179065": {
+          "http_status": 404,
+          "license": null
+        }
+      }
+    },
+    {
       "query": "((knee[Title/Abstract]) AND (MRI[Title/Abstract] OR \"magnetic resonance imaging\"[MeSH Terms])) AND ((\"anterior cruciate ligament\"[Title/Abstract] OR \"medial collateral ligament\"[Title/Abstract] OR meniscus[Title/Abstract]) AND (review[Publication Type] OR review[Title]))",
       "query_translation": "\"knee\"[Title/Abstract] AND (\"MRI\"[Title/Abstract] OR \"magnetic resonance imaging\"[MeSH Terms]) AND ((\"anterior cruciate ligament\"[Title/Abstract] OR \"medial collateral ligament\"[Title/Abstract] OR \"meniscus\"[Title/Abstract]) AND (\"review\"[Publication Type] OR \"review\"[Title]))",
       "database": "pubmed",
@@ -541,5 +598,6 @@
       "query_id": "baker_cyst_mri_gap",
       "target_abnormalities": []
     }
-  ]
+  ],
+  "pmc_oa_web_service_note": "The documented OA Web Service returned HTTP 404 after its 2026-08-25 retirement; retained PMC licences remain null unless returned verbatim."
 }

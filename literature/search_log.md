@@ -15,8 +15,9 @@ Pilot scope: records returned by the documented queries on the execution dates; 
 | `Q09_report_weak_supervision` | pubmed | 2026-09-13T23:26:48.940511+00:00 | 6 | 3 |
 | `Q10_multi_instance` | pubmed | 2026-09-13T23:26:50.508048+00:00 | 1 | 1 |
 | `Q11_2_5d` | pubmed | 2026-09-13T23:26:51.840820+00:00 | 2 | 2 |
+| `PMC01_knee_mri_oa` | pmc | 2026-09-13T23:31:35.077869+00:00 | 4585 | 5 |
 
-Combined unique records after PMID → DOI → normalized-title deduplication: 59.
+Combined unique records after PMID → DOI → normalized-title deduplication: 64.
 
 ## Q01_ligaments
 
@@ -150,3 +151,17 @@ Limits: `{"date_range": null, "language": null, "publication_type": null, "resul
 
 Screening: Retain up to the first 3 PubMed records sorted by relevance that returned parseable efetch metadata; global deduplication is PMID, then DOI, then normalized title.
 
+
+## PMC01_knee_mri_oa
+
+Question: Which open-access PMC records retrieved by a bounded search address knee MRI?
+
+Exact query: `(knee[Title/Abstract]) AND ("Magnetic Resonance Imaging"[MeSH Terms] OR MRI[Title/Abstract] OR "MR imaging"[Title/Abstract]) AND open access[filter]`
+
+PMC translation: `"knee"[Title/Abstract] AND ("Magnetic Resonance Imaging"[MeSH Terms] OR "MRI"[Title/Abstract] OR "MR imaging"[Title/Abstract]) AND "open access"[Filter]`
+
+Limits: `{"date_range": null, "language": null, "publication_type": null, "open_access_filter": true, "result_order": "relevance", "per_query_retention_cap": 5}`
+
+Screening: Retain up to the first 5 PMC records sorted by relevance with PMIDs resolvable through PMC esummary and PubMed efetch; global deduplication is PMID, then DOI, then normalized title.
+
+OA licence lookup: the documented PMC OA Web Service was queried for every retained PMCID. It returned HTTP 404 after its 2026-08-25 retirement; no licence was inferred.

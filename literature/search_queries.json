@@ -13,7 +13,7 @@
   "email": "rsna-knee-literature@users.noreply.github.com",
   "ncbi_api_key_used": false,
   "maximum_request_rate_per_second": 2.7777777777777777,
-  "combined_unique_records": 59,
+  "combined_unique_records": 84,
   "searches": [
     {
       "query_id": "Q01_ligaments",
@@ -336,6 +336,209 @@
         "42527501",
         "42167455"
       ],
+      "target_abnormalities": []
+    },
+    {
+      "query": "((knee[Title/Abstract]) AND (MRI[Title/Abstract] OR \"magnetic resonance imaging\"[MeSH Terms])) AND ((\"anterior cruciate ligament\"[Title/Abstract] OR \"medial collateral ligament\"[Title/Abstract] OR meniscus[Title/Abstract]) AND (review[Publication Type] OR review[Title]))",
+      "query_translation": "\"knee\"[Title/Abstract] AND (\"MRI\"[Title/Abstract] OR \"magnetic resonance imaging\"[MeSH Terms]) AND ((\"anterior cruciate ligament\"[Title/Abstract] OR \"medial collateral ligament\"[Title/Abstract] OR \"meniscus\"[Title/Abstract]) AND (\"review\"[Publication Type] OR \"review\"[Title]))",
+      "database": "pubmed",
+      "executed_at_utc": "2026-09-13T23:22:50.372206+00:00",
+      "limits": {
+        "sort": "relevance",
+        "retmax": 5,
+        "other": "none"
+      },
+      "hit_count": 496,
+      "retained_count": 5,
+      "screening_rule": "Retain relevant records after title/abstract review; deduplicate by DOI, PMID, then normalized title; staging corpus capped at 30 unique papers.",
+      "tool_version": "cursor_knee_clinical_ontology_pilot/1.0",
+      "retained_pmids": [
+        "37874571",
+        "38646275",
+        "28878515",
+        "22149697",
+        "24777218"
+      ],
+      "query_id": "clinical_ligament_meniscus",
+      "target_abnormalities": []
+    },
+    {
+      "query": "(knee[Title/Abstract] AND (MRI[Title/Abstract] OR \"magnetic resonance imaging\"[MeSH Terms]) AND osteoarthritis[Title/Abstract]) AND (compartment[Title/Abstract] OR cartilage[Title/Abstract] OR WORMS[Title/Abstract]) AND (review[Publication Type] OR review[Title])",
+      "query_translation": "\"knee\"[Title/Abstract] AND (\"MRI\"[Title/Abstract] OR \"magnetic resonance imaging\"[MeSH Terms]) AND \"osteoarthritis\"[Title/Abstract] AND (\"compartment\"[Title/Abstract] OR \"cartilage\"[Title/Abstract] OR \"WORMS\"[Title/Abstract]) AND (\"review\"[Publication Type] OR \"review\"[Title])",
+      "database": "pubmed",
+      "executed_at_utc": "2026-09-13T23:22:51.247096+00:00",
+      "limits": {
+        "sort": "relevance",
+        "retmax": 4,
+        "other": "none"
+      },
+      "hit_count": 275,
+      "retained_count": 4,
+      "screening_rule": "Retain relevant records after title/abstract review; deduplicate by DOI, PMID, then normalized title; staging corpus capped at 30 unique papers.",
+      "tool_version": "cursor_knee_clinical_ontology_pilot/1.0",
+      "retained_pmids": [
+        "33560326",
+        "34275494",
+        "40142829",
+        "30118392"
+      ],
+      "query_id": "clinical_osteoarthritis",
+      "target_abnormalities": []
+    },
+    {
+      "query": "(knee[Title/Abstract] AND (MRI[Title/Abstract] OR \"magnetic resonance\"[Title/Abstract])) AND (synovitis[Title/Abstract] OR effusion[Title/Abstract] OR \"Baker cyst\"[Title/Abstract] OR \"popliteal cyst\"[Title/Abstract])",
+      "query_translation": "\"knee\"[Title/Abstract] AND (\"MRI\"[Title/Abstract] OR \"magnetic resonance\"[Title/Abstract]) AND (\"synovitis\"[Title/Abstract] OR \"effusion\"[Title/Abstract] OR \"Baker cyst\"[Title/Abstract] OR \"popliteal cyst\"[Title/Abstract])",
+      "database": "pubmed",
+      "executed_at_utc": "2026-09-13T23:22:52.011152+00:00",
+      "limits": {
+        "sort": "relevance",
+        "retmax": 5,
+        "other": "none"
+      },
+      "hit_count": 1481,
+      "retained_count": 5,
+      "screening_rule": "Retain relevant records after title/abstract review; deduplicate by DOI, PMID, then normalized title; staging corpus capped at 30 unique papers.",
+      "tool_version": "cursor_knee_clinical_ontology_pilot/1.0",
+      "retained_pmids": [
+        "34968719",
+        "38776073",
+        "21841737",
+        "14972335",
+        "39219912"
+      ],
+      "query_id": "clinical_synovial_fluid_cyst",
+      "target_abnormalities": []
+    },
+    {
+      "query": "(knee[Title/Abstract] AND (MRI[Title/Abstract] OR \"magnetic resonance\"[Title/Abstract])) AND ((\"bone bruise\"[Title/Abstract] OR \"bone contusion\"[Title/Abstract] OR fracture[Title/Abstract]) AND (review[Publication Type] OR review[Title]))",
+      "query_translation": "\"knee\"[Title/Abstract] AND (\"MRI\"[Title/Abstract] OR \"magnetic resonance\"[Title/Abstract]) AND ((\"bone bruise\"[Title/Abstract] OR \"bone contusion\"[Title/Abstract] OR \"fracture\"[Title/Abstract]) AND (\"review\"[Publication Type] OR \"review\"[Title]))",
+      "database": "pubmed",
+      "executed_at_utc": "2026-09-13T23:22:52.805300+00:00",
+      "limits": {
+        "sort": "relevance",
+        "retmax": 4,
+        "other": "none"
+      },
+      "hit_count": 127,
+      "retained_count": 4,
+      "screening_rule": "Retain relevant records after title/abstract review; deduplicate by DOI, PMID, then normalized title; staging corpus capped at 30 unique papers.",
+      "tool_version": "cursor_knee_clinical_ontology_pilot/1.0",
+      "retained_pmids": [
+        "25592052",
+        "34109940",
+        "37321295",
+        "27002328"
+      ],
+      "query_id": "clinical_bone_injury",
+      "target_abnormalities": []
+    },
+    {
+      "query": "(knee[Title/Abstract] AND (MRI[Title/Abstract] OR \"magnetic resonance\"[Title/Abstract])) AND (postoperative[Title/Abstract] OR postsurgical[Title/Abstract] OR reconstruction[Title/Abstract] OR meniscectomy[Title/Abstract]) AND (review[Publication Type] OR review[Title])",
+      "query_translation": "\"knee\"[Title/Abstract] AND (\"MRI\"[Title/Abstract] OR \"magnetic resonance\"[Title/Abstract]) AND (\"postoperative\"[Title/Abstract] OR \"postsurgical\"[Title/Abstract] OR \"reconstruction\"[Title/Abstract] OR \"meniscectomy\"[Title/Abstract]) AND (\"review\"[Publication Type] OR \"review\"[Title])",
+      "database": "pubmed",
+      "executed_at_utc": "2026-09-13T23:22:53.526791+00:00",
+      "limits": {
+        "sort": "relevance",
+        "retmax": 4,
+        "other": "none"
+      },
+      "hit_count": 408,
+      "retained_count": 4,
+      "screening_rule": "Retain relevant records after title/abstract review; deduplicate by DOI, PMID, then normalized title; staging corpus capped at 30 unique papers.",
+      "tool_version": "cursor_knee_clinical_ontology_pilot/1.0",
+      "retained_pmids": [
+        "31431274",
+        "35383651",
+        "38646275",
+        "22149697"
+      ],
+      "query_id": "postoperative_knee_mri",
+      "target_abnormalities": []
+    },
+    {
+      "query": "((radiology report*[Title/Abstract]) AND (negation[Title/Abstract] OR uncertainty[Title/Abstract] OR \"weak supervision\"[Title/Abstract])) AND (MRI[Title/Abstract] OR imaging[Title/Abstract])",
+      "query_translation": "\"radiology report*\"[Title/Abstract] AND (\"negation\"[Title/Abstract] OR \"uncertainty\"[Title/Abstract] OR \"weak supervision\"[Title/Abstract]) AND (\"MRI\"[Title/Abstract] OR \"imaging\"[Title/Abstract])",
+      "database": "pubmed",
+      "executed_at_utc": "2026-09-13T23:22:54.325522+00:00",
+      "limits": {
+        "sort": "relevance",
+        "retmax": 4,
+        "other": "none"
+      },
+      "hit_count": 39,
+      "retained_count": 4,
+      "screening_rule": "Retain relevant records after title/abstract review; deduplicate by DOI, PMID, then normalized title; staging corpus capped at 30 unique papers.",
+      "tool_version": "cursor_knee_clinical_ontology_pilot/1.0",
+      "retained_pmids": [
+        "31711539",
+        "30503390",
+        "32813098",
+        "36116297"
+      ],
+      "query_id": "report_language_weak_supervision",
+      "target_abnormalities": []
+    },
+    {
+      "query": "(knee[Title/Abstract] AND MRI[Title/Abstract]) AND (\"deep learning\"[Title/Abstract] OR \"machine learning\"[Title/Abstract]) AND (\"multi-instance\"[Title/Abstract] OR 2.5D[Title/Abstract] OR three-dimensional[Title/Abstract] OR classification[Title/Abstract])",
+      "query_translation": "\"knee\"[Title/Abstract] AND \"MRI\"[Title/Abstract] AND (\"deep learning\"[Title/Abstract] OR \"machine learning\"[Title/Abstract]) AND (\"multi-instance\"[Title/Abstract] OR \"2.5D\"[Title/Abstract] OR \"three-dimensional\"[Title/Abstract] OR \"classification\"[Title/Abstract])",
+      "database": "pubmed",
+      "executed_at_utc": "2026-09-13T23:22:54.987255+00:00",
+      "limits": {
+        "sort": "relevance",
+        "retmax": 4,
+        "other": "none"
+      },
+      "hit_count": 132,
+      "retained_count": 4,
+      "screening_rule": "Retain relevant records after title/abstract review; deduplicate by DOI, PMID, then normalized title; staging corpus capped at 30 unique papers.",
+      "tool_version": "cursor_knee_clinical_ontology_pilot/1.0",
+      "retained_pmids": [
+        "34918423",
+        "35262842",
+        "42302108",
+        "30188817"
+      ],
+      "query_id": "knee_mri_ml_methods",
+      "target_abnormalities": []
+    },
+    {
+      "query": "(knee[Title/Abstract] AND MRI[Title/Abstract]) AND (\"bone bruise\"[Title/Abstract] OR \"bone contusion\"[Title/Abstract]) AND (imaging[Title/Abstract] OR review[Publication Type])",
+      "query_translation": "\"knee\"[Title/Abstract] AND \"MRI\"[Title/Abstract] AND (\"bone bruise\"[Title/Abstract] OR \"bone contusion\"[Title/Abstract]) AND (\"imaging\"[Title/Abstract] OR \"review\"[Publication Type])",
+      "database": "pubmed",
+      "executed_at_utc": "2026-09-13T23:24:21.942616+00:00",
+      "limits": {
+        "sort": "relevance",
+        "retmax": 10,
+        "other": "none"
+      },
+      "hit_count": 94,
+      "retained_count": 1,
+      "retained_pmids": [
+        "36524486"
+      ],
+      "screening_rule": "Retain the first relevance-ranked record not already in the 28-paper staging corpus; stop at 30 unique papers.",
+      "tool_version": "cursor_knee_clinical_ontology_pilot/1.0",
+      "query_id": "bone_contusion_mri_gap",
+      "target_abnormalities": []
+    },
+    {
+      "query": "(knee[Title/Abstract] AND MRI[Title/Abstract]) AND (\"Baker cyst\"[Title/Abstract] OR \"Baker's cyst\"[Title/Abstract] OR \"popliteal cyst\"[Title/Abstract]) AND (imaging[Title/Abstract] OR review[Publication Type])",
+      "query_translation": "\"knee\"[Title/Abstract] AND \"MRI\"[Title/Abstract] AND (\"Baker cyst\"[Title/Abstract] OR \"Baker's cyst\"[Title/Abstract] OR \"popliteal cyst\"[Title/Abstract]) AND (\"imaging\"[Title/Abstract] OR \"review\"[Publication Type])",
+      "database": "pubmed",
+      "executed_at_utc": "2026-09-13T23:24:22.654918+00:00",
+      "limits": {
+        "sort": "relevance",
+        "retmax": 10,
+        "other": "none"
+      },
+      "hit_count": 67,
+      "retained_count": 1,
+      "retained_pmids": [
+        "31489217"
+      ],
+      "screening_rule": "Retain the first relevance-ranked record not already in the 28-paper staging corpus; stop at 30 unique papers.",
+      "tool_version": "cursor_knee_clinical_ontology_pilot/1.0",
+      "query_id": "baker_cyst_mri_gap",
       "target_abnormalities": []
     }
   ]

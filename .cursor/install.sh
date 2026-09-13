@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Idempotent dependency bootstrap for the Cursor Knee Competition project.
+# Idempotent dependency bootstrap for the RSNA Knee Abnormality Detection project.
 # Safe to run repeatedly: apt install is a no-op when packages are present,
 # venv creation skips an existing environment, and pip reconciles requirements.
 set -euo pipefail

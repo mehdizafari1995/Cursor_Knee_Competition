@@ -1,4 +1,4 @@
 {
-  "name": "Cursor Knee Competition",
+  "name": "RSNA Knee Abnormality Detection",
   "install": "bash .cursor/install.sh"
 }

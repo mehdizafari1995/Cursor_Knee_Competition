@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "cursor-knee-competition"
 version = "0.1.0"
-description = "End-to-end knee osteoarthritis KL-grade classification pipeline"
+description = "End-to-end RSNA Knee Abnormality Detection pipeline (multi-label knee MRI, macro-averaged ROC AUC)"
 requires-python = ">=3.10"
 
 [tool.setuptools]

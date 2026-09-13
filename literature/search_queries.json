@@ -9,6 +9,7 @@
     "doi",
     "normalized_title"
   ],
+  "normalized_title_method": "Unicode NFKD; remove non-ASCII code points; lowercase; replace each run of non-alphanumeric characters with one space; trim leading and trailing spaces.",
   "tool": "rsna_knee_literature_pilot",
   "email": "rsna-knee-literature@users.noreply.github.com",
   "ncbi_api_key_used": false,

@@ -1,0 +1,1833 @@
+{
+  "schema_version": "pilot-1.0",
+  "generated_at_utc": "2026-09-14T00:12:31.975603+00:00",
+  "source_of_truth": "knee/config.py::TARGET_KEYS",
+  "target_registry": [
+    "acl_injury",
+    "mcl_injury",
+    "medial_meniscus_injury",
+    "lateral_meniscus_injury",
+    "medial_compartment_oa",
+    "lateral_compartment_oa",
+    "patellofemoral_oa",
+    "joint_effusion",
+    "synovitis",
+    "baker_cyst",
+    "bone_contusion",
+    "fracture"
+  ],
+  "corpus": {
+    "path": "literature/ontology_source_records.jsonl",
+    "unique_papers": 30,
+    "scope": "Small, non-exhaustive staging corpus retrieved through documented NCBI API calls during this session."
+  },
+  "targets": [
+    {
+      "target_id": "acl_injury",
+      "competition_column": "acl_injury",
+      "label": "ACL injury",
+      "definition": {
+        "text": "Pilot concept for injury or rupture of the anterior cruciate ligament.",
+        "citations": [
+          {
+            "pmid": "38646275",
+            "pmcid": "PMC11027445",
+            "doi": "10.7759/cureus.56532",
+            "source_url": "https://pubmed.ncbi.nlm.nih.gov/38646275/",
+            "licence": null,
+            "quote": "Anterior cruciate ligament (ACL) injury",
+            "locator": "Abstract"
+          }
+        ]
+      },
+      "synonyms": [
+        {
+          "term": "anterior cruciate ligament rupture",
+          "citations": [
+            {
+              "pmid": "31431274",
+              "pmcid": "PMC6723618",
+              "doi": "10.1016/j.berh.2019.01.018",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31431274/",
+              "licence": null,
+              "quote": "three main treatment options for ACL rupture",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "abbreviations": [
+        {
+          "short": "ACL",
+          "long": "anterior cruciate ligament",
+          "citations": [
+            {
+              "pmid": "38646275",
+              "pmcid": "PMC11027445",
+              "doi": "10.7759/cureus.56532",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/38646275/",
+              "licence": null,
+              "quote": "Anterior cruciate ligament (ACL) injury",
+              "locator": "Abstract"
+            }
+          ]
+        },
+        {
+          "short": "ACLR",
+          "long": "anterior cruciate ligament reconstruction",
+          "citations": [
+            {
+              "pmid": "31431274",
+              "pmcid": "PMC6723618",
+              "doi": "10.1016/j.berh.2019.01.018",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31431274/",
+              "licence": null,
+              "quote": "three main treatment options for ACL rupture",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "anatomy": [],
+      "mri_findings": [
+        {
+          "finding": "MRI can contribute to diagnosis of ACL rupture.",
+          "signal": null,
+          "morphology": "rupture",
+          "secondary_signs": [],
+          "citations": [
+            {
+              "pmid": "31431274",
+              "pmcid": "PMC6723618",
+              "doi": "10.1016/j.berh.2019.01.018",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31431274/",
+              "licence": null,
+              "quote": "three main treatment options for ACL rupture",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "sequences": [
+        {
+          "sequence": "MRI; sequence not specified by retained source",
+          "plane": "any",
+          "why_informative": "Used with history and examination when appropriate for ACL-rupture diagnosis.",
+          "citations": [
+            {
+              "pmid": "31431274",
+              "pmcid": "PMC6723618",
+              "doi": "10.1016/j.berh.2019.01.018",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31431274/",
+              "licence": null,
+              "quote": "three main treatment options for ACL rupture",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "negation_cues": [],
+      "uncertainty_terms": [],
+      "postoperative_terms": [
+        {
+          "term": "ACL reconstruction",
+          "procedure": "autograft or allograft reconstruction",
+          "expected_appearance": null,
+          "citations": [
+            {
+              "pmid": "38646275",
+              "pmcid": "PMC11027445",
+              "doi": "10.7759/cureus.56532",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/38646275/",
+              "licence": null,
+              "quote": "Anterior cruciate ligament (ACL) injury",
+              "locator": "Abstract"
+            }
+          ]
+        },
+        {
+          "term": "ACL repair",
+          "procedure": "reattachment of torn ligament to tibia or femur",
+          "expected_appearance": null,
+          "citations": [
+            {
+              "pmid": "38646275",
+              "pmcid": "PMC11027445",
+              "doi": "10.7759/cureus.56532",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/38646275/",
+              "licence": null,
+              "quote": "Anterior cruciate ligament (ACL) injury",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "grading_or_severity": [],
+      "differentials": [],
+      "disagreements": [],
+      "notes": [],
+      "provenance": {
+        "created_at_utc": "2026-09-13T23:29:14.065164+00:00",
+        "updated_at_utc": "2026-09-13T23:52:41.069171+00:00",
+        "corpus_snapshot": "literature/ontology_source_records.jsonl",
+        "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
+      },
+      "verification": {
+        "status": "verified",
+        "verified_at_utc": "2026-09-14T00:22:00+00:00",
+        "report": "reports/evidence_verification.md",
+        "review_state": "accepted_after_independent_audit"
+      }
+    },
+    {
+      "target_id": "mcl_injury",
+      "competition_column": "mcl_injury",
+      "label": "MCL injury",
+      "definition": {
+        "text": "Pilot concept for injury of the layered medial collateral ligament, ranging from superficial-layer tearing to disruption of deep and superficial layers.",
+        "citations": [
+          {
+            "pmid": "28878515",
+            "pmcid": "PMC5581380",
+            "doi": "10.1016/j.jor.2017.07.017",
+            "source_url": "https://pubmed.ncbi.nlm.nih.gov/28878515/",
+            "licence": null,
+            "quote": "The MCL has a complex, layered anatomy",
+            "locator": "Abstract"
+          }
+        ]
+      },
+      "synonyms": [
+        {
+          "term": "medial collateral ligament tear",
+          "citations": [
+            {
+              "pmid": "28878515",
+              "pmcid": "PMC5581380",
+              "doi": "10.1016/j.jor.2017.07.017",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/28878515/",
+              "licence": null,
+              "quote": "The MCL has a complex, layered anatomy",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "abbreviations": [
+        {
+          "short": "MCL",
+          "long": "medial collateral ligament",
+          "citations": [
+            {
+              "pmid": "28878515",
+              "pmcid": "PMC5581380",
+              "doi": "10.1016/j.jor.2017.07.017",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/28878515/",
+              "licence": null,
+              "quote": "The MCL has a complex, layered anatomy",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "anatomy": [
+        {
+          "structure": "medial collateral ligament, superficial and deep layers",
+          "compartment": "medial knee",
+          "laterality_relevant": true,
+          "citations": [
+            {
+              "pmid": "28878515",
+              "pmcid": "PMC5581380",
+              "doi": "10.1016/j.jor.2017.07.017",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/28878515/",
+              "licence": null,
+              "quote": "The MCL has a complex, layered anatomy",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "mri_findings": [
+        {
+          "finding": "MRI is identified as the diagnostic reference in the retained review.",
+          "signal": null,
+          "morphology": "superficial-layer tear or combined deep-and-superficial disruption",
+          "secondary_signs": [],
+          "citations": [
+            {
+              "pmid": "28878515",
+              "pmcid": "PMC5581380",
+              "doi": "10.1016/j.jor.2017.07.017",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/28878515/",
+              "licence": null,
+              "quote": "The MCL has a complex, layered anatomy",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "sequences": [
+        {
+          "sequence": "MRI; sequence not specified by retained source",
+          "plane": "any",
+          "why_informative": "Assesses the layered MCL injury.",
+          "citations": [
+            {
+              "pmid": "28878515",
+              "pmcid": "PMC5581380",
+              "doi": "10.1016/j.jor.2017.07.017",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/28878515/",
+              "licence": null,
+              "quote": "The MCL has a complex, layered anatomy",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "negation_cues": [],
+      "uncertainty_terms": [],
+      "postoperative_terms": [
+        {
+          "term": "surgical treatment of significant MCL tear",
+          "procedure": null,
+          "expected_appearance": null,
+          "citations": [
+            {
+              "pmid": "28878515",
+              "pmcid": "PMC5581380",
+              "doi": "10.1016/j.jor.2017.07.017",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/28878515/",
+              "licence": null,
+              "quote": "more significant tears often necessitate surgery",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "grading_or_severity": [],
+      "differentials": [],
+      "disagreements": [],
+      "notes": [],
+      "provenance": {
+        "created_at_utc": "2026-09-13T23:29:14.065164+00:00",
+        "updated_at_utc": "2026-09-13T23:52:41.069171+00:00",
+        "corpus_snapshot": "literature/ontology_source_records.jsonl",
+        "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
+      },
+      "verification": {
+        "status": "verified",
+        "verified_at_utc": "2026-09-14T00:22:00+00:00",
+        "report": "reports/evidence_verification.md",
+        "review_state": "accepted_after_independent_audit"
+      }
+    },
+    {
+      "target_id": "medial_meniscus_injury",
+      "competition_column": "medial_meniscus_injury",
+      "label": "Medial meniscus injury",
+      "definition": {
+        "text": "Pilot concept for traumatic or degenerative tearing of the medial meniscus.",
+        "citations": [
+          {
+            "pmid": "40142829",
+            "pmcid": "PMC11942698",
+            "doi": "10.3390/jcm14062020",
+            "source_url": "https://pubmed.ncbi.nlm.nih.gov/40142829/",
+            "licence": "CC BY",
+            "quote": "acute and degenerative tears",
+            "locator": "PMC BioC full text, offset 1803"
+          }
+        ]
+      },
+      "synonyms": [
+        {
+          "term": "medial meniscal tear",
+          "citations": [
+            {
+              "pmid": "40142829",
+              "pmcid": "PMC11942698",
+              "doi": "10.3390/jcm14062020",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/40142829/",
+              "licence": "CC BY",
+              "quote": "acute and degenerative tears",
+              "locator": "PMC BioC full text, offset 1803"
+            }
+          ]
+        }
+      ],
+      "abbreviations": [
+        {
+          "short": "MM",
+          "long": "medial meniscus",
+          "citations": [
+            {
+              "pmid": "34918423",
+              "pmcid": "PMC9106804",
+              "doi": "10.1002/jmri.27978",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34918423/",
+              "licence": "CC BY-NC-ND",
+              "quote": "medial and lateral menisci (MM and LM)",
+              "locator": "PMC BioC full text, offset 15709"
+            }
+          ]
+        }
+      ],
+      "anatomy": [
+        {
+          "structure": "medial meniscus with anterior horn, body and posterior horn",
+          "compartment": "medial tibiofemoral",
+          "laterality_relevant": true,
+          "citations": [
+            {
+              "pmid": "40142829",
+              "pmcid": "PMC11942698",
+              "doi": "10.3390/jcm14062020",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/40142829/",
+              "licence": "CC BY",
+              "quote": "The medial and lateral menisci are smooth and slippery, crescent-shaped structures",
+              "locator": "PMC BioC full text, offset 6554"
+            }
+          ]
+        }
+      ],
+      "mri_findings": [
+        {
+          "finding": "Tear patterns include horizontal, longitudinal, radial, oblique/flap, root, bucket-handle and complex tears.",
+          "signal": null,
+          "morphology": "C-shaped native meniscus with tear-pattern-dependent disruption or displacement",
+          "secondary_signs": [
+            "absent bow-tie sign",
+            "fragment-in-notch sign",
+            "double-PCL sign",
+            "truncated meniscus sign",
+            "double anterior horn sign"
+          ],
+          "citations": [
+            {
+              "pmid": "40142829",
+              "pmcid": "PMC11942698",
+              "doi": "10.3390/jcm14062020",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/40142829/",
+              "licence": "CC BY",
+              "quote": "MRI enables the analysis of meniscal abnormalities in all spatial planes",
+              "locator": "PMC BioC full text, offset 26961"
+            },
+            {
+              "pmid": "40142829",
+              "pmcid": "PMC11942698",
+              "doi": "10.3390/jcm14062020",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/40142829/",
+              "licence": "CC BY",
+              "quote": "absent bow-tie sign, the fragment-in-notch sign, the double posterior cruciate ligament sign",
+              "locator": "PMC BioC full text, offset 28657"
+            }
+          ]
+        }
+      ],
+      "sequences": [],
+      "negation_cues": [],
+      "uncertainty_terms": [],
+      "postoperative_terms": [],
+      "grading_or_severity": [
+        {
+          "scale": "MRI intrameniscal grade (retained review)",
+          "levels": [
+            "grade 1",
+            "grade 2",
+            "grade 3: reaches outer fibril layers and opens into the joint"
+          ],
+          "citations": [
+            {
+              "pmid": "40142829",
+              "pmcid": "PMC11942698",
+              "doi": "10.3390/jcm14062020",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/40142829/",
+              "licence": "CC BY",
+              "quote": "absent bow-tie sign, the fragment-in-notch sign, the double posterior cruciate ligament sign",
+              "locator": "PMC BioC full text, offset 28657"
+            }
+          ]
+        }
+      ],
+      "differentials": [
+        {
+          "entity": "meniscal bulging with osteoarthritis",
+          "distinguishing_feature": "A displaced parrot-beak flap in the meniscotibial recess can mimic a bulging meniscus.",
+          "citations": [
+            {
+              "pmid": "40142829",
+              "pmcid": "PMC11942698",
+              "doi": "10.3390/jcm14062020",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/40142829/",
+              "licence": "CC BY",
+              "quote": "Misinterpreting a parrot beak tear as a bulging meniscus with concomitant osteoarthritis",
+              "locator": "PMC BioC full text, offset 28128"
+            }
+          ]
+        }
+      ],
+      "disagreements": [],
+      "notes": [],
+      "provenance": {
+        "created_at_utc": "2026-09-13T23:29:14.065164+00:00",
+        "updated_at_utc": "2026-09-14T00:12:31.975603+00:00",
+        "corpus_snapshot": "literature/ontology_source_records.jsonl",
+        "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
+      },
+      "verification": {
+        "status": "verified",
+        "verified_at_utc": "2026-09-14T00:22:00+00:00",
+        "report": "reports/evidence_verification.md",
+        "review_state": "accepted_after_independent_audit"
+      }
+    },
+    {
+      "target_id": "lateral_meniscus_injury",
+      "competition_column": "lateral_meniscus_injury",
+      "label": "Lateral meniscus injury",
+      "definition": {
+        "text": "Pilot concept for traumatic or degenerative tearing of the lateral meniscus.",
+        "citations": [
+          {
+            "pmid": "40142829",
+            "pmcid": "PMC11942698",
+            "doi": "10.3390/jcm14062020",
+            "source_url": "https://pubmed.ncbi.nlm.nih.gov/40142829/",
+            "licence": "CC BY",
+            "quote": "acute and degenerative tears",
+            "locator": "PMC BioC full text, offset 1803"
+          }
+        ]
+      },
+      "synonyms": [
+        {
+          "term": "lateral meniscal tear",
+          "citations": [
+            {
+              "pmid": "40142829",
+              "pmcid": "PMC11942698",
+              "doi": "10.3390/jcm14062020",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/40142829/",
+              "licence": "CC BY",
+              "quote": "acute and degenerative tears",
+              "locator": "PMC BioC full text, offset 1803"
+            }
+          ]
+        }
+      ],
+      "abbreviations": [
+        {
+          "short": "LM",
+          "long": "lateral meniscus",
+          "citations": [
+            {
+              "pmid": "34918423",
+              "pmcid": "PMC9106804",
+              "doi": "10.1002/jmri.27978",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34918423/",
+              "licence": "CC BY-NC-ND",
+              "quote": "medial and lateral menisci (MM and LM)",
+              "locator": "PMC BioC full text, offset 15709"
+            }
+          ]
+        }
+      ],
+      "anatomy": [
+        {
+          "structure": "lateral meniscus with anterior horn, body and posterior horn",
+          "compartment": "lateral tibiofemoral",
+          "laterality_relevant": true,
+          "citations": [
+            {
+              "pmid": "40142829",
+              "pmcid": "PMC11942698",
+              "doi": "10.3390/jcm14062020",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/40142829/",
+              "licence": "CC BY",
+              "quote": "The medial and lateral menisci are smooth and slippery, crescent-shaped structures",
+              "locator": "PMC BioC full text, offset 6554"
+            }
+          ]
+        }
+      ],
+      "mri_findings": [
+        {
+          "finding": "Tear patterns include horizontal, longitudinal, radial, oblique/flap, root, bucket-handle and complex tears.",
+          "signal": null,
+          "morphology": "nearly circular native meniscus with tear-pattern-dependent disruption or displacement",
+          "secondary_signs": [
+            "absent bow-tie sign",
+            "fragment-in-notch sign",
+            "double-PCL sign",
+            "truncated meniscus sign",
+            "double anterior horn sign"
+          ],
+          "citations": [
+            {
+              "pmid": "40142829",
+              "pmcid": "PMC11942698",
+              "doi": "10.3390/jcm14062020",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/40142829/",
+              "licence": "CC BY",
+              "quote": "MRI enables the analysis of meniscal abnormalities in all spatial planes",
+              "locator": "PMC BioC full text, offset 26961"
+            },
+            {
+              "pmid": "40142829",
+              "pmcid": "PMC11942698",
+              "doi": "10.3390/jcm14062020",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/40142829/",
+              "licence": "CC BY",
+              "quote": "absent bow-tie sign, the fragment-in-notch sign, the double posterior cruciate ligament sign",
+              "locator": "PMC BioC full text, offset 28657"
+            }
+          ]
+        }
+      ],
+      "sequences": [],
+      "negation_cues": [],
+      "uncertainty_terms": [],
+      "postoperative_terms": [],
+      "grading_or_severity": [
+        {
+          "scale": "MRI intrameniscal grade (retained review)",
+          "levels": [
+            "grade 1",
+            "grade 2",
+            "grade 3: reaches outer fibril layers and opens into the joint"
+          ],
+          "citations": [
+            {
+              "pmid": "40142829",
+              "pmcid": "PMC11942698",
+              "doi": "10.3390/jcm14062020",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/40142829/",
+              "licence": "CC BY",
+              "quote": "absent bow-tie sign, the fragment-in-notch sign, the double posterior cruciate ligament sign",
+              "locator": "PMC BioC full text, offset 28657"
+            }
+          ]
+        }
+      ],
+      "differentials": [
+        {
+          "entity": "meniscal bulging with osteoarthritis",
+          "distinguishing_feature": "A displaced parrot-beak flap in the meniscotibial recess can mimic a bulging meniscus.",
+          "citations": [
+            {
+              "pmid": "40142829",
+              "pmcid": "PMC11942698",
+              "doi": "10.3390/jcm14062020",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/40142829/",
+              "licence": "CC BY",
+              "quote": "Misinterpreting a parrot beak tear as a bulging meniscus with concomitant osteoarthritis",
+              "locator": "PMC BioC full text, offset 28128"
+            }
+          ]
+        }
+      ],
+      "disagreements": [],
+      "notes": [],
+      "provenance": {
+        "created_at_utc": "2026-09-13T23:29:14.065164+00:00",
+        "updated_at_utc": "2026-09-14T00:12:31.975603+00:00",
+        "corpus_snapshot": "literature/ontology_source_records.jsonl",
+        "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
+      },
+      "verification": {
+        "status": "verified",
+        "verified_at_utc": "2026-09-14T00:22:00+00:00",
+        "report": "reports/evidence_verification.md",
+        "review_state": "accepted_after_independent_audit"
+      }
+    },
+    {
+      "target_id": "medial_compartment_oa",
+      "competition_column": "medial_compartment_oa",
+      "label": "Medial-compartment osteoarthritis",
+      "definition": null,
+      "synonyms": [],
+      "abbreviations": [
+        {
+          "short": "OA",
+          "long": "osteoarthritis",
+          "citations": [
+            {
+              "pmid": "33560326",
+              "pmcid": "PMC8225295",
+              "doi": "10.1001/jama.2020.22171",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/33560326/",
+              "licence": null,
+              "quote": "pathologic changes in cartilage, bone, synovium, ligament, muscle, and periarticular fat",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "anatomy": [],
+      "mri_findings": [],
+      "sequences": [
+        {
+          "sequence": "conventional pulse sequences at 1.5 T",
+          "plane": "any",
+          "why_informative": "Supported the multi-feature WORMS whole-organ assessment.",
+          "citations": [
+            {
+              "pmid": "14972335",
+              "pmcid": null,
+              "doi": "10.1016/j.joca.2003.11.003",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/14972335/",
+              "licence": null,
+              "quote": "whole-organ MRI scoring method (WORMS) that incorporated 14 features",
+              "locator": "Abstract"
+            }
+          ]
+        },
+        {
+          "sequence": "3D DESS with water excitation or 3D fast-spin-echo T1-weighted",
+          "plane": "sagittal",
+          "why_informative": "Used for compartment-specific cartilage and meniscus segmentation across OA cohorts.",
+          "citations": [
+            {
+              "pmid": "34918423",
+              "pmcid": "PMC9106804",
+              "doi": "10.1002/jmri.27978",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34918423/",
+              "licence": "CC BY-NC-ND",
+              "quote": "sagittal three-dimensional fast-spin echo T1w and dual-echo steady-state sequences",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "negation_cues": [],
+      "uncertainty_terms": [],
+      "postoperative_terms": [
+        {
+          "term": "total joint replacement",
+          "procedure": "arthroplasty for advanced symptomatic structural damage",
+          "expected_appearance": null,
+          "citations": [
+            {
+              "pmid": "33560326",
+              "pmcid": "PMC8225295",
+              "doi": "10.1001/jama.2020.22171",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/33560326/",
+              "licence": null,
+              "quote": "advanced symptoms and structural damage are candidates for total joint replacement",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "grading_or_severity": [
+        {
+          "scale": "WORMS",
+          "levels": [
+            "feature-specific semiquantitative scores; exact level definitions not recovered in this pilot"
+          ],
+          "citations": [
+            {
+              "pmid": "14972335",
+              "pmcid": null,
+              "doi": "10.1016/j.joca.2003.11.003",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/14972335/",
+              "licence": null,
+              "quote": "whole-organ MRI scoring method (WORMS) that incorporated 14 features",
+              "locator": "Abstract"
+            }
+          ]
+        },
+        {
+          "scale": "Kellgren-Lawrence",
+          "levels": [
+            "KL 0",
+            "KL 1",
+            "KL 2",
+            "KL 3",
+            "KL 4"
+          ],
+          "citations": [
+            {
+              "pmid": "34918423",
+              "pmcid": "PMC9106804",
+              "doi": "10.1002/jmri.27978",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34918423/",
+              "licence": "CC BY-NC-ND",
+              "quote": "2D image slices sampled isotropically along V = 6 viewing planes",
+              "locator": "PMC BioC full text, offset 7370"
+            }
+          ]
+        }
+      ],
+      "differentials": [
+        {
+          "entity": "focal osteochondral lesion",
+          "distinguishing_feature": "Fracture line, subchondral hypointense area, plate deformity or demarcation pattern may favor another osteochondral entity.",
+          "citations": [
+            {
+              "pmid": "30118392",
+              "pmcid": null,
+              "doi": "10.1148/rg.2018180044",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/30118392/",
+              "licence": null,
+              "quote": "location and extent of bone marrow edema, the presence of a fracture line",
+              "locator": "Abstract; corrected article: earlier incorrect online version corrected 2018-08-23"
+            }
+          ]
+        }
+      ],
+      "disagreements": [],
+      "notes": [],
+      "provenance": {
+        "created_at_utc": "2026-09-13T23:29:14.065164+00:00",
+        "updated_at_utc": "2026-09-14T00:12:31.975603+00:00",
+        "corpus_snapshot": "literature/ontology_source_records.jsonl",
+        "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
+      },
+      "verification": {
+        "status": "verified",
+        "verified_at_utc": "2026-09-14T00:22:00+00:00",
+        "report": "reports/evidence_verification.md",
+        "review_state": "accepted_after_independent_audit"
+      }
+    },
+    {
+      "target_id": "lateral_compartment_oa",
+      "competition_column": "lateral_compartment_oa",
+      "label": "Lateral-compartment osteoarthritis",
+      "definition": null,
+      "synonyms": [],
+      "abbreviations": [
+        {
+          "short": "OA",
+          "long": "osteoarthritis",
+          "citations": [
+            {
+              "pmid": "33560326",
+              "pmcid": "PMC8225295",
+              "doi": "10.1001/jama.2020.22171",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/33560326/",
+              "licence": null,
+              "quote": "pathologic changes in cartilage, bone, synovium, ligament, muscle, and periarticular fat",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "anatomy": [],
+      "mri_findings": [],
+      "sequences": [
+        {
+          "sequence": "conventional pulse sequences at 1.5 T",
+          "plane": "any",
+          "why_informative": "Supported the multi-feature WORMS whole-organ assessment.",
+          "citations": [
+            {
+              "pmid": "14972335",
+              "pmcid": null,
+              "doi": "10.1016/j.joca.2003.11.003",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/14972335/",
+              "licence": null,
+              "quote": "whole-organ MRI scoring method (WORMS) that incorporated 14 features",
+              "locator": "Abstract"
+            }
+          ]
+        },
+        {
+          "sequence": "3D DESS with water excitation or 3D fast-spin-echo T1-weighted",
+          "plane": "sagittal",
+          "why_informative": "Used for compartment-specific cartilage and meniscus segmentation across OA cohorts.",
+          "citations": [
+            {
+              "pmid": "34918423",
+              "pmcid": "PMC9106804",
+              "doi": "10.1002/jmri.27978",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34918423/",
+              "licence": "CC BY-NC-ND",
+              "quote": "sagittal three-dimensional fast-spin echo T1w and dual-echo steady-state sequences",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "negation_cues": [],
+      "uncertainty_terms": [],
+      "postoperative_terms": [
+        {
+          "term": "total joint replacement",
+          "procedure": "arthroplasty for advanced symptomatic structural damage",
+          "expected_appearance": null,
+          "citations": [
+            {
+              "pmid": "33560326",
+              "pmcid": "PMC8225295",
+              "doi": "10.1001/jama.2020.22171",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/33560326/",
+              "licence": null,
+              "quote": "advanced symptoms and structural damage are candidates for total joint replacement",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "grading_or_severity": [
+        {
+          "scale": "WORMS",
+          "levels": [
+            "feature-specific semiquantitative scores; exact level definitions not recovered in this pilot"
+          ],
+          "citations": [
+            {
+              "pmid": "14972335",
+              "pmcid": null,
+              "doi": "10.1016/j.joca.2003.11.003",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/14972335/",
+              "licence": null,
+              "quote": "whole-organ MRI scoring method (WORMS) that incorporated 14 features",
+              "locator": "Abstract"
+            }
+          ]
+        },
+        {
+          "scale": "Kellgren-Lawrence",
+          "levels": [
+            "KL 0",
+            "KL 1",
+            "KL 2",
+            "KL 3",
+            "KL 4"
+          ],
+          "citations": [
+            {
+              "pmid": "34918423",
+              "pmcid": "PMC9106804",
+              "doi": "10.1002/jmri.27978",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34918423/",
+              "licence": "CC BY-NC-ND",
+              "quote": "2D image slices sampled isotropically along V = 6 viewing planes",
+              "locator": "PMC BioC full text, offset 7370"
+            }
+          ]
+        }
+      ],
+      "differentials": [
+        {
+          "entity": "focal osteochondral lesion",
+          "distinguishing_feature": "Fracture line, subchondral hypointense area, plate deformity or demarcation pattern may favor another osteochondral entity.",
+          "citations": [
+            {
+              "pmid": "30118392",
+              "pmcid": null,
+              "doi": "10.1148/rg.2018180044",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/30118392/",
+              "licence": null,
+              "quote": "location and extent of bone marrow edema, the presence of a fracture line",
+              "locator": "Abstract; corrected article: earlier incorrect online version corrected 2018-08-23"
+            }
+          ]
+        }
+      ],
+      "disagreements": [],
+      "notes": [],
+      "provenance": {
+        "created_at_utc": "2026-09-13T23:29:14.065164+00:00",
+        "updated_at_utc": "2026-09-14T00:12:31.975603+00:00",
+        "corpus_snapshot": "literature/ontology_source_records.jsonl",
+        "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
+      },
+      "verification": {
+        "status": "verified",
+        "verified_at_utc": "2026-09-14T00:22:00+00:00",
+        "report": "reports/evidence_verification.md",
+        "review_state": "accepted_after_independent_audit"
+      }
+    },
+    {
+      "target_id": "patellofemoral_oa",
+      "competition_column": "patellofemoral_oa",
+      "label": "Patellofemoral osteoarthritis",
+      "definition": {
+        "text": "Pilot operational concept for osteoarthritic change in the patellofemoral joint; advanced patellar chondromalacia may progress to this state.",
+        "citations": [
+          {
+            "pmid": "34275494",
+            "pmcid": "PMC8287755",
+            "doi": "10.1186/s13287-021-02478-4",
+            "source_url": "https://pubmed.ncbi.nlm.nih.gov/34275494/",
+            "licence": "CC BY",
+            "quote": "CMP may be reversible or may progress to develop patellofemoral osteoarthritis",
+            "locator": "Abstract"
+          },
+          {
+            "pmid": "34275494",
+            "pmcid": "PMC8287755",
+            "doi": "10.1186/s13287-021-02478-4",
+            "source_url": "https://pubmed.ncbi.nlm.nih.gov/34275494/",
+            "licence": "CC BY",
+            "quote": "tricompartmental structure comprising the patellofemoral (PF) joint and medial and lateral tibiofemoral (TF) joints",
+            "locator": "PMC BioC full text, offset 1890"
+          }
+        ]
+      },
+      "synonyms": [
+        {
+          "term": "PF joint OA",
+          "citations": [
+            {
+              "pmid": "34275494",
+              "pmcid": "PMC8287755",
+              "doi": "10.1186/s13287-021-02478-4",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34275494/",
+              "licence": "CC BY",
+              "quote": "CMP may be reversible or may progress to develop patellofemoral osteoarthritis",
+              "locator": "Abstract"
+            },
+            {
+              "pmid": "34275494",
+              "pmcid": "PMC8287755",
+              "doi": "10.1186/s13287-021-02478-4",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34275494/",
+              "licence": "CC BY",
+              "quote": "tricompartmental structure comprising the patellofemoral (PF) joint and medial and lateral tibiofemoral (TF) joints",
+              "locator": "PMC BioC full text, offset 1890"
+            }
+          ]
+        },
+        {
+          "term": "PFJOA",
+          "citations": [
+            {
+              "pmid": "34275494",
+              "pmcid": "PMC8287755",
+              "doi": "10.1186/s13287-021-02478-4",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34275494/",
+              "licence": "CC BY",
+              "quote": "classified into four grades",
+              "locator": "PMC BioC full text, offset 2844"
+            }
+          ]
+        }
+      ],
+      "abbreviations": [
+        {
+          "short": "PF",
+          "long": "patellofemoral",
+          "citations": [
+            {
+              "pmid": "34275494",
+              "pmcid": "PMC8287755",
+              "doi": "10.1186/s13287-021-02478-4",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34275494/",
+              "licence": "CC BY",
+              "quote": "CMP may be reversible or may progress to develop patellofemoral osteoarthritis",
+              "locator": "Abstract"
+            }
+          ]
+        },
+        {
+          "short": "PFJOA",
+          "long": "patellofemoral joint osteoarthritis",
+          "citations": [
+            {
+              "pmid": "34275494",
+              "pmcid": "PMC8287755",
+              "doi": "10.1186/s13287-021-02478-4",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34275494/",
+              "licence": "CC BY",
+              "quote": "classified into four grades",
+              "locator": "PMC BioC full text, offset 2844"
+            }
+          ]
+        }
+      ],
+      "anatomy": [],
+      "mri_findings": [
+        {
+          "finding": "Patellar cartilage changes progress from softening, swelling and edema to fissuring, fragmentation, erosion and denudation to subchondral bone.",
+          "signal": "edema in early cartilage disease",
+          "morphology": "progressive patellar cartilage surface loss",
+          "secondary_signs": [
+            "effusion",
+            "patellofemoral morphology abnormalities"
+          ],
+          "citations": [
+            {
+              "pmid": "34275494",
+              "pmcid": "PMC8287755",
+              "doi": "10.1186/s13287-021-02478-4",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34275494/",
+              "licence": "CC BY",
+              "quote": "classified into four grades",
+              "locator": "PMC BioC full text, offset 2844"
+            }
+          ]
+        }
+      ],
+      "sequences": [],
+      "negation_cues": [],
+      "uncertainty_terms": [],
+      "postoperative_terms": [],
+      "grading_or_severity": [
+        {
+          "scale": "Outerbridge chondromalacia grades",
+          "levels": [
+            "1: softening/swelling/edema",
+            "2: fragmentation/fissuring ≤0.5 inch",
+            "3: fragmentation/fissuring >0.5 inch",
+            "4: cartilage denudation to subchondral bone"
+          ],
+          "citations": [
+            {
+              "pmid": "34275494",
+              "pmcid": "PMC8287755",
+              "doi": "10.1186/s13287-021-02478-4",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34275494/",
+              "licence": "CC BY",
+              "quote": "classified into four grades",
+              "locator": "PMC BioC full text, offset 2844"
+            }
+          ]
+        }
+      ],
+      "differentials": [],
+      "disagreements": [],
+      "notes": [],
+      "provenance": {
+        "created_at_utc": "2026-09-13T23:29:14.065164+00:00",
+        "updated_at_utc": "2026-09-14T00:12:31.975603+00:00",
+        "corpus_snapshot": "literature/ontology_source_records.jsonl",
+        "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
+      },
+      "verification": {
+        "status": "verified",
+        "verified_at_utc": "2026-09-14T00:22:00+00:00",
+        "report": "reports/evidence_verification.md",
+        "review_state": "accepted_after_independent_audit"
+      }
+    },
+    {
+      "target_id": "joint_effusion",
+      "competition_column": "joint_effusion",
+      "label": "Joint effusion",
+      "definition": null,
+      "synonyms": [
+        {
+          "term": "effusion-synovitis (combined non-contrast MRI construct)",
+          "citations": [
+            {
+              "pmid": "34968719",
+              "pmcid": null,
+              "doi": "10.1016/j.joca.2021.12.003",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34968719/",
+              "licence": null,
+              "quote": "inflammation (as measured by effusion, synovitis, baker's cysts",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "abbreviations": [],
+      "anatomy": [],
+      "mri_findings": [],
+      "sequences": [
+        {
+          "sequence": "non-contrast MRI",
+          "plane": "any",
+          "why_informative": "Used for a combined effusion/synovitis measure in the reviewed OA literature.",
+          "citations": [
+            {
+              "pmid": "34968719",
+              "pmcid": null,
+              "doi": "10.1016/j.joca.2021.12.003",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34968719/",
+              "licence": null,
+              "quote": "inflammation (as measured by effusion, synovitis, baker's cysts",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "negation_cues": [],
+      "uncertainty_terms": [],
+      "postoperative_terms": [],
+      "grading_or_severity": [],
+      "differentials": [
+        {
+          "entity": "synovitis",
+          "distinguishing_feature": "Non-contrast studies may combine the two as effusion/synovitis rather than separate them.",
+          "citations": [
+            {
+              "pmid": "34968719",
+              "pmcid": null,
+              "doi": "10.1016/j.joca.2021.12.003",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34968719/",
+              "licence": null,
+              "quote": "inflammation (as measured by effusion, synovitis, baker's cysts",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "disagreements": [
+        {
+          "issue": "Association with pain in knee OA",
+          "positions": [
+            {
+              "position": "Evidence for non-contrast MRI effusion/synovitis and pain was conflicting.",
+              "citations": [
+                {
+                  "pmid": "34968719",
+                  "pmcid": null,
+                  "doi": "10.1016/j.joca.2021.12.003",
+                  "source_url": "https://pubmed.ncbi.nlm.nih.gov/34968719/",
+                  "licence": null,
+                  "quote": "inflammation (as measured by effusion, synovitis, baker's cysts",
+                  "locator": "Abstract"
+                }
+              ]
+            },
+            {
+              "position": "Contrast-enhanced MRI synovitis had moderate evidence of association with pain.",
+              "citations": [
+                {
+                  "pmid": "34968719",
+                  "pmcid": null,
+                  "doi": "10.1016/j.joca.2021.12.003",
+                  "source_url": "https://pubmed.ncbi.nlm.nih.gov/34968719/",
+                  "licence": null,
+                  "quote": "synovitis (measured with ultrasound or contrast enhanced MRI)",
+                  "locator": "Abstract"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "provenance": {
+        "created_at_utc": "2026-09-13T23:29:14.065164+00:00",
+        "updated_at_utc": "2026-09-14T00:12:31.975603+00:00",
+        "corpus_snapshot": "literature/ontology_source_records.jsonl",
+        "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
+      },
+      "verification": {
+        "status": "verified",
+        "verified_at_utc": "2026-09-14T00:22:00+00:00",
+        "report": "reports/evidence_verification.md",
+        "review_state": "accepted_after_independent_audit"
+      }
+    },
+    {
+      "target_id": "synovitis",
+      "competition_column": "synovitis",
+      "label": "Synovitis",
+      "definition": {
+        "text": "Pilot concept for synovial inflammation assessed on knee imaging, sometimes combined with effusion on non-contrast MRI.",
+        "citations": [
+          {
+            "pmid": "34968719",
+            "pmcid": null,
+            "doi": "10.1016/j.joca.2021.12.003",
+            "source_url": "https://pubmed.ncbi.nlm.nih.gov/34968719/",
+            "licence": null,
+            "quote": "inflammation (as measured by effusion, synovitis, baker's cysts",
+            "locator": "Abstract"
+          }
+        ]
+      },
+      "synonyms": [
+        {
+          "term": "effusion-synovitis (combined MRI construct)",
+          "citations": [
+            {
+              "pmid": "38776073",
+              "pmcid": "PMC11112499",
+              "doi": "10.1001/jama.2024.6063",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/38776073/",
+              "licence": null,
+              "quote": "effusion-synovitis on magnetic resonance imaging",
+              "locator": "Abstract",
+              "correction": {
+                "type": "erratum",
+                "pmid": "39325448",
+                "doi": "10.1001/jama.2024.20532",
+                "source_url": "https://pubmed.ncbi.nlm.nih.gov/39325448/",
+                "notice": "Corrected by the cited JAMA erratum."
+              }
+            }
+          ]
+        }
+      ],
+      "abbreviations": [],
+      "anatomy": [
+        {
+          "structure": "synovium",
+          "compartment": null,
+          "laterality_relevant": true,
+          "citations": [
+            {
+              "pmid": "33560326",
+              "pmcid": "PMC8225295",
+              "doi": "10.1001/jama.2020.22171",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/33560326/",
+              "licence": null,
+              "quote": "pathologic changes in cartilage, bone, synovium, ligament, muscle, and periarticular fat",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "mri_findings": [],
+      "sequences": [
+        {
+          "sequence": "contrast-enhanced MRI",
+          "plane": "any",
+          "why_informative": "The retained systematic review found moderate evidence linking contrast-enhanced MRI synovitis with pain.",
+          "citations": [
+            {
+              "pmid": "34968719",
+              "pmcid": null,
+              "doi": "10.1016/j.joca.2021.12.003",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34968719/",
+              "licence": null,
+              "quote": "synovitis (measured with ultrasound or contrast enhanced MRI)",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "negation_cues": [],
+      "uncertainty_terms": [],
+      "postoperative_terms": [],
+      "grading_or_severity": [],
+      "differentials": [
+        {
+          "entity": "joint effusion",
+          "distinguishing_feature": "The two may be inseparable in a combined non-contrast MRI score.",
+          "citations": [
+            {
+              "pmid": "34968719",
+              "pmcid": null,
+              "doi": "10.1016/j.joca.2021.12.003",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34968719/",
+              "licence": null,
+              "quote": "inflammation (as measured by effusion, synovitis, baker's cysts",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "disagreements": [
+        {
+          "issue": "Pain association depends on imaging construct",
+          "positions": [
+            {
+              "position": "Synovitis on contrast-enhanced MRI had moderate evidence of association.",
+              "citations": [
+                {
+                  "pmid": "34968719",
+                  "pmcid": null,
+                  "doi": "10.1016/j.joca.2021.12.003",
+                  "source_url": "https://pubmed.ncbi.nlm.nih.gov/34968719/",
+                  "licence": null,
+                  "quote": "synovitis (measured with ultrasound or contrast enhanced MRI)",
+                  "locator": "Abstract"
+                }
+              ]
+            },
+            {
+              "position": "Non-contrast MRI effusion/synovitis evidence was conflicting.",
+              "citations": [
+                {
+                  "pmid": "34968719",
+                  "pmcid": null,
+                  "doi": "10.1016/j.joca.2021.12.003",
+                  "source_url": "https://pubmed.ncbi.nlm.nih.gov/34968719/",
+                  "licence": null,
+                  "quote": "inflammation (as measured by effusion, synovitis, baker's cysts",
+                  "locator": "Abstract"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "provenance": {
+        "created_at_utc": "2026-09-13T23:29:14.065164+00:00",
+        "updated_at_utc": "2026-09-13T23:52:41.069171+00:00",
+        "corpus_snapshot": "literature/ontology_source_records.jsonl",
+        "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
+      },
+      "verification": {
+        "status": "verified",
+        "verified_at_utc": "2026-09-14T00:22:00+00:00",
+        "report": "reports/evidence_verification.md",
+        "review_state": "accepted_after_independent_audit"
+      }
+    },
+    {
+      "target_id": "baker_cyst",
+      "competition_column": "baker_cyst",
+      "label": "Baker cyst",
+      "definition": {
+        "text": "Pilot concept for a Baker's cyst recorded as a knee inflammatory marker; detailed cyst anatomy was not recovered in the retained corpus.",
+        "citations": [
+          {
+            "pmid": "34968719",
+            "pmcid": null,
+            "doi": "10.1016/j.joca.2021.12.003",
+            "source_url": "https://pubmed.ncbi.nlm.nih.gov/34968719/",
+            "licence": null,
+            "quote": "inflammation (as measured by effusion, synovitis, baker's cysts",
+            "locator": "Abstract"
+          }
+        ]
+      },
+      "synonyms": [
+        {
+          "term": "Baker's cyst",
+          "citations": [
+            {
+              "pmid": "34968719",
+              "pmcid": null,
+              "doi": "10.1016/j.joca.2021.12.003",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/34968719/",
+              "licence": null,
+              "quote": "inflammation (as measured by effusion, synovitis, baker's cysts",
+              "locator": "Abstract"
+            },
+            {
+              "pmid": "31489217",
+              "pmcid": "PMC6711279",
+              "doi": "10.1259/bjrcr.20170122",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31489217/",
+              "licence": null,
+              "quote": "Clinically, a Baker's cyst was suspected",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "abbreviations": [],
+      "anatomy": [],
+      "mri_findings": [],
+      "sequences": [],
+      "negation_cues": [],
+      "uncertainty_terms": [],
+      "postoperative_terms": [],
+      "grading_or_severity": [],
+      "differentials": [
+        {
+          "entity": "distal semimembranosus myotendinous injury",
+          "distinguishing_feature": "A posterior lump clinically suspected as Baker's cyst was MRI-occult and showed dynamic bunching on ultrasound.",
+          "citations": [
+            {
+              "pmid": "31489217",
+              "pmcid": "PMC6711279",
+              "doi": "10.1259/bjrcr.20170122",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/31489217/",
+              "licence": null,
+              "quote": "Clinically, a Baker's cyst was suspected",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "disagreements": [
+        {
+          "issue": "Association with knee pain in OA",
+          "positions": [
+            {
+              "position": "The retained systematic review found conflicting evidence for Baker's cyst association with pain.",
+              "citations": [
+                {
+                  "pmid": "34968719",
+                  "pmcid": null,
+                  "doi": "10.1016/j.joca.2021.12.003",
+                  "source_url": "https://pubmed.ncbi.nlm.nih.gov/34968719/",
+                  "licence": null,
+                  "quote": "inflammation (as measured by effusion, synovitis, baker's cysts",
+                  "locator": "Abstract"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "provenance": {
+        "created_at_utc": "2026-09-13T23:29:14.065164+00:00",
+        "updated_at_utc": "2026-09-14T00:12:31.975603+00:00",
+        "corpus_snapshot": "literature/ontology_source_records.jsonl",
+        "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
+      },
+      "verification": {
+        "status": "verified",
+        "verified_at_utc": "2026-09-14T00:22:00+00:00",
+        "report": "reports/evidence_verification.md",
+        "review_state": "accepted_after_independent_audit"
+      }
+    },
+    {
+      "target_id": "bone_contusion",
+      "competition_column": "bone_contusion",
+      "label": "Bone contusion",
+      "definition": null,
+      "synonyms": [
+        {
+          "term": "bone bruising",
+          "citations": [
+            {
+              "pmid": "26557590",
+              "pmcid": "PMC4625309",
+              "doi": "10.7860/JCDR/2015/15451.6685",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/26557590/",
+              "licence": null,
+              "quote": "Bone contusion or bruising of the bone was demonstrated in 39 (52%) patients.",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "abbreviations": [],
+      "anatomy": [
+        {
+          "structure": "lateral and medial tibial plateaus and femoral condyles",
+          "compartment": null,
+          "laterality_relevant": true,
+          "citations": [
+            {
+              "pmid": "33411563",
+              "pmcid": "PMC8214466",
+              "doi": "10.1177/0363546520981569",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/33411563/",
+              "licence": null,
+              "quote": "locations (lateral tibial plateau [LTP], lateral femoral condyle [LFC], medial tibial plateau [MTP], and medial femoral condyle [MFC])",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "mri_findings": [
+        {
+          "finding": "MRI can detect occult bony injuries through signal changes in bone marrow.",
+          "signal": "signal changes in bone marrow",
+          "morphology": null,
+          "secondary_signs": [],
+          "citations": [
+            {
+              "pmid": "26557590",
+              "pmcid": "PMC4625309",
+              "doi": "10.7860/JCDR/2015/15451.6685",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/26557590/",
+              "licence": null,
+              "quote": "Magnetic resonance imaging (MRI) can detect such occult bony injuries due to signal changes in bone marrow.",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "sequences": [
+        {
+          "sequence": "MRI; sequence not specified by retained source",
+          "plane": "any",
+          "why_informative": "Evaluates post-traumatic abnormalities that may not be detected radiographically.",
+          "citations": [
+            {
+              "pmid": "36524486",
+              "pmcid": null,
+              "doi": "10.26355/eurrev_202212_30537",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/36524486/",
+              "licence": null,
+              "quote": "bone contusion, intraarticular fluid/hematoma formation, and fractures that cannot be detected by radiographs",
+              "locator": "Abstract"
+            }
+          ]
+        },
+        {
+          "sequence": "fat-suppressed fast spin-echo T2-weighted MRI",
+          "plane": "any",
+          "why_informative": "Used to assess acute ACL-associated bone contusions.",
+          "citations": [
+            {
+              "pmid": "33411563",
+              "pmcid": "PMC8214466",
+              "doi": "10.1177/0363546520981569",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/33411563/",
+              "licence": null,
+              "quote": "Fat-suppressed fast spin-echo T2-weighted MRI scans were reviewed by a blinded musculoskeletal radiologist.",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "negation_cues": [],
+      "uncertainty_terms": [],
+      "postoperative_terms": [],
+      "grading_or_severity": [],
+      "differentials": [],
+      "disagreements": [],
+      "notes": [],
+      "provenance": {
+        "created_at_utc": "2026-09-13T23:29:14.065164+00:00",
+        "updated_at_utc": "2026-09-14T00:12:31.975603+00:00",
+        "corpus_snapshot": "literature/ontology_source_records.jsonl",
+        "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
+      },
+      "verification": {
+        "status": "verified",
+        "verified_at_utc": "2026-09-14T00:22:00+00:00",
+        "report": "reports/evidence_verification.md",
+        "review_state": "accepted_after_independent_audit"
+      }
+    },
+    {
+      "target_id": "fracture",
+      "competition_column": "fracture",
+      "label": "Fracture",
+      "definition": null,
+      "synonyms": [],
+      "abbreviations": [
+        {
+          "short": "TSF",
+          "long": "tibial spine fracture",
+          "citations": [
+            {
+              "pmid": "37321295",
+              "pmcid": null,
+              "doi": "10.1016/j.jisako.2023.06.001",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/37321295/",
+              "licence": null,
+              "quote": "Tibial spine fractures (TSFs) are avulsion fractures",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "anatomy": [
+        {
+          "structure": "subchondral bone and marrow",
+          "compartment": null,
+          "laterality_relevant": true,
+          "citations": [
+            {
+              "pmid": "30118392",
+              "pmcid": null,
+              "doi": "10.1148/rg.2018180044",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/30118392/",
+              "licence": null,
+              "quote": "location and extent of bone marrow edema, the presence of a fracture line",
+              "locator": "Abstract; corrected article: earlier incorrect online version corrected 2018-08-23"
+            }
+          ]
+        },
+        {
+          "structure": "tibial eminence at ACL insertion",
+          "compartment": "intercondylar knee",
+          "laterality_relevant": true,
+          "citations": [
+            {
+              "pmid": "37321295",
+              "pmcid": null,
+              "doi": "10.1016/j.jisako.2023.06.001",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/37321295/",
+              "licence": null,
+              "quote": "Tibial spine fractures (TSFs) are avulsion fractures",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "mri_findings": [
+        {
+          "finding": "Features supporting fracture include a fracture line with surrounding marrow edema and possible subchondral-plate deformity or collapse.",
+          "signal": "bone marrow edema and intracortical signal abnormality",
+          "morphology": "fracture line; advanced subchondral depression or fluid-filled cleft",
+          "secondary_signs": [
+            "periosteal edema",
+            "subchondral plate collapse"
+          ],
+          "citations": [
+            {
+              "pmid": "30118392",
+              "pmcid": null,
+              "doi": "10.1148/rg.2018180044",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/30118392/",
+              "licence": null,
+              "quote": "location and extent of bone marrow edema, the presence of a fracture line",
+              "locator": "Abstract; corrected article: earlier incorrect online version corrected 2018-08-23"
+            },
+            {
+              "pmid": "27002328",
+              "pmcid": null,
+              "doi": "10.1007/s10140-016-1390-5",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/27002328/",
+              "licence": null,
+              "quote": "MRI is highly sensitive with findings ranging from periosteal edema to bone marrow and intracortical signal abnormality",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "sequences": [
+        {
+          "sequence": "MRI; pulse sequence not specified by retained review",
+          "plane": "any",
+          "why_informative": "Preferred after initial radiographs when stress fracture remains suspected and is sensitive to periosteal, marrow and intracortical abnormalities.",
+          "citations": [
+            {
+              "pmid": "27002328",
+              "pmcid": null,
+              "doi": "10.1007/s10140-016-1390-5",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/27002328/",
+              "licence": null,
+              "quote": "MRI is highly sensitive with findings ranging from periosteal edema to bone marrow and intracortical signal abnormality",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "negation_cues": [],
+      "uncertainty_terms": [],
+      "postoperative_terms": [
+        {
+          "term": "arthroscopic fixation",
+          "procedure": "stable fixation of displaced tibial spine fracture",
+          "expected_appearance": null,
+          "citations": [
+            {
+              "pmid": "37321295",
+              "pmcid": null,
+              "doi": "10.1016/j.jisako.2023.06.001",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/37321295/",
+              "licence": null,
+              "quote": "Tibial spine fractures (TSFs) are avulsion fractures",
+              "locator": "Abstract"
+            }
+          ]
+        }
+      ],
+      "grading_or_severity": [],
+      "differentials": [
+        {
+          "entity": "avascular necrosis or osteochondritis dissecans",
+          "distinguishing_feature": "Demarcation completeness, double-line sign and instability findings help separate osteochondral entities.",
+          "citations": [
+            {
+              "pmid": "30118392",
+              "pmcid": null,
+              "doi": "10.1148/rg.2018180044",
+              "source_url": "https://pubmed.ncbi.nlm.nih.gov/30118392/",
+              "licence": null,
+              "quote": "location and extent of bone marrow edema, the presence of a fracture line",
+              "locator": "Abstract; corrected article: earlier incorrect online version corrected 2018-08-23"
+            }
+          ]
+        }
+      ],
+      "disagreements": [],
+      "notes": [],
+      "provenance": {
+        "created_at_utc": "2026-09-13T23:29:14.065164+00:00",
+        "updated_at_utc": "2026-09-14T00:12:31.975603+00:00",
+        "corpus_snapshot": "literature/ontology_source_records.jsonl",
+        "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
+      },
+      "verification": {
+        "status": "verified",
+        "verified_at_utc": "2026-09-14T00:22:00+00:00",
+        "report": "reports/evidence_verification.md",
+        "review_state": "accepted_after_independent_audit"
+      }
+    }
+  ],
+  "cross_cutting_methods": [
+    {
+      "method_id": "report-derived-labels",
+      "statement": "A radiology-report text-mining pipeline can identify entities, negation and relations and then assign report-level labels; transfer to knee reports requires validation.",
+      "citations": [
+        {
+          "pmid": "31711539",
+          "pmcid": "PMC6849161",
+          "doi": "10.1186/s13326-019-0211-7",
+          "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
+          "licence": "CC BY",
+          "quote": "identifies entities, negation and relations between entities in each report and determines report-level labels",
+          "locator": "Abstract"
+        }
+      ]
+    },
+    {
+      "method_id": "negation-scope",
+      "statement": "Negation scope must cover coordinated entities; a cue such as 'No' can negate multiple following observations.",
+      "citations": [
+        {
+          "pmid": "31711539",
+          "pmcid": "PMC6849161",
+          "doi": "10.1186/s13326-019-0211-7",
+          "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
+          "licence": "CC BY",
+          "quote": "negative word No",
+          "locator": "PMC BioC full text, offset 2582"
+        },
+        {
+          "pmid": "31711539",
+          "pmcid": "PMC6849161",
+          "doi": "10.1186/s13326-019-0211-7",
+          "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
+          "licence": "CC BY",
+          "quote": "Proper identification of negation and its scope is essential",
+          "locator": "PMC BioC full text, offset 14321"
+        }
+      ]
+    },
+    {
+      "method_id": "uncertainty-handling",
+      "statement": "The phrase 'cannot be completely excluded' represents inability to exclude an observation and should not be treated as a clear positive in weak-label extraction.",
+      "citations": [
+        {
+          "pmid": "31711539",
+          "pmcid": "PMC6849161",
+          "doi": "10.1186/s13326-019-0211-7",
+          "source_url": "https://pubmed.ncbi.nlm.nih.gov/31711539/",
+          "licence": "CC BY",
+          "quote": "cannot be completely excluded",
+          "locator": "PMC BioC full text, offset 14321"
+        }
+      ]
+    },
+    {
+      "method_id": "multiplanar-2d",
+      "statement": "A multi-planar U-Net used one 2D U-Net on slices sampled from six viewing planes and fused the resulting volumes.",
+      "citations": [
+        {
+          "pmid": "34918423",
+          "pmcid": "PMC9106804",
+          "doi": "10.1002/jmri.27978",
+          "source_url": "https://pubmed.ncbi.nlm.nih.gov/34918423/",
+          "licence": "CC BY-NC-ND",
+          "quote": "2D image slices sampled isotropically along V = 6 viewing planes",
+          "locator": "PMC BioC full text, offset 7370"
+        }
+      ]
+    },
+    {
+      "method_id": "cross-modality-learning",
+      "statement": "Unsupervised shared-representation methods with feature normalization, cross-modality objectives and modality dropout were evaluated on knee images from two MRI modalities.",
+      "citations": [
+        {
+          "pmid": "30188817",
+          "pmcid": null,
+          "doi": "10.1109/TMI.2018.2868977",
+          "source_url": "https://pubmed.ncbi.nlm.nih.gov/30188817/",
+          "licence": null,
+          "quote": "three techniques for unsupervised cross-modality feature learning",
+          "locator": "Abstract"
+        }
+      ]
+    }
+  ]
+}

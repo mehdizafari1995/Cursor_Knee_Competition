@@ -286,6 +286,8 @@ def test_notebook_file_is_offline_and_tokenless():
     assert "internet_used=false" in lowered
     assert "rsna_audit_outputs" in lowered
     assert "full_metadata" in lowered
+    assert "_find_source_in_tree" in source
+    assert "SOURCE_SEARCH_MAX_DEPTH" in source
     assert "/kaggle/input/rsna-knee-abnormality-detection" in source
     meta = payload.get("metadata") or {}
     kaggle_meta = meta.get("kaggle") or {}

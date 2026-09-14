@@ -155,3 +155,20 @@ def test_find_source_root_prefers_repo_checkout():
     root = find_source_root(KaggleLayout(), search_repo=True)
     assert root is not None
     assert (root / "knee" / "config.py").is_file()
+
+
+def test_find_source_root_double_nested_github_archive(tmp_path):
+    layout = _layout(tmp_path)
+    layout.input_root.mkdir(parents=True)
+    layout.working_root.mkdir(parents=True)
+    nested = (
+        layout.input_root
+        / "cursor-knee-source"
+        / "Cursor_Knee_Competition-main"
+        / "Cursor_Knee_Competition-main"
+    )
+    (nested / "knee").mkdir(parents=True)
+    (nested / "knee" / "config.py").write_text("TARGET_KEYS = ()\n")
+    (nested / "knee" / "kaggle_audit.py").write_text("def run_notebook_audit():\n    pass\n")
+    found = find_source_root(layout, search_repo=False)
+    assert found == nested

@@ -32,6 +32,9 @@ DATA_SOURCE_LOCAL = "local_competition_data"
 SOURCE_MARKERS = ("knee/config.py", "knee/kaggle_audit.py")
 SOURCE_COPY_DIRS = ("knee", "scripts", "configs", "notebooks")
 SOURCE_COPY_FILES = ("pyproject.toml", "requirements.txt", "README.md")
+# GitHub-archive datasets nest as dataset/Repo-main/Repo-main/knee. Bound the
+# walk so competition DICOM trees (skipped by slug) are never traversed.
+SOURCE_SEARCH_MAX_DEPTH = 3
 
 
 class PreflightError(RuntimeError):
@@ -105,6 +108,27 @@ def looks_like_source_root(path: Path) -> bool:
     return all((path / marker).is_file() for marker in SOURCE_MARKERS)
 
 
+def find_source_in_tree(
+    root: Path,
+    max_depth: int = SOURCE_SEARCH_MAX_DEPTH,
+) -> Path | None:
+    """Find ``knee/config.py`` under ``root`` without walking DICOM series trees."""
+    root = Path(root)
+    if looks_like_source_root(root):
+        return root
+    if max_depth <= 0 or not root.is_dir():
+        return None
+    try:
+        children = sorted(p for p in root.iterdir() if p.is_dir())
+    except OSError:
+        return None
+    for child in children:
+        found = find_source_in_tree(child, max_depth=max_depth - 1)
+        if found is not None:
+            return found
+    return None
+
+
 def list_top_level(path: Path) -> list[str]:
     """Names of direct children only. Never recurse into DICOM series trees."""
     if not path.is_dir():
@@ -175,12 +199,10 @@ def find_source_root(
     for child in sorted(layout.input_root.iterdir()):
         if child.name == layout.competition_slug:
             continue
-        if child.is_dir() and looks_like_source_root(child):
-            return child
         if child.is_dir():
-            for nested in sorted(p for p in child.iterdir() if p.is_dir()):
-                if looks_like_source_root(nested):
-                    return nested
+            found = find_source_in_tree(child, max_depth=SOURCE_SEARCH_MAX_DEPTH)
+            if found is not None:
+                return found
     return None
 
 
@@ -233,12 +255,9 @@ def extract_source_to_working(
             is_kaggle_runtime(layout) and located == PROJECT_ROOT
         ):
             _safe_extract_zip(zip_path, dest)
-            # Zip members may nest the package one directory down.
-            if looks_like_source_root(dest):
-                return dest
-            for child in sorted(p for p in dest.iterdir() if p.is_dir()):
-                if looks_like_source_root(child):
-                    return child
+            found = find_source_in_tree(dest, max_depth=SOURCE_SEARCH_MAX_DEPTH)
+            if found is not None:
+                return found
             raise PreflightError(
                 f"extracted {zip_path} under {dest} but knee/config.py was not found"
             )

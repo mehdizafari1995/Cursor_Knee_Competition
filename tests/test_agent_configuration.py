@@ -221,6 +221,15 @@ class TestScaffolding:
             "reports/competition_pretrained_model_rules.md",
             "configs/report_labeler_v1.yaml",
             "notebooks/03_kaggle_report_labeler_v2.ipynb",
+            "notebooks/04_kaggle_second_reader_gold_pilot.ipynb",
+            "configs/second_reader_pilot.yaml",
+            "configs/second_reader_prompt.yaml",
+            "configs/second_reader_schema.json",
+            "reports/second_reader_model_compliance.md",
+            "reports/second_reader_pilot_protocol.md",
+            "reports/second_reader_gold_pilot_comparison.md",
+            "reports/kaggle_second_reader_pilot_run.md",
+            "scripts/run_second_reader_pilot.py",
             "reports/real_data_audit_summary.md",
             "reports/data_audit.md",
             "reports/baseline_design.md",
@@ -392,7 +401,9 @@ class TestGitignorePolicy:
         "weak_labels.csv", "gold_predictions.csv", "language_assignments.csv",
         "mask_high_conf_positive.csv", "mask_high_conf_negative.csv",
         "mask_unknown.csv", "mask_disagreement.csv",
-        "mask_unsupported_language.csv"],
+        "mask_unsupported_language.csv",
+        "gold_second_reader_predictions.csv", "gold_consensus_predictions.csv",
+        "gold_deterministic_predictions.csv", "gold_second_reader_status.csv"],
     )
     def test_restricted_artefact_is_ignored(self, gitignore_patterns, pattern):
         assert pattern in gitignore_patterns

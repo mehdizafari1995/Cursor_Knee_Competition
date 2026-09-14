@@ -1,0 +1,867 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RSNA knee second-reader extraction",
+  "version": "second-reader-schema-v1.0.0",
+  "ontology_version": "pilot-1.0",
+  "source_of_truth_targets": "knee/config.py::TARGET_KEYS",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "targets"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "second-reader-schema-v1.0.0"
+    },
+    "targets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "acl_injury",
+        "mcl_injury",
+        "medial_meniscus_injury",
+        "lateral_meniscus_injury",
+        "medial_compartment_oa",
+        "lateral_compartment_oa",
+        "patellofemoral_oa",
+        "joint_effusion",
+        "synovitis",
+        "baker_cyst",
+        "bone_contusion",
+        "fracture"
+      ],
+      "properties": {
+        "acl_injury": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "confidence",
+            "evidence_category",
+            "uncertainty_or_negation_category"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "positive",
+                "negative",
+                "uncertain",
+                "not_mentioned"
+              ]
+            },
+            "confidence": {
+              "type": "string",
+              "enum": [
+                "high",
+                "medium",
+                "low"
+              ]
+            },
+            "evidence_category": {
+              "type": "string",
+              "enum": [
+                "explicit_positive",
+                "explicit_negative",
+                "uncertain_finding",
+                "not_mentioned",
+                "historical_finding",
+                "postoperative_or_reconstructed",
+                "reconstruction_not_acute",
+                "degeneration_not_meniscal_injury",
+                "compartment_specific_oa",
+                "compartment_unspecified_oa",
+                "generic_degeneration_not_oa",
+                "effusion_not_synovitis",
+                "synovitis_not_effusion",
+                "baker_cyst",
+                "other_popliteal_finding",
+                "marrow_signal_not_contusion",
+                "bone_contusion",
+                "suspected_fracture",
+                "confirmed_fracture",
+                "fracture_excluded",
+                "insufficient_evidence",
+                "malformed_output"
+              ]
+            },
+            "uncertainty_or_negation_category": {
+              "type": "string",
+              "enum": [
+                "none",
+                "negated",
+                "uncertain_hedged",
+                "differential_diagnosis",
+                "history_only",
+                "postoperative",
+                "suspected_not_confirmed",
+                "not_mentioned"
+              ]
+            }
+          }
+        },
+        "mcl_injury": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "confidence",
+            "evidence_category",
+            "uncertainty_or_negation_category"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "positive",
+                "negative",
+                "uncertain",
+                "not_mentioned"
+              ]
+            },
+            "confidence": {
+              "type": "string",
+              "enum": [
+                "high",
+                "medium",
+                "low"
+              ]
+            },
+            "evidence_category": {
+              "type": "string",
+              "enum": [
+                "explicit_positive",
+                "explicit_negative",
+                "uncertain_finding",
+                "not_mentioned",
+                "historical_finding",
+                "postoperative_or_reconstructed",
+                "reconstruction_not_acute",
+                "degeneration_not_meniscal_injury",
+                "compartment_specific_oa",
+                "compartment_unspecified_oa",
+                "generic_degeneration_not_oa",
+                "effusion_not_synovitis",
+                "synovitis_not_effusion",
+                "baker_cyst",
+                "other_popliteal_finding",
+                "marrow_signal_not_contusion",
+                "bone_contusion",
+                "suspected_fracture",
+                "confirmed_fracture",
+                "fracture_excluded",
+                "insufficient_evidence",
+                "malformed_output"
+              ]
+            },
+            "uncertainty_or_negation_category": {
+              "type": "string",
+              "enum": [
+                "none",
+                "negated",
+                "uncertain_hedged",
+                "differential_diagnosis",
+                "history_only",
+                "postoperative",
+                "suspected_not_confirmed",
+                "not_mentioned"
+              ]
+            }
+          }
+        },
+        "medial_meniscus_injury": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "confidence",
+            "evidence_category",
+            "uncertainty_or_negation_category"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "positive",
+                "negative",
+                "uncertain",
+                "not_mentioned"
+              ]
+            },
+            "confidence": {
+              "type": "string",
+              "enum": [
+                "high",
+                "medium",
+                "low"
+              ]
+            },
+            "evidence_category": {
+              "type": "string",
+              "enum": [
+                "explicit_positive",
+                "explicit_negative",
+                "uncertain_finding",
+                "not_mentioned",
+                "historical_finding",
+                "postoperative_or_reconstructed",
+                "reconstruction_not_acute",
+                "degeneration_not_meniscal_injury",
+                "compartment_specific_oa",
+                "compartment_unspecified_oa",
+                "generic_degeneration_not_oa",
+                "effusion_not_synovitis",
+                "synovitis_not_effusion",
+                "baker_cyst",
+                "other_popliteal_finding",
+                "marrow_signal_not_contusion",
+                "bone_contusion",
+                "suspected_fracture",
+                "confirmed_fracture",
+                "fracture_excluded",
+                "insufficient_evidence",
+                "malformed_output"
+              ]
+            },
+            "uncertainty_or_negation_category": {
+              "type": "string",
+              "enum": [
+                "none",
+                "negated",
+                "uncertain_hedged",
+                "differential_diagnosis",
+                "history_only",
+                "postoperative",
+                "suspected_not_confirmed",
+                "not_mentioned"
+              ]
+            }
+          }
+        },
+        "lateral_meniscus_injury": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "confidence",
+            "evidence_category",
+            "uncertainty_or_negation_category"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "positive",
+                "negative",
+                "uncertain",
+                "not_mentioned"
+              ]
+            },
+            "confidence": {
+              "type": "string",
+              "enum": [
+                "high",
+                "medium",
+                "low"
+              ]
+            },
+            "evidence_category": {
+              "type": "string",
+              "enum": [
+                "explicit_positive",
+                "explicit_negative",
+                "uncertain_finding",
+                "not_mentioned",
+                "historical_finding",
+                "postoperative_or_reconstructed",
+                "reconstruction_not_acute",
+                "degeneration_not_meniscal_injury",
+                "compartment_specific_oa",
+                "compartment_unspecified_oa",
+                "generic_degeneration_not_oa",
+                "effusion_not_synovitis",
+                "synovitis_not_effusion",
+                "baker_cyst",
+                "other_popliteal_finding",
+                "marrow_signal_not_contusion",
+                "bone_contusion",
+                "suspected_fracture",
+                "confirmed_fracture",
+                "fracture_excluded",
+                "insufficient_evidence",
+                "malformed_output"
+              ]
+            },
+            "uncertainty_or_negation_category": {
+              "type": "string",
+              "enum": [
+                "none",
+                "negated",
+                "uncertain_hedged",
+                "differential_diagnosis",
+                "history_only",
+                "postoperative",
+                "suspected_not_confirmed",
+                "not_mentioned"
+              ]
+            }
+          }
+        },
+        "medial_compartment_oa": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "confidence",
+            "evidence_category",
+            "uncertainty_or_negation_category"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "positive",
+                "negative",
+                "uncertain",
+                "not_mentioned"
+              ]
+            },
+            "confidence": {
+              "type": "string",
+              "enum": [
+                "high",
+                "medium",
+                "low"
+              ]
+            },
+            "evidence_category": {
+              "type": "string",
+              "enum": [
+                "explicit_positive",
+                "explicit_negative",
+                "uncertain_finding",
+                "not_mentioned",
+                "historical_finding",
+                "postoperative_or_reconstructed",
+                "reconstruction_not_acute",
+                "degeneration_not_meniscal_injury",
+                "compartment_specific_oa",
+                "compartment_unspecified_oa",
+                "generic_degeneration_not_oa",
+                "effusion_not_synovitis",
+                "synovitis_not_effusion",
+                "baker_cyst",
+                "other_popliteal_finding",
+                "marrow_signal_not_contusion",
+                "bone_contusion",
+                "suspected_fracture",
+                "confirmed_fracture",
+                "fracture_excluded",
+                "insufficient_evidence",
+                "malformed_output"
+              ]
+            },
+            "uncertainty_or_negation_category": {
+              "type": "string",
+              "enum": [
+                "none",
+                "negated",
+                "uncertain_hedged",
+                "differential_diagnosis",
+                "history_only",
+                "postoperative",
+                "suspected_not_confirmed",
+                "not_mentioned"
+              ]
+            }
+          }
+        },
+        "lateral_compartment_oa": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "confidence",
+            "evidence_category",
+            "uncertainty_or_negation_category"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "positive",
+                "negative",
+                "uncertain",
+                "not_mentioned"
+              ]
+            },
+            "confidence": {
+              "type": "string",
+              "enum": [
+                "high",
+                "medium",
+                "low"
+              ]
+            },
+            "evidence_category": {
+              "type": "string",
+              "enum": [
+                "explicit_positive",
+                "explicit_negative",
+                "uncertain_finding",
+                "not_mentioned",
+                "historical_finding",
+                "postoperative_or_reconstructed",
+                "reconstruction_not_acute",
+                "degeneration_not_meniscal_injury",
+                "compartment_specific_oa",
+                "compartment_unspecified_oa",
+                "generic_degeneration_not_oa",
+                "effusion_not_synovitis",
+                "synovitis_not_effusion",
+                "baker_cyst",
+                "other_popliteal_finding",
+                "marrow_signal_not_contusion",
+                "bone_contusion",
+                "suspected_fracture",
+                "confirmed_fracture",
+                "fracture_excluded",
+                "insufficient_evidence",
+                "malformed_output"
+              ]
+            },
+            "uncertainty_or_negation_category": {
+              "type": "string",
+              "enum": [
+                "none",
+                "negated",
+                "uncertain_hedged",
+                "differential_diagnosis",
+                "history_only",
+                "postoperative",
+                "suspected_not_confirmed",
+                "not_mentioned"
+              ]
+            }
+          }
+        },
+        "patellofemoral_oa": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "confidence",
+            "evidence_category",
+            "uncertainty_or_negation_category"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "positive",
+                "negative",
+                "uncertain",
+                "not_mentioned"
+              ]
+            },
+            "confidence": {
+              "type": "string",
+              "enum": [
+                "high",
+                "medium",
+                "low"
+              ]
+            },
+            "evidence_category": {
+              "type": "string",
+              "enum": [
+                "explicit_positive",
+                "explicit_negative",
+                "uncertain_finding",
+                "not_mentioned",
+                "historical_finding",
+                "postoperative_or_reconstructed",
+                "reconstruction_not_acute",
+                "degeneration_not_meniscal_injury",
+                "compartment_specific_oa",
+                "compartment_unspecified_oa",
+                "generic_degeneration_not_oa",
+                "effusion_not_synovitis",
+                "synovitis_not_effusion",
+                "baker_cyst",
+                "other_popliteal_finding",
+                "marrow_signal_not_contusion",
+                "bone_contusion",
+                "suspected_fracture",
+                "confirmed_fracture",
+                "fracture_excluded",
+                "insufficient_evidence",
+                "malformed_output"
+              ]
+            },
+            "uncertainty_or_negation_category": {
+              "type": "string",
+              "enum": [
+                "none",
+                "negated",
+                "uncertain_hedged",
+                "differential_diagnosis",
+                "history_only",
+                "postoperative",
+                "suspected_not_confirmed",
+                "not_mentioned"
+              ]
+            }
+          }
+        },
+        "joint_effusion": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "confidence",
+            "evidence_category",
+            "uncertainty_or_negation_category"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "positive",
+                "negative",
+                "uncertain",
+                "not_mentioned"
+              ]
+            },
+            "confidence": {
+              "type": "string",
+              "enum": [
+                "high",
+                "medium",
+                "low"
+              ]
+            },
+            "evidence_category": {
+              "type": "string",
+              "enum": [
+                "explicit_positive",
+                "explicit_negative",
+                "uncertain_finding",
+                "not_mentioned",
+                "historical_finding",
+                "postoperative_or_reconstructed",
+                "reconstruction_not_acute",
+                "degeneration_not_meniscal_injury",
+                "compartment_specific_oa",
+                "compartment_unspecified_oa",
+                "generic_degeneration_not_oa",
+                "effusion_not_synovitis",
+                "synovitis_not_effusion",
+                "baker_cyst",
+                "other_popliteal_finding",
+                "marrow_signal_not_contusion",
+                "bone_contusion",
+                "suspected_fracture",
+                "confirmed_fracture",
+                "fracture_excluded",
+                "insufficient_evidence",
+                "malformed_output"
+              ]
+            },
+            "uncertainty_or_negation_category": {
+              "type": "string",
+              "enum": [
+                "none",
+                "negated",
+                "uncertain_hedged",
+                "differential_diagnosis",
+                "history_only",
+                "postoperative",
+                "suspected_not_confirmed",
+                "not_mentioned"
+              ]
+            }
+          }
+        },
+        "synovitis": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "confidence",
+            "evidence_category",
+            "uncertainty_or_negation_category"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "positive",
+                "negative",
+                "uncertain",
+                "not_mentioned"
+              ]
+            },
+            "confidence": {
+              "type": "string",
+              "enum": [
+                "high",
+                "medium",
+                "low"
+              ]
+            },
+            "evidence_category": {
+              "type": "string",
+              "enum": [
+                "explicit_positive",
+                "explicit_negative",
+                "uncertain_finding",
+                "not_mentioned",
+                "historical_finding",
+                "postoperative_or_reconstructed",
+                "reconstruction_not_acute",
+                "degeneration_not_meniscal_injury",
+                "compartment_specific_oa",
+                "compartment_unspecified_oa",
+                "generic_degeneration_not_oa",
+                "effusion_not_synovitis",
+                "synovitis_not_effusion",
+                "baker_cyst",
+                "other_popliteal_finding",
+                "marrow_signal_not_contusion",
+                "bone_contusion",
+                "suspected_fracture",
+                "confirmed_fracture",
+                "fracture_excluded",
+                "insufficient_evidence",
+                "malformed_output"
+              ]
+            },
+            "uncertainty_or_negation_category": {
+              "type": "string",
+              "enum": [
+                "none",
+                "negated",
+                "uncertain_hedged",
+                "differential_diagnosis",
+                "history_only",
+                "postoperative",
+                "suspected_not_confirmed",
+                "not_mentioned"
+              ]
+            }
+          }
+        },
+        "baker_cyst": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "confidence",
+            "evidence_category",
+            "uncertainty_or_negation_category"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "positive",
+                "negative",
+                "uncertain",
+                "not_mentioned"
+              ]
+            },
+            "confidence": {
+              "type": "string",
+              "enum": [
+                "high",
+                "medium",
+                "low"
+              ]
+            },
+            "evidence_category": {
+              "type": "string",
+              "enum": [
+                "explicit_positive",
+                "explicit_negative",
+                "uncertain_finding",
+                "not_mentioned",
+                "historical_finding",
+                "postoperative_or_reconstructed",
+                "reconstruction_not_acute",
+                "degeneration_not_meniscal_injury",
+                "compartment_specific_oa",
+                "compartment_unspecified_oa",
+                "generic_degeneration_not_oa",
+                "effusion_not_synovitis",
+                "synovitis_not_effusion",
+                "baker_cyst",
+                "other_popliteal_finding",
+                "marrow_signal_not_contusion",
+                "bone_contusion",
+                "suspected_fracture",
+                "confirmed_fracture",
+                "fracture_excluded",
+                "insufficient_evidence",
+                "malformed_output"
+              ]
+            },
+            "uncertainty_or_negation_category": {
+              "type": "string",
+              "enum": [
+                "none",
+                "negated",
+                "uncertain_hedged",
+                "differential_diagnosis",
+                "history_only",
+                "postoperative",
+                "suspected_not_confirmed",
+                "not_mentioned"
+              ]
+            }
+          }
+        },
+        "bone_contusion": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "confidence",
+            "evidence_category",
+            "uncertainty_or_negation_category"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "positive",
+                "negative",
+                "uncertain",
+                "not_mentioned"
+              ]
+            },
+            "confidence": {
+              "type": "string",
+              "enum": [
+                "high",
+                "medium",
+                "low"
+              ]
+            },
+            "evidence_category": {
+              "type": "string",
+              "enum": [
+                "explicit_positive",
+                "explicit_negative",
+                "uncertain_finding",
+                "not_mentioned",
+                "historical_finding",
+                "postoperative_or_reconstructed",
+                "reconstruction_not_acute",
+                "degeneration_not_meniscal_injury",
+                "compartment_specific_oa",
+                "compartment_unspecified_oa",
+                "generic_degeneration_not_oa",
+                "effusion_not_synovitis",
+                "synovitis_not_effusion",
+                "baker_cyst",
+                "other_popliteal_finding",
+                "marrow_signal_not_contusion",
+                "bone_contusion",
+                "suspected_fracture",
+                "confirmed_fracture",
+                "fracture_excluded",
+                "insufficient_evidence",
+                "malformed_output"
+              ]
+            },
+            "uncertainty_or_negation_category": {
+              "type": "string",
+              "enum": [
+                "none",
+                "negated",
+                "uncertain_hedged",
+                "differential_diagnosis",
+                "history_only",
+                "postoperative",
+                "suspected_not_confirmed",
+                "not_mentioned"
+              ]
+            }
+          }
+        },
+        "fracture": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "confidence",
+            "evidence_category",
+            "uncertainty_or_negation_category"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "positive",
+                "negative",
+                "uncertain",
+                "not_mentioned"
+              ]
+            },
+            "confidence": {
+              "type": "string",
+              "enum": [
+                "high",
+                "medium",
+                "low"
+              ]
+            },
+            "evidence_category": {
+              "type": "string",
+              "enum": [
+                "explicit_positive",
+                "explicit_negative",
+                "uncertain_finding",
+                "not_mentioned",
+                "historical_finding",
+                "postoperative_or_reconstructed",
+                "reconstruction_not_acute",
+                "degeneration_not_meniscal_injury",
+                "compartment_specific_oa",
+                "compartment_unspecified_oa",
+                "generic_degeneration_not_oa",
+                "effusion_not_synovitis",
+                "synovitis_not_effusion",
+                "baker_cyst",
+                "other_popliteal_finding",
+                "marrow_signal_not_contusion",
+                "bone_contusion",
+                "suspected_fracture",
+                "confirmed_fracture",
+                "fracture_excluded",
+                "insufficient_evidence",
+                "malformed_output"
+              ]
+            },
+            "uncertainty_or_negation_category": {
+              "type": "string",
+              "enum": [
+                "none",
+                "negated",
+                "uncertain_hedged",
+                "differential_diagnosis",
+                "history_only",
+                "postoperative",
+                "suspected_not_confirmed",
+                "not_mentioned"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

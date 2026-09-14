@@ -46,6 +46,10 @@ mask_high_conf_negative.csv
 mask_unknown.csv
 mask_disagreement.csv
 mask_unsupported_language.csv
+gold_second_reader_predictions.csv
+gold_consensus_predictions.csv
+gold_deterministic_predictions.csv
+gold_second_reader_status.csv
 
 # Generated Kaggle source bundles (never commit)
 *.zip

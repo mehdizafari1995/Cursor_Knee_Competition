@@ -87,6 +87,12 @@ python scripts/generate_weak_labels.py      # 4349 report-only studies; gitignor
 # Fixture tests in Cursor. Real gold/weak evaluation on Kaggle:
 # notebooks/03_kaggle_report_labeler_v2.ipynb (internet off). See
 # reports/report_labeler_v2_protocol.md
+
+# Phase 4C: offline multilingual second-reader gold pilot (no image training)
+# Fixture tests in Cursor. Real 58-study GPU run on Kaggle, internet off:
+# notebooks/04_kaggle_second_reader_gold_pilot.ipynb
+# Do not process the 4,349 report-only studies. See
+# reports/second_reader_pilot_protocol.md
 ```
 
 Run the whole suite, not one file. `tests/test_pipeline.py` covers the modelling
@@ -106,4 +112,8 @@ real gold evaluation the coordinator gates are
 adds coverage-aware capture/abstention metrics, target-specific OOF confidence
 policies, an independent offline language detector, private trainable masks,
 and per-target TRAINABLE / NOT_TRAINABLE statuses. It does not train an image
-model.
+model. Phase 4C adds an offline multilingual instruction-model second reader
+on the 58 gold studies only, with a frozen prompt/schema, structured-output
+parser, strict-agreement consensus, and PILOT_PASS / PILOT_RESTRICTED /
+PILOT_FAIL statuses. It does not process the 4,349 report-only studies and
+does not train an image model.

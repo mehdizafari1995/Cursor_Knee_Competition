@@ -144,6 +144,10 @@ _PRIVATE_ROW_FILES = (
     "mask_unknown.csv",
     "mask_disagreement.csv",
     "mask_unsupported_language.csv",
+    "gold_second_reader_predictions.csv",
+    "gold_consensus_predictions.csv",
+    "gold_deterministic_predictions.csv",
+    "gold_second_reader_status.csv",
 )
 
 
@@ -198,6 +202,10 @@ def test_committed_phase4_reports_have_no_identifiers_or_report_tokens():
         "reports/report_labeler_v2_kaggle_comparison.md",
         "reports/kaggle_report_labeler_v2_run.md",
         "reports/competition_pretrained_model_rules.md",
+        "reports/second_reader_model_compliance.md",
+        "reports/second_reader_pilot_protocol.md",
+        "reports/second_reader_gold_pilot_comparison.md",
+        "reports/kaggle_second_reader_pilot_run.md",
     ):
         text = (REPO_ROOT / relative).read_text(encoding="utf-8")
         assert REPORT_LABEL_LEAK_TOKEN not in text

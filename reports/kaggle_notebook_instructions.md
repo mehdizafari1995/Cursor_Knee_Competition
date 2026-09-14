@@ -142,3 +142,17 @@ Coordinator gates after the real gold evaluation:
 `NOT_READY_FOR_HARD_WEAK_LABEL_TRAINING` and
 `READY_FOR_SELECTIVE_LABEL_REFINEMENT`. Do not train an image model on the
 weak-label CSV as hard 0/1. See `reports/weak_label_training_readiness.md`.
+
+## Phase 4C: gold-only second-reader pilot
+
+Upload `notebooks/04_kaggle_second_reader_gold_pilot.ipynb` with:
+
+1. The competition dataset
+2. The rebuilt private source ZIP
+3. Checksummed instruction-model weights attached as a **Kaggle Model** or
+   private dataset (never downloaded inside the notebook)
+
+Settings: **Internet off**, **GPU on**. Process the **58 gold studies only**.
+Do **not** process the 4,349 report-only studies. Do **not** train an image
+model or write image folds. Retrieve sanitized aggregates and private-file
+hashes only. See `reports/second_reader_pilot_protocol.md`.

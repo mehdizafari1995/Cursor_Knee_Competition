@@ -25,11 +25,15 @@ from knee.report_labels import (
     LABEL_POSITIVE,
     LABEL_UNKNOWN,
     PrivacyLeakError,
+    SCALE_TO_REPORT_ONLY_SECOND_READER_ALLOWED,
+    SCALE_TO_REPORT_ONLY_SECOND_READER_VERDICT,
     SELECTIVE_LABEL_REFINEMENT_ALLOWED,
     SELECTIVE_LABEL_REFINEMENT_VERDICT,
     HardWeakLabelTrainingError,
+    SecondReaderScaleError,
     assert_extractor_has_no_gold_parameter,
     assert_hard_weak_label_training_forbidden,
+    assert_second_reader_report_only_scale_forbidden,
     assert_no_identifiers,
     collect_identifiers,
     evaluate_gold_predictions,
@@ -216,6 +220,15 @@ def test_hard_weak_label_training_is_forbidden():
     assert SELECTIVE_LABEL_REFINEMENT_VERDICT == "READY_FOR_SELECTIVE_LABEL_REFINEMENT"
     with pytest.raises(HardWeakLabelTrainingError, match="NOT_READY_FOR_HARD_WEAK_LABEL_TRAINING"):
         assert_hard_weak_label_training_forbidden()
+
+
+def test_second_reader_must_not_scale_to_report_only():
+    assert SCALE_TO_REPORT_ONLY_SECOND_READER_ALLOWED is False
+    assert SCALE_TO_REPORT_ONLY_SECOND_READER_VERDICT == (
+        "NOT_READY_TO_SCALE_SECOND_READER_TO_REPORT_ONLY"
+    )
+    with pytest.raises(SecondReaderScaleError, match="NOT_READY_TO_SCALE_SECOND_READER"):
+        assert_second_reader_report_only_scale_forbidden()
 
 
 def test_committed_readiness_report_has_both_verdicts():

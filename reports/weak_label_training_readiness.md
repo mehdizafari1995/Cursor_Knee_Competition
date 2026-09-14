@@ -63,7 +63,11 @@ Not allowed under this gate:
 - Training an image model on the current weak-label CSV as hard 0/1
 - Creating final patient-grouped folds for that training run
 - Leaderboard submission
-- External pretrained language models without a competition-rules check
+- External pretrained language models without a competition-rules check.
+  Phase 4C documents that check for a gold-only second reader
+  (`reports/second_reader_model_compliance.md`) and still forbids scaling to
+  the 4,349 report-only studies
+  (`NOT_READY_TO_SCALE_SECOND_READER_TO_REPORT_ONLY`).
 
 ## Pointers
 
@@ -71,3 +75,4 @@ Not allowed under this gate:
 - Protocol: `reports/report_labeling_protocol.md`
 - Kaggle run: `reports/kaggle_report_labeling_run.md`
 - Code gate: `HARD_WEAK_LABEL_TRAINING_ALLOWED` in `knee/report_labels.py`
+- Second-reader gold pilot: `reports/second_reader_pilot_protocol.md`

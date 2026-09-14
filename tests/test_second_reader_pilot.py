@@ -382,7 +382,8 @@ def test_freeze_manifest_hashes_ontology_when_cwd_is_elsewhere(tmp_path, monkeyp
 
     monkeypatch.chdir(tmp_path)
     config = load_pilot_config()
-    prompt = load_prompt_bundle(REPO_ROOT / "configs" / "second_reader_prompt.yaml")
+    prompt = load_prompt_bundle(config.get("prompt_path"))
+    assert prompt.get("prompt_version")
     freeze = freeze_manifest(config, prompt=prompt)
     assert freeze["metrics_computed"] is False
     assert freeze["file_sha256"]["ontology"] == sha256_file(REPO_ROOT / "literature" / "ontology.yaml")

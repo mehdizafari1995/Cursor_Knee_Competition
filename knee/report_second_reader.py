@@ -13,7 +13,7 @@ import os
 from pathlib import Path
 from typing import Any, Callable
 
-from .config import TARGET_KEYS
+from .config import PROJECT_ROOT, TARGET_KEYS
 from .second_reader_parser import ParsedSecondReaderOutput, parse_second_reader_output
 from .second_reader_schema import (
     CONFIDENCE_TO_FLOAT,
@@ -225,6 +225,10 @@ def load_prompt_bundle(path: str | Path | None = None) -> dict:
     import yaml
 
     prompt_path = Path(path or DEFAULT_PROMPT_PATH)
+    if not prompt_path.is_file() and not prompt_path.is_absolute():
+        candidate = PROJECT_ROOT / prompt_path
+        if candidate.is_file():
+            prompt_path = candidate
     payload = yaml.safe_load(prompt_path.read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
         raise ValueError("prompt file must be a mapping")

@@ -399,7 +399,9 @@ def run_second_reader_gold_pilot(
     config = load_pilot_config(config_path)
     if config.get("process_report_only_studies"):
         raise ReportOnlyScaleError("pilot config must keep process_report_only_studies false")
-    prompt = load_prompt_bundle(config.get("prompt_path"))
+    prompt = load_prompt_bundle(
+        _resolve_pilot_file(config.get("prompt_path"), PROJECT_ROOT / "configs" / "second_reader_prompt.yaml")
+    )
     freeze = freeze_manifest(config, prompt=prompt)
     (sanitized_dir / SANITIZED_FREEZE_FILENAME).write_text(
         json.dumps(freeze, indent=2, sort_keys=True) + "\n", encoding="utf-8"

@@ -24,6 +24,19 @@ coverage threshold, and all runtime and safety checks pass.
 - Rejected IDs remaining active: 0
 - Active citation quotations: 90/90 contiguous, verbatim, and at most 25 words
 
+## Claim lineage reconciliation
+
+The immutable `237372c` baseline contains 154 unique originals:
+79 remain active supported and 75 are rejected removed. The final active ledger
+contains 83 claims: those 79 originals plus four active supported replacement
+claims (`KO-PILOT-0155` through `KO-PILOT-0158`). Thus the active and rejected
+ledgers contain 158 rows because they span 154 originals plus four replacements,
+not because historical versions are distinct claims. There are no duplicate or
+versioned rejection-history records, active/rejected overlaps, or originals
+without a final disposition. The complete mapping is recorded in
+`literature/claim_lineage.json` and explained in
+`reports/claim_lineage_audit.md`. The overall verdict remains **PASS**.
+
 ## Identifier resolution
 
 - All 19 uniquely cited PMIDs resolve with matching titles, years, and DOI

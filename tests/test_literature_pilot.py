@@ -18,6 +18,7 @@ LITERATURE = ROOT / "literature"
 PAPERS = LITERATURE / "papers.csv"
 CLAIMS = LITERATURE / "claims.jsonl"
 REJECTED_CLAIMS = LITERATURE / "rejected_claims.jsonl"
+CLAIM_LINEAGE = LITERATURE / "claim_lineage.json"
 REPORTS = ROOT / "reports"
 
 REQUIRED_COLUMNS = [
@@ -91,12 +92,14 @@ def test_required_pilot_files_exist():
         "ontology.yaml",
         "claims.jsonl",
         "rejected_claims.jsonl",
+        "claim_lineage.json",
     ):
         assert (LITERATURE / relative_path).is_file()
     for report in (
         "literature_pilot.md",
         "evidence_verification.md",
         "claim_remediation.md",
+        "claim_lineage_audit.md",
     ):
         assert (REPORTS / report).is_file()
 
@@ -115,6 +118,7 @@ def test_reviewable_markdown_reports_are_tracked():
         "reports/literature_pilot.md",
         "reports/evidence_verification.md",
         "reports/claim_remediation.md",
+        "reports/claim_lineage_audit.md",
     } <= tracked
 
 
@@ -237,6 +241,118 @@ def test_rejected_original_claims_match_the_pre_remediation_ledger():
     }
     for rejected in read_jsonl(REJECTED_CLAIMS):
         assert rejected["original_claim"] == baseline[rejected["claim_id"]]
+
+
+def test_claim_lineage_conserves_originals_and_replacements():
+    baseline_text = subprocess.run(
+        ["git", "show", "237372c:literature/claims.jsonl"],
+        cwd=ROOT,
+        capture_output=True,
+        check=True,
+        text=True,
+    ).stdout
+    baseline = [json.loads(line) for line in baseline_text.splitlines() if line]
+    active = read_jsonl(CLAIMS)
+    rejected = read_jsonl(REJECTED_CLAIMS)
+    lineage = json.loads(CLAIM_LINEAGE.read_text(encoding="utf-8"))
+
+    baseline_ids = [claim["claim_id"] for claim in baseline]
+    active_ids = [claim["claim_id"] for claim in active]
+    rejected_ids = [claim["claim_id"] for claim in rejected]
+    baseline_id_set = set(baseline_ids)
+    active_id_set = set(active_ids)
+    rejected_id_set = set(rejected_ids)
+
+    assert len(baseline_ids) == len(baseline_id_set) == 154
+    assert baseline_id_set == {
+        f"KO-PILOT-{number:04d}" for number in range(1, 155)
+    }
+    assert len(active_ids) == len(active_id_set)
+    assert len(rejected_ids) == len(rejected_id_set)
+    active_original_ids = active_id_set & baseline_id_set
+    rejected_original_ids = rejected_id_set & baseline_id_set
+    assert active_original_ids.isdisjoint(rejected_original_ids)
+    assert active_original_ids | rejected_original_ids == baseline_id_set
+    assert len(active_original_ids) == 79
+    assert len(rejected_original_ids) == 75
+
+    replacement_ids = {
+        "KO-PILOT-0155",
+        "KO-PILOT-0156",
+        "KO-PILOT-0157",
+        "KO-PILOT-0158",
+    }
+    assert active_id_set - baseline_id_set == replacement_ids
+    assert replacement_ids <= active_id_set
+    assert replacement_ids.isdisjoint(rejected_id_set)
+    assert replacement_ids.isdisjoint(baseline_id_set)
+
+    dispositions = lineage["original_claim_dispositions"]
+    assert set(dispositions) == baseline_id_set
+    for claim_id in active_original_ids:
+        assert dispositions[claim_id] == {
+            "final_disposition": "active_supported",
+            "current_location": "literature/claims.jsonl",
+        }
+    for claim_id in rejected_original_ids:
+        assert dispositions[claim_id] == {
+            "final_disposition": "rejected_removed",
+            "current_location": "literature/rejected_claims.jsonl",
+        }
+
+    lineage_replacements = lineage["replacement_claims"]
+    assert {claim["claim_id"] for claim in lineage_replacements} == replacement_ids
+    assert all(claim["origin"] == "replacement" for claim in lineage_replacements)
+    assert all(
+        claim["final_disposition"] == "active_supported"
+        for claim in lineage_replacements
+    )
+    assert all(claim["target"] == "bone_contusion" for claim in lineage_replacements)
+    assert all(
+        claim["current_location"] == "literature/claims.jsonl"
+        for claim in lineage_replacements
+    )
+    assert all(
+        claim["reason"]
+        == "Added after the second audit to restore directly supported "
+        "bone-contusion coverage."
+        for claim in lineage_replacements
+    )
+
+    assert lineage["schema"] == "claim_lineage_audit"
+    assert lineage["version"] == "1.0.0"
+    assert lineage["baseline"] == {
+        "commit": "237372c",
+        "path": "literature/claims.jsonl",
+    }
+    assert lineage["counts"] == {
+        "original_claims": 154,
+        "active_original_claims": 79,
+        "rejected_original_claims": 75,
+        "replacement_claims": 4,
+        "final_active_claims": 83,
+        "raw_active_plus_rejected_rows": 158,
+        "duplicate_or_versioned_rejection_history": 0,
+        "active_rejected_overlap": 0,
+        "original_without_final_disposition": 0,
+    }
+    assert lineage["duplicate_or_versioned_rejection_history"] == []
+    assert active_id_set.isdisjoint(rejected_id_set)
+    assert lineage["active_rejected_overlap"] == []
+    assert baseline_id_set <= active_id_set | rejected_id_set
+    assert lineage["original_without_final_disposition"] == []
+
+    original_count = len(baseline_id_set)
+    replacement_count = len(replacement_ids)
+    active_count = len(active_ids)
+    active_original_count = len(active_original_ids)
+    rejected_unique_original_count = len(rejected_original_ids)
+    assert original_count + replacement_count == (
+        active_count + rejected_unique_original_count
+    ) == 158
+    assert original_count == (
+        active_original_count + rejected_unique_original_count
+    ) == 154
 
 
 def test_each_target_retains_at_least_three_active_clinical_claims():

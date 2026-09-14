@@ -1,7 +1,8 @@
 # Independent Evidence Verification — Remediated Set
 
 Audit date: 2026-09-14
-Audited commit: `07511e1853c205cee24defe63f3c0894dbffe520`
+Evidence-content commit: `07511e1853c205cee24defe63f3c0894dbffe520`
+Final repository verification commit: `e366d7945baf8c7c5f5a967b144d33225ab8ddf1`
 
 ## Overall verdict
 
@@ -88,6 +89,11 @@ An independent read-only runtime verifier then executed:
 - Baseline history comparison: 75/75 `original_claim` values exactly match
   commit `237372c`; no rejected ID remains among 83 active rows.
 - Report tracking check: all three required Markdown reports are tracked.
+
+After the PASS verdict, the coordinator changed only verification statuses,
+reports, and their assertions before commit `e366d79`; no clinical claim text or
+citation changed. The project `repository-verifier` inspected that final commit
+and returned PASS against the captured full-suite evidence.
 
 ## Blocking rejections
 

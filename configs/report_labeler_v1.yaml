@@ -1,0 +1,872 @@
+# Frozen runtime lexicon for Phase 4 report-label extraction.
+# Ontology-verified terms come from literature/ontology.yaml.
+# Additional multilingual items are clinical-standard abbreviations/phrases
+# and are NOT claimed as ontology-verified. No external language model is used.
+extractor_version: report-labeler-v1.0.0
+eval_protocol_version: gold-eval-v1.0.0
+schema_version: 1
+source_of_truth_targets: knee/config.py::TARGET_KEYS
+no_external_language_model: true
+internet_required: false
+gpu_required: false
+unknown_policy: never_impute_as_negative
+gold_labels_in_extractor: forbidden
+
+bootstrap:
+  n_resamples: 1000
+  ci_level: 0.95
+  seed: 42
+  unit: study
+
+small_n_targets:
+  - mcl_injury
+  - lateral_compartment_oa
+  - baker_cyst
+
+confidence:
+  explicit_positive: 0.92
+  explicit_negative: 0.88
+  global_normal: 0.80
+  abbreviation_positive: 0.78
+  multilingual_standard: 0.70
+  uncertain: 0.35
+  unknown: 0.0
+
+languages:
+  supported:
+    - en
+    - es
+    - fr
+    - de
+    - it
+    - pt
+    - nl
+    - pl
+    - tr
+    - el
+    - bg
+    - ru
+    - uk
+    - ro
+    - cs
+    - hu
+    - sv
+    - da
+    - fi
+    - ca
+  uncertain_margin: 0.15
+  min_score: 2.0
+  unsupported_policy: unknown_unless_language_agnostic_abbreviation
+
+oa_severity:
+  # Binary competition OA: definite osteoarthritis of that compartment.
+  # KL 0 / no OA -> negative. KL 1 (doubtful) -> unknown. KL 2-4 -> positive.
+  # Isolated "mild degenerative change" without OA/chondrosis -> unknown.
+  positive_kl: [2, 3, 4]
+  unknown_kl: [1]
+  negative_kl: [0]
+  outerbridge_positive: [3, 4]
+  outerbridge_unknown: [1, 2]
+  positive_morphology:
+    - osteoarthritis
+    - osteoarthrosis
+    - osteoarthritic
+    - gonarthrosis
+    - chondrosis
+    - chondropathy
+    - cartilage loss
+    - full-thickness cartilage
+    - denudation
+    - osteophytes
+  unknown_morphology:
+    - mild degenerative
+    - degenerative change
+    - degenerative signal
+    - chondromalacia
+  negative_morphology:
+    - no osteoarthritis
+    - no osteoarthrosis
+    - cartilage intact
+    - cartilage preserved
+
+effusion_severity:
+  # High-precision: physiologic/trace/minimal stay unknown (annotator threshold).
+  positive_qualifiers:
+    - small
+    - mild
+    - moderate
+    - large
+    - marked
+    - massive
+    - tense
+    - significant
+    - sizable
+    - abundant
+  unknown_qualifiers:
+    - trace
+    - minimal
+    - tiny
+    - physiologic
+    - physiological
+    - physiological-amount
+  negative_phrases:
+    - no effusion
+    - no joint effusion
+    - no joint fluid
+    - no excess fluid
+    - no hydrarthrosis
+
+section_headers:
+  history:
+    - history
+    - indication
+    - clinical
+    - clinical history
+    - clinical information
+    - reason for exam
+    - reason for examination
+    - antecedentes
+    - indicacion
+    - indicación
+    - anamnese
+    - anamnesis
+    - klinische angaben
+    - frage
+    - ιστορικό
+    - ένδειξη
+    - анамнез
+    - история
+    - klinik
+    - öykü
+  findings:
+    - findings
+    - finding
+    - hallazgos
+    - constatations
+    - befunde
+    - reperti
+    - achados
+    - bevindingen
+    - ευρήματα
+    - находка
+    - находки
+    - bulgular
+    - opis
+    - wynik
+  impression:
+    - impression
+    - conclusion
+    - opinion
+    - summary
+    - impresión
+    - impresion
+    - conclusion
+    - zusammenfassung
+    - beurteilung
+    - conclusione
+    - impressão
+    - συμπέρασμα
+    - заключение
+    - yorum
+    - wnioski
+  technique:
+    - technique
+    - protocol
+    - procedure
+    - técnica
+    - tecnica
+    - technik
+    - τεχνική
+    - методика
+    - teknik
+  comparison:
+    - comparison
+    - comparado
+    - comparaison
+    - vergleich
+    - σύγκριση
+    - сравнение
+
+boilerplate_cues:
+  - electronically signed
+  - this report
+  - confidential
+  - page of
+  - dicom
+  - i have personally reviewed
+  - computer generated
+  - please correlate clinically
+
+global_normal_cues:
+  - no significant abnormality
+  - no significant abnormalities
+  - normal mri of the knee
+  - normal knee mri
+  - unremarkable examination
+  - sin hallazgos significativos
+  - pas d'anomalie significative
+  - keine signifikanten pathologischen
+  - χωρίς παθολογικά ευρήματα
+  - без патологических изменений
+  - anlamlı patoloji saptanmadı
+
+targets:
+  acl_injury:
+    ontology_verified:
+      synonyms:
+        - anterior cruciate ligament rupture
+        - anterior cruciate ligament
+      abbreviations:
+        - ACL
+        - ACLR
+      postoperative:
+        - ACL reconstruction
+        - ACL repair
+        - ACLR
+    clinical_standard:
+      synonyms:
+        - acl tear
+        - acl injury
+        - acl sprain
+        - acl disruption
+        - torn acl
+        - complete acl
+        - partial acl tear
+        - anterior cruciate tear
+        - rotura del lca
+        - rotura del ligamento cruzado anterior
+        - ruptura del lca
+        - rupture du lca
+        - rupture du ligament croise anterieur
+        - rupture du ligament croisé antérieur
+        - vkb ruptur
+        - vkb riss
+        - vorderes kreuzband
+        - lesione del lca
+        - rotura do lca
+        - voorste kruisband
+        - przednie więzadło krzyżowe
+        - ön çapraz bağ
+        - πρόσθιος χιαστός
+        - ρήξη προσθίου χιαστού
+        - пкс
+        - предна кръстна
+        - передняя крестообразная
+      abbreviations:
+        - LCA
+        - LCA
+        - VKB
+        - PKS
+        - ПКС
+        - ΑΧΣ
+      morphology_positive:
+        - tear
+        - torn
+        - rupture
+        - ruptured
+        - sprain
+        - disruption
+        - deficient
+        - absent
+        - attenuated
+        - lax
+        - rotura
+        - ruptura
+        - dechirure
+        - déchirure
+        - riss
+        - ruptur
+        - ρήξη
+        - разкъсване
+        - разрыв
+        - yırtık
+        - kopma
+      morphology_negative:
+        - intact
+        - normal
+        - unremarkable
+        - preserved
+        - continuous
+        - integro
+        - intacto
+        - kontinyu
+    language_agnostic_abbreviations:
+      - ACL
+    notes: "Cruciate without anterior/posterior is insufficient. Graft/reconstruction without current graft tear is postoperative unknown."
+
+  mcl_injury:
+    ontology_verified:
+      synonyms:
+        - medial collateral ligament tear
+        - medial collateral ligament
+      abbreviations:
+        - MCL
+      postoperative:
+        - surgical treatment of significant MCL tear
+    clinical_standard:
+      synonyms:
+        - mcl tear
+        - mcl injury
+        - mcl sprain
+        - mcl disruption
+        - tibial collateral
+        - esguince del lcm
+        - rotura del lcm
+        - ligamento colateral medial
+        - entorse du lli
+        - entorse du llm
+        - ligament laterale interne
+        - ligament collatéral médial
+        - innenseitiges band
+        - innenband
+        - ligamento collaterale mediale
+        - ligamento colateral medial
+        - iç yan bağ
+        - έσω πλάγιος
+        - вкс
+        - медиална колатерална
+      abbreviations:
+        - LCM
+        - LLI
+        - IKB
+        - ΜΚΣ
+        - МКС
+      morphology_positive:
+        - tear
+        - torn
+        - rupture
+        - sprain
+        - disruption
+        - rotura
+        - entorse
+        - riss
+        - ρήξη
+        - разкъсване
+        - yırtık
+      morphology_negative:
+        - intact
+        - normal
+        - unremarkable
+        - preserved
+    language_agnostic_abbreviations:
+      - MCL
+    notes: "Collateral without medial/tibial is insufficient for MCL."
+
+  medial_meniscus_injury:
+    ontology_verified:
+      synonyms:
+        - medial meniscal tear
+        - medial meniscus
+      abbreviations:
+        - MM
+      grading: "Grade 3 signal that reaches the articular surface is a tear. Grade 1-2 intrasubstance signal is unknown."
+    clinical_standard:
+      synonyms:
+        - medial meniscus tear
+        - medial meniscal
+        - inner meniscus
+        - menisco medial
+        - menisque medial
+        - menisque médial
+        - Innenmeniskus
+        - mediale meniskus
+        - menisco mediale
+        - menisco medial
+        - iç menisküs
+        - έσω μηνίσκος
+        - медиален менискус
+        - медиальный мениск
+        - łąkotka przyśrodkowa
+      morphology_positive:
+        - tear
+        - torn
+        - rupture
+        - maceration
+        - bucket-handle
+        - bucket handle
+        - displaced fragment
+        - parrot beak
+        - radial tear
+        - root tear
+        - ramp
+        - grade 3
+        - rotura
+        - dechirure
+        - déchirure
+        - riss
+        - ρήξη
+        - разкъсване
+        - yırtık
+      morphology_unknown:
+        - grade 1
+        - grade 2
+        - degeneration
+        - degenerative signal
+        - mucoid
+        - fraying
+      morphology_negative:
+        - intact
+        - normal
+        - unremarkable
+        - no tear
+    language_agnostic_abbreviations: []
+    laterality: medial
+    notes: "Unspecified meniscus tear is unknown for both meniscus targets. MM abbreviation alone is too ambiguous."
+
+  lateral_meniscus_injury:
+    ontology_verified:
+      synonyms:
+        - lateral meniscal tear
+        - lateral meniscus
+      abbreviations:
+        - LM
+      grading: "Grade 3 signal that reaches the articular surface is a tear. Grade 1-2 intrasubstance signal is unknown."
+    clinical_standard:
+      synonyms:
+        - lateral meniscus tear
+        - lateral meniscal
+        - outer meniscus
+        - menisco lateral
+        - menisque lateral
+        - menisque latéral
+        - Aussenmeniskus
+        - Außenmeniskus
+        - laterale meniskus
+        - menisco laterale
+        - dış menisküs
+        - έξω μηνίσκος
+        - латерален менискус
+        - латеральный мениск
+        - łąkotka boczna
+      morphology_positive:
+        - tear
+        - torn
+        - rupture
+        - maceration
+        - bucket-handle
+        - displaced fragment
+        - parrot beak
+        - radial tear
+        - root tear
+        - grade 3
+        - rotura
+        - dechirure
+        - riss
+        - ρήξη
+        - разкъсване
+        - yırtık
+      morphology_unknown:
+        - grade 1
+        - grade 2
+        - degeneration
+        - degenerative signal
+        - mucoid
+        - fraying
+      morphology_negative:
+        - intact
+        - normal
+        - unremarkable
+        - no tear
+    language_agnostic_abbreviations: []
+    laterality: lateral
+    notes: "Unspecified meniscus tear is unknown for both meniscus targets."
+
+  medial_compartment_oa:
+    ontology_verified:
+      synonyms: []
+      abbreviations:
+        - OA
+      postoperative:
+        - total joint replacement
+      grading: "WORMS / Kellgren-Lawrence. KL>=2 or explicit OA of the medial tibiofemoral compartment is positive."
+    clinical_standard:
+      synonyms:
+        - medial compartment osteoarthritis
+        - medial osteoarthritis
+        - medial tibiofemoral osteoarthritis
+        - medial oa
+        - artrosis del compartimento medial
+        - artrosis medial
+        - arthrose du compartiment medial
+        - arthrose mediale
+        - mediale arthrose
+        - gonartrosi mediale
+        - artrose medial
+        - medial kompartman osteoartrit
+        - έσω διαμερισματική οστεοαρθρίτιδα
+        - медиална артроза
+        - медиальный остеоартроз
+      morphology_positive:
+        - osteoarthritis
+        - osteoarthrosis
+        - gonarthrosis
+        - chondrosis
+        - cartilage loss
+        - full-thickness
+        - denudation
+        - osteophytes
+        - artrosis
+        - arthrose
+        - arthrose
+        - artrose
+        - αρθρίτιδα
+        - артроза
+        - kireçlenme
+      morphology_unknown:
+        - mild degenerative
+        - degenerative change
+        - chondromalacia
+        - kl 1
+        - kellgren 1
+      morphology_negative:
+        - no osteoarthritis
+        - cartilage intact
+        - kl 0
+        - kellgren 0
+    language_agnostic_abbreviations: []
+    compartment: medial
+    notes: "Tricompartmental OA labels all three OA targets positive. Unspecified OA is unknown."
+
+  lateral_compartment_oa:
+    ontology_verified:
+      synonyms: []
+      abbreviations:
+        - OA
+      postoperative:
+        - total joint replacement
+      grading: "WORMS / Kellgren-Lawrence. KL>=2 or explicit OA of the lateral tibiofemoral compartment is positive."
+    clinical_standard:
+      synonyms:
+        - lateral compartment osteoarthritis
+        - lateral osteoarthritis
+        - lateral tibiofemoral osteoarthritis
+        - lateral oa
+        - artrosis del compartimento lateral
+        - artrosis lateral
+        - arthrose du compartiment lateral
+        - arthrose laterale
+        - laterale arthrose
+        - gonartrosi laterale
+        - artrose lateral
+        - lateral kompartman osteoartrit
+        - έξω διαμερισματική οστεοαρθρίτιδα
+        - латерална артроза
+        - латеральный остеоартроз
+      morphology_positive:
+        - osteoarthritis
+        - osteoarthrosis
+        - gonarthrosis
+        - chondrosis
+        - cartilage loss
+        - full-thickness
+        - denudation
+        - osteophytes
+        - artrosis
+        - arthrose
+        - artrose
+        - αρθρίτιδα
+        - артроза
+        - kireçlenme
+      morphology_unknown:
+        - mild degenerative
+        - degenerative change
+        - chondromalacia
+        - kl 1
+        - kellgren 1
+      morphology_negative:
+        - no osteoarthritis
+        - cartilage intact
+        - kl 0
+    language_agnostic_abbreviations: []
+    compartment: lateral
+
+  patellofemoral_oa:
+    ontology_verified:
+      synonyms:
+        - PF joint OA
+        - PFJOA
+      abbreviations:
+        - PF
+        - PFJOA
+      grading: "Outerbridge 3-4 or explicit PF osteoarthritis is positive. Outerbridge 1-2 without OA word is unknown."
+    clinical_standard:
+      synonyms:
+        - patellofemoral osteoarthritis
+        - patellofemoral oa
+        - pf oa
+        - femoropatellar osteoarthritis
+        - retropatellar osteoarthritis
+        - artrosis patelofemoral
+        - arthrose femoro-patellaire
+        - arthrose femoropatellaire
+        - femoropatellare arthrose
+        - artrosi femoro-rotulea
+        - artrose patelofemoral
+        - patellofemoral osteoartrit
+        - επιγονατιδομηριαία οστεοαρθρίτιδα
+        - пателофеморална артроза
+      morphology_positive:
+        - osteoarthritis
+        - osteoarthrosis
+        - chondrosis
+        - cartilage loss
+        - full-thickness
+        - denudation
+        - outerbridge 3
+        - outerbridge 4
+        - artrosis
+        - arthrose
+        - artrose
+      morphology_unknown:
+        - chondromalacia
+        - outerbridge 1
+        - outerbridge 2
+        - mild degenerative
+      morphology_negative:
+        - no osteoarthritis
+        - cartilage intact
+    language_agnostic_abbreviations: []
+    compartment: patellofemoral
+
+  joint_effusion:
+    ontology_verified:
+      synonyms:
+        - effusion-synovitis (combined non-contrast MRI construct)
+      abbreviations: []
+    clinical_standard:
+      synonyms:
+        - joint effusion
+        - knee effusion
+        - intra-articular fluid
+        - intraarticular fluid
+        - hydrarthrosis
+        - derrame articular
+        - derrame
+        - epanchement articulaire
+        - épanchement articulaire
+        - gelenkerfluss
+        - gelenkerguss
+        - versamento articolare
+        - derrame articular
+        - gewrichtseffusie
+        - wysięk
+        - efüzyon
+        - αρθρικός υπαρθρισμός
+        - ύδραρθρος
+        - ставен излив
+        - выпот
+      morphology_positive:
+        - effusion
+        - hydrarthrosis
+        - excess fluid
+        - derrame
+        - epanchement
+        - épanchement
+        - erguss
+        - versamento
+        - efüzyon
+        - излив
+        - выпот
+      morphology_negative:
+        - no effusion
+        - no joint fluid
+        - no excess fluid
+    language_agnostic_abbreviations: []
+    notes: "Do not treat Baker cyst or synovitis as effusion. Combined effusion-synovitis without a distinct fluid statement is unknown. Trace/minimal/physiologic fluid is unknown."
+
+  synovitis:
+    ontology_verified:
+      synonyms:
+        - effusion-synovitis (combined MRI construct)
+      abbreviations: []
+    clinical_standard:
+      synonyms:
+        - synovitis
+        - synovial thickening
+        - synovial hypertrophy
+        - synovial proliferation
+        - synovial inflammation
+        - sinovitis
+        - engrosamiento sinovial
+        - synovite
+        - epaississement synovial
+        - synovitis
+        - synoviale verdickung
+        - sinovite
+        - ispessimento sinoviale
+        - sinovite
+        - synovitis
+        - zapalenie błony maziowej
+        - sinovit
+        - αρθρικού υμένα
+        - υμενίτιδα
+        - синовит
+      morphology_positive:
+        - synovitis
+        - synovial thickening
+        - synovial hypertrophy
+        - sinovitis
+        - synovite
+        - sinovite
+        - sinovit
+        - υμενίτιδα
+        - синовит
+      morphology_negative:
+        - no synovitis
+        - no synovial thickening
+        - synovium normal
+    language_agnostic_abbreviations: []
+    notes: "Do not treat isolated effusion or Baker cyst as synovitis. Combined effusion-synovitis construct is unknown for both targets unless a distinct synovial statement exists."
+
+  baker_cyst:
+    ontology_verified:
+      synonyms:
+        - Baker's cyst
+      abbreviations: []
+    clinical_standard:
+      synonyms:
+        - baker cyst
+        - bakers cyst
+        - baker's cyst
+        - popliteal cyst
+        - gastrocnemius-semimembranosus bursa
+        - quiste de baker
+        - quiste popliteo
+        - quiste poplíteo
+        - kyste de baker
+        - kyste poplite
+        - bakerzyste
+        - baker-zyste
+        - poplitealzyste
+        - cisti di baker
+        - cisti poplitea
+        - cisto de baker
+        - baker kisti
+        - κύστη baker
+        - ιγνυακή κύστη
+        - киста на бейкър
+        - киста бейкера
+        - torbiel bakera
+      morphology_positive:
+        - cyst
+        - cystic
+        - quiste
+        - kyste
+        - zyste
+        - cisti
+        - cisto
+        - kisti
+        - κύστη
+        - киста
+        - torbiel
+      morphology_negative:
+        - no baker
+        - no popliteal cyst
+        - no baker's
+        - no bakers
+    language_agnostic_abbreviations: []
+    notes: "Popliteal cyst / Baker cyst is distinct from joint effusion and from synovitis."
+
+  bone_contusion:
+    ontology_verified:
+      synonyms:
+        - bone bruising
+      abbreviations: []
+    clinical_standard:
+      synonyms:
+        - bone contusion
+        - bone bruise
+        - bone bruising
+        - osseous contusion
+        - contusion osea
+        - contusión ósea
+        - contusion osseuse
+        - knochenkontusion
+        - knochenmarksodem
+        - knochenmarksödem
+        - contusione ossea
+        - contusão óssea
+        - kemik kontüzyonu
+        - kemik ödemi
+        - οστική θλάση
+        - θλάση οστού
+        - костна контузия
+        - ушиб кости
+        - stłuczenie kości
+      morphology_positive:
+        - contusion
+        - bruise
+        - bruising
+        - contusión
+        - contusion
+        - kontusion
+        - contusão
+        - kontüzyon
+        - θλάση
+        - контузия
+        - ушиб
+        - stłuczenie
+      morphology_unknown:
+        - bone marrow edema
+        - bone marrow oedema
+        - edema oseo
+        - oedema
+        - bme
+      morphology_negative:
+        - no contusion
+        - no bone bruise
+        - no osseous contusion
+    language_agnostic_abbreviations: []
+    notes: "Bone marrow edema without contusion/bruise/trauma language is unknown (may be OA-related BME)."
+
+  fracture:
+    ontology_verified:
+      synonyms: []
+      abbreviations:
+        - TSF
+      postoperative:
+        - arthroscopic fixation
+    clinical_standard:
+      synonyms:
+        - fracture
+        - fractured
+        - cortical disruption
+        - occult fracture
+        - insufficiency fracture
+        - tibial spine fracture
+        - fractura
+        - fracture osseuse
+        - fraktur
+        - knochenbruch
+        - frattura
+        - fratura
+        - kırık
+        - κάταγμα
+        - фрактура
+        - перелом
+        - złamanie
+      morphology_positive:
+        - fracture
+        - fractured
+        - cortical break
+        - fractura
+        - fraktur
+        - frattura
+        - fratura
+        - kırık
+        - κάταγμα
+        - фрактура
+        - перелом
+        - złamanie
+      morphology_negative:
+        - no fracture
+        - no cortical break
+        - no fractura
+        - keine fraktur
+      morphology_unknown:
+        - osteochondral defect
+        - osteochondritis
+        - avascular necrosis
+        - subchondral insufficiency
+    language_agnostic_abbreviations: []
+    notes: "Osteochondral defect / OCD / AVN without an explicit fracture word is unknown."

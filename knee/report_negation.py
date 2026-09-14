@@ -339,11 +339,35 @@ def classify_modifiers(
     ``match_start`` / ``match_end`` are offsets into ``sentence_text``.
     """
     text = sentence_text
-    before = text[:match_start]
-    after = text[match_end:]
+    # Prefer the clause that contains the match so "intact ACL but torn MCL"
+    # does not attach normal-structure to the wrong finding.
+    clauses = [c.strip() for c in _CLAUSE_RE.split(text) if c and c.strip()]
+    local = text
+    if clauses:
+        cursor = 0
+        for piece in _CLAUSE_RE.split(text):
+            if piece is None:
+                continue
+            loc = text.find(piece, cursor)
+            if loc < 0:
+                loc = cursor
+            end = loc + len(piece)
+            if loc <= match_start < end or loc < match_end <= end:
+                local = piece
+                break
+            cursor = max(end, cursor + 1)
+    before = local[: max(0, match_start - (text.find(local) if local in text else 0))]
+    # Recompute before/after inside the local clause.
+    clause_start = text.find(local) if local in text else 0
+    local_start = max(0, match_start - clause_start)
+    local_end = max(local_start + 1, match_end - clause_start)
+    local_start = min(local_start, len(local))
+    local_end = min(max(local_end, local_start + 1), len(local))
+    before = local[:local_start]
+    after = local[local_end:]
     window_before = before[-80:]
     window_after = after[:80]
-    full = text
+    full = local
 
     pseudo = _contains_phrase(full, PSEUDO_NEGATION)
     hist_section = section == "history"
@@ -379,6 +403,23 @@ def classify_modifiers(
         section=section,
         pseudo_negation=pseudo,
     )
+
+
+def clause_containing(sentence: Sentence, match_start: int, match_end: int) -> str:
+    """Return the clause of ``sentence`` that contains the match (sentence-local offsets)."""
+    text = sentence.text
+    cursor = 0
+    for piece in _CLAUSE_RE.split(text):
+        if piece is None:
+            continue
+        loc = text.find(piece, cursor)
+        if loc < 0:
+            loc = cursor
+        end = loc + len(piece)
+        if loc <= match_start < end or loc < match_end <= end:
+            return piece
+        cursor = max(end, cursor + 1)
+    return text
 
 
 def sentence_containing(sentences: list[Sentence], start: int, end: int) -> Sentence | None:

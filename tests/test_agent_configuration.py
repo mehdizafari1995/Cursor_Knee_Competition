@@ -214,6 +214,13 @@ class TestScaffolding:
             "reports/report_labeling_summary.md",
             "reports/kaggle_report_labeling_run.md",
             "reports/weak_label_training_readiness.md",
+            "reports/report_labeler_v2_protocol.md",
+            "reports/report_labeler_v2_summary.md",
+            "reports/report_labeler_v2_kaggle_comparison.md",
+            "reports/kaggle_report_labeler_v2_run.md",
+            "reports/competition_pretrained_model_rules.md",
+            "configs/report_labeler_v1.yaml",
+            "notebooks/03_kaggle_report_labeler_v2.ipynb",
             "reports/real_data_audit_summary.md",
             "reports/data_audit.md",
             "reports/baseline_design.md",
@@ -382,7 +389,10 @@ class TestGitignorePolicy:
         ["*.pdf", "*.png", "*.dcm", "*.nii", "*.ckpt", "*.pt", "*.safetensors",
          "reports/*", "data/", "outputs/", "kaggle.json", ".env", ".venv/",
          "cache/", "predictions/", ".kaggle/", "*.zip",
-         "weak_labels.csv", "gold_predictions.csv", "language_assignments.csv"],
+        "weak_labels.csv", "gold_predictions.csv", "language_assignments.csv",
+        "mask_high_conf_positive.csv", "mask_high_conf_negative.csv",
+        "mask_unknown.csv", "mask_disagreement.csv",
+        "mask_unsupported_language.csv"],
     )
     def test_restricted_artefact_is_ignored(self, gitignore_patterns, pattern):
         assert pattern in gitignore_patterns

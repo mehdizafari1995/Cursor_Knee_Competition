@@ -215,6 +215,8 @@ class TestScaffolding:
             "reports/kaggle_report_labeling_run.md",
             "reports/report_labeler_v2_protocol.md",
             "reports/report_labeler_v2_summary.md",
+            "reports/report_labeler_v2_kaggle_comparison.md",
+            "reports/kaggle_report_labeler_v2_run.md",
             "reports/competition_pretrained_model_rules.md",
             "configs/report_labeler_v1.yaml",
             "notebooks/03_kaggle_report_labeler_v2.ipynb",

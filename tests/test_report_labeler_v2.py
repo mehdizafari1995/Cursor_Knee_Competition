@@ -106,6 +106,7 @@ def test_fixture_v2_run_writes_masks_without_leaking_text(tmp_path):
     assert "positive_capture" in acl
     assert "npv" in acl
     assert "oof_confidence_policies" in metrics
+    assert metrics.get("trainable_status_source") == "oof_metrics"
     for key, payload in (metrics.get("oof_confidence_policies") or {}).items():
         for fold in payload.get("folds") or []:
             assert "train_ids" not in fold
@@ -116,6 +117,8 @@ def test_committed_v2_reports_are_sanitized():
     for relative in (
         "reports/report_labeler_v2_summary.md",
         "reports/report_labeler_v2_protocol.md",
+        "reports/report_labeler_v2_kaggle_comparison.md",
+        "reports/kaggle_report_labeler_v2_run.md",
         "reports/competition_pretrained_model_rules.md",
     ):
         text = (REPO_ROOT / relative).read_text(encoding="utf-8")
@@ -126,6 +129,28 @@ def test_committed_v2_reports_are_sanitized():
         for patient in REPORT_LABEL_PATIENTS:
             assert patient not in text
         assert "kaggle.json" not in text.lower()
+
+
+def test_v2_kaggle_comparison_is_scientific_and_uses_oof_statuses():
+    text = (REPO_ROOT / "reports" / "report_labeler_v2_kaggle_comparison.md").read_text(
+        encoding="utf-8"
+    )
+    lowered = text.lower()
+    assert "real_kaggle_mount" in lowered
+    assert "n_reports: **4407**" in text or "n_reports: 4407" in text
+    assert "n_gold_studies" in lowered or "n_gold=58" in lowered or "58 gold" in lowered
+    assert "4349" in text
+    assert "second_reader.enabled: `false`" in lowered
+    assert "train_baseline" not in lowered
+    assert "TRAINABLE_HIGH_CONFIDENCE`: **none**" in text or "TRAINABLE_HIGH_CONFIDENCE: **none**" in text
+    assert "Lateral OA" in text and "NOT_TRAINABLE" in text
+    assert "Contusion" in text
+    assert "out-of-fold" in lowered or "oof" in lowered
+    assert "invalid" in lowered
+    assert "merge" in lowered
+    assert REPORT_LABEL_LEAK_TOKEN not in text
+    assert _UID_LIKE.search(text) is None
+    assert "kaggle.json" not in lowered
 
 
 def test_v2_notebook_is_offline_and_does_not_train():

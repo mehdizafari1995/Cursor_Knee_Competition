@@ -8,9 +8,13 @@ StudyInstanceUID values, and PatientID values are not included.
 - eval_protocol_version: `gold-eval-v2.0.0`
 - v1 eval_protocol_version: `gold-eval-v1.0.0`
 - v1 config_sha256: `54dfea17063519fa33a58ff82fdfd49aa1d5bb4720b017aa65a40055f2150976`
-- data_source of the scientific counts: `real_kaggle_mount` (v1 Kaggle run)
-- scientific_evaluation of the counts below: `true` (re-analysis of committed v1 aggregates; no new report access)
-- v2 extractor gold evaluation in this checkout: **not computed** (competition reports are private; run `notebooks/03_kaggle_report_labeler_v2.ipynb` internet-off)
+- data_source of the v1 counts below: `real_kaggle_mount` (v1 Kaggle run)
+- scientific_evaluation of the v1 counts below: `true` (re-analysis of committed v1 aggregates)
+- v2 extractor gold evaluation: **computed** on the private internet-off kernel
+  `mahdimzafari/rsna-knee-report-labeler-v2` version 1 (`real_kaggle_mount`,
+  n_reports=4407, n_gold=58, n_report_only=4349). Sanitized comparison:
+  `reports/report_labeler_v2_kaggle_comparison.md`. Conditional sensitivity
+  is not full-set sensitivity.
 - unknown_imputed_as_negative: `false`
 - external_language_model: `false`
 - second_reader_enabled: `false`
@@ -140,8 +144,23 @@ Fixture tests in this repository exercise abstention-aware metrics, OOF
 threshold leakage controls, and privacy filters. They are not scientific
 gold-label performance.
 
+## v2 OOF statuses (independent of v1)
+
+Issued from out-of-fold gated metrics on the real 58 gold studies. v1 status
+is not retained. Full tables, CIs, language aggregates, prevalence, and
+private hashes: `reports/report_labeler_v2_kaggle_comparison.md`.
+
+- TRAINABLE_HIGH_CONFIDENCE: none
+- NOT_TRAINABLE: Lateral OA, PF OA, Synovitis, Contusion
+- TRAINABLE_WITH_RESTRICTIONS: ACL, MCL, Medial Meniscus, Lateral Meniscus,
+  Medial OA, Effusion, Baker's, Fracture (high-confidence **negatives**
+  only; inflated-prevalence positives remain unapproved)
+
+Merge Phase 4B as evaluation protocol. Do not train an image model from
+these labels as hard targets.
+
 ## Warnings
 
-- Version-2 scientific gold metrics are pending the private Kaggle notebook.
 - Do not train an image model or submit predictions in this phase.
 - Do not convert unknown or disagreement to zero.
+- Do not quote leaked full-gold threshold metrics as OOF performance.

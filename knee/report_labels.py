@@ -1614,8 +1614,10 @@ def render_sanitized_summary(
                 [
                     "### Per-target trainable status",
                     "",
-                    "Statuses use precision, NPV, coverage, confidence intervals and",
-                    "prevalence plausibility. There is no single macro threshold.",
+                    "Statuses use out-of-fold gated precision, NPV, coverage,",
+                    "confidence intervals and prevalence plausibility. Full-gold",
+                    "operational thresholds are not used as the gold estimate.",
+                    "There is no single macro threshold.",
                     "",
                     "| Official column | status | precision | NPV | coverage | pos_capture | inflated |",
                     "| --- | --- | ---: | ---: | ---: | ---: | --- |",
@@ -1884,10 +1886,20 @@ def run_notebook_report_labeling(
             )
             gold_eval["oof_confidence_policies"] = oof_sanitized
             gold_eval["operational_thresholds_for_weak_labels_only"] = operational_thresholds
+            status_input: dict[str, dict] = {}
+            for official, key in zip(OFFICIAL_TARGET_COLUMNS, TARGET_KEYS):
+                base = dict((gold_eval.get("per_target") or {}).get(official) or {})
+                oof_m = (oof_sanitized.get(key) or {}).get("oof_metrics") or {}
+                merged = dict(base)
+                merged.update(oof_m)
+                # Extractor bootstrap CIs are not OOF-gated; missing CIs block HIGH.
+                merged["ci"] = {}
+                status_input[official] = merged
             gold_eval["trainable_status"] = decide_all_targets(
-                gold_eval.get("per_target") or {},
+                status_input,
                 weak_prev=(weak_label_aggregates(weak_pred).get("prevalence") if len(weak_pred) else None),
             )
+            gold_eval["trainable_status_source"] = "oof_metrics"
             from .report_second_reader import run_second_reader
 
             reader_probe = run_second_reader(

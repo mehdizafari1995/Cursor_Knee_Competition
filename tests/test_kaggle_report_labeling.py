@@ -195,6 +195,8 @@ def test_committed_phase4_reports_have_no_identifiers_or_report_tokens():
         "reports/weak_label_training_readiness.md",
         "reports/report_labeler_v2_summary.md",
         "reports/report_labeler_v2_protocol.md",
+        "reports/report_labeler_v2_kaggle_comparison.md",
+        "reports/kaggle_report_labeler_v2_run.md",
         "reports/competition_pretrained_model_rules.md",
     ):
         text = (REPO_ROOT / relative).read_text(encoding="utf-8")

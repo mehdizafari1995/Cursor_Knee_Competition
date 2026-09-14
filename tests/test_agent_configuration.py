@@ -216,6 +216,8 @@ class TestScaffolding:
             "reports/weak_label_training_readiness.md",
             "reports/report_labeler_v2_protocol.md",
             "reports/report_labeler_v2_summary.md",
+            "reports/report_labeler_v2_kaggle_comparison.md",
+            "reports/kaggle_report_labeler_v2_run.md",
             "reports/competition_pretrained_model_rules.md",
             "configs/report_labeler_v1.yaml",
             "notebooks/03_kaggle_report_labeler_v2.ipynb",            "reports/real_data_audit_summary.md",

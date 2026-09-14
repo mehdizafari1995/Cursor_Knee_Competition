@@ -56,6 +56,7 @@ def candidate_data_roots(explicit: str | Path | None = None) -> list[Path]:
     paths.append(PROJECT_ROOT / "data" / "rsna-knee-abnormality-detection")
     paths.append(PROJECT_ROOT / "data")
     paths.append(Path("/kaggle/input/rsna-knee-abnormality-detection"))
+    paths.append(Path("/kaggle/input/competitions/rsna-knee-abnormality-detection"))
     return _unique_paths(paths)
 
 

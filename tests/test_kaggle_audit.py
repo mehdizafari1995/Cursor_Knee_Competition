@@ -290,6 +290,7 @@ def test_notebook_file_is_offline_and_tokenless():
     assert "_debug_input_layout" in source
     assert "SOURCE_SEARCH_MAX_DEPTH" in source
     assert "/kaggle/input/rsna-knee-abnormality-detection" in source
+    assert "competitions" in source
     meta = payload.get("metadata") or {}
     kaggle_meta = meta.get("kaggle") or {}
     assert kaggle_meta.get("isInternetEnabled") is False

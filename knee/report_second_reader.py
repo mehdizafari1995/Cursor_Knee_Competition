@@ -375,12 +375,15 @@ def _generate_with_transformers(
                 add_generation_prompt=True,
                 return_tensors="pt",
             )
-        if isinstance(encoded, dict):
-            inputs = encoded
-        else:
-            inputs = {"input_ids": encoded}
     else:
-        inputs = tokenizer(render_user_prompt(report, prompt=prompt), return_tensors="pt")
+        encoded = tokenizer(render_user_prompt(report, prompt=prompt), return_tensors="pt")
+    inputs: dict[str, Any] = {}
+    if hasattr(encoded, "items") and not hasattr(encoded, "shape"):
+        for key in ("input_ids", "attention_mask", "token_type_ids"):
+            if key in encoded:
+                inputs[key] = encoded[key]
+    if "input_ids" not in inputs:
+        inputs = {"input_ids": encoded}
     model_device = getattr(model, "device", None)
     if model_device is None:
         try:

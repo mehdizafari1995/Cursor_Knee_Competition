@@ -277,10 +277,52 @@ Those positives stay unapproved as hard labels.
 
 ## Confidence-mask counts
 
-Exact per-target true-counts of the private masks were not exported in
-sanitized JSON and were not downloaded. Upper bounds from extractor
-known-calls on the 4349 report-only studies are the `n_known` column above.
-OOF/operational gates further abstain, so high-conf mask sizes are smaller.
+Private Kaggle `mask_disagreement.csv` and `mask_unsupported_language.csv`
+were downloaded into a gitignored probe directory, reduced to aggregates,
+and deleted. Identifiers were not printed or committed.
+
+Both files are **correctly all-zero**, so they are byte-for-byte identical
+and share SHA-256
+`88c075136991356891ea0735b61692d21c8f469c9ba766ca2e0a9ece3764cdac`
+(387192 bytes). This is not a copy-paste of one mask onto the other.
+
+| check | result |
+| --- | --- |
+| n_rows (report-only studies) | 4349 |
+| n_target columns | 12 |
+| true cells (`mask_disagreement.csv`) | 0 |
+| true cells (`mask_unsupported_language.csv`) | 0 |
+| studies with any true cell | 0 / 0 |
+| targets with any true cell | 0 / 0 |
+| unique mask values | `{0}` |
+| target cells identical | true |
+| study-id order aligned | true |
+| raw bytes identical | true |
+
+Independent generators in `knee/report_masks.py` / `run_notebook_report_labeling`:
+
+- **Disagreement** is filled from an optional `disagreement_frame`. The
+  production call does not pass that argument. The second reader is
+  disabled (`second_reader.enabled=false`, weights not downloaded), so
+  every disagreement cell stays 0. That is the intended empty disagreement
+  mask for this run.
+- **Unsupported language** is filled from `quality_flags` containing
+  `unsupported_language`, which is set when `language.supported` is false.
+  v2 `n_unsupported_language` is **0**, so every unsupported-language cell
+  stays 0.
+
+v1 counted 17 unsupported reports. Those were the 17 `und` (no-cue)
+classifications, which are outside the supported-language list. v2's
+independent ngram detector assigned those 17 a supported language code
+(`ngram_only_kept_uncertain=17`; the language table gains Italian n=15,
+Portuguese n=1, and Czech 96→97) and kept them **uncertain**, not
+unsupported. Uncertain language is recorded in the unknown mask, not in
+`mask_unsupported_language.csv`. v2 therefore has zero
+unsupported-language reports.
+
+High-confidence positive/negative and unknown masks have distinct hashes
+and are not all-zero. Exact true-counts for those three files were not
+re-downloaded in this probe.
 
 Private Kaggle outputs (row-level, not in git):
 
@@ -296,8 +338,9 @@ Private Kaggle outputs (row-level, not in git):
 | `mask_unsupported_language.csv` | `88c075136991356891ea0735b61692d21c8f469c9ba766ca2e0a9ece3764cdac` | 387192 |
 
 `mask_disagreement.csv` and `mask_unsupported_language.csv` share a hash
-(second reader off; n_unsupported_language=0). Unknown/disagreement are
-never written as 0.
+because both are independently written all-zero matrices (second reader
+off; v2 `n_unsupported_language=0`). Unknown/disagreement are never
+written as 0.
 
 ## Error taxonomy (v2 gold, counts only)
 

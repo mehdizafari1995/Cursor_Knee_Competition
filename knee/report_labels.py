@@ -102,6 +102,7 @@ SANITIZED_WEAK_FILENAME = "weak_label_aggregates.json"
 SANITIZED_ERRORS_FILENAME = "error_categories.json"
 SANITIZED_MANIFEST_FILENAME = "report_label_manifest.json"
 SANITIZED_HASHES_FILENAME = "private_output_hashes.json"
+SANITIZED_MASKS_FILENAME = "mask_aggregates.json"
 
 KAGGLE_REPORT_OUTPUT_DIRNAME = "rsna_report_label_outputs"
 
@@ -1400,6 +1401,7 @@ def render_sanitized_summary(
     warnings: list[str],
     hashes: dict,
     config: dict,
+    mask_aggregates: dict | None = None,
 ) -> str:
     lines = [
         "# Report labeling summary",
@@ -1661,6 +1663,43 @@ def render_sanitized_summary(
                 f"p50={_fmt_metric(item.get('p50'))}"
             )
         lines.append("")
+
+    if mask_aggregates:
+        files = mask_aggregates.get("files") or {}
+        lines.extend(
+            [
+                "## Confidence-mask aggregates (no identifiers)",
+                "",
+                "True-counts only. Row-level masks stay private.",
+                "",
+                "| file | n_rows | n_true_cells | n_studies_with_any_true | all_zero |",
+                "| --- | ---: | ---: | ---: | --- |",
+            ]
+        )
+        for name in (
+            "mask_high_conf_positive.csv",
+            "mask_high_conf_negative.csv",
+            "mask_unknown.csv",
+            "mask_disagreement.csv",
+            "mask_unsupported_language.csv",
+        ):
+            row = files.get(name) or {}
+            lines.append(
+                f"| `{name}` | {row.get('n_rows', 'n/a')} | {row.get('n_true_cells', 'n/a')} | "
+                f"{row.get('n_studies_with_any_true', 'n/a')} | {str(row.get('all_zero')).lower()} |"
+            )
+        lines.extend(
+            [
+                "",
+                f"- disagreement generator: {mask_aggregates.get('disagreement_generator')}",
+                f"- unsupported-language generator: {mask_aggregates.get('unsupported_language_generator')}",
+                "- disagreement and unsupported target cells identical: "
+                f"`{mask_aggregates.get('disagreement_and_unsupported_target_cells_identical')}`",
+                "- identical all-zero hashes are expected when the second reader "
+                "is off and n_unsupported_language is 0",
+                "",
+            ]
+        )
 
     if gold_prevalence and weak_agg:
         lines.extend(
@@ -1940,8 +1979,9 @@ def run_notebook_report_labeling(
         present = [col for col in lang_cols if col in all_pred.columns]
         write_private_csv(all_pred.loc[:, present], private_paths[PRIVATE_LANGUAGE_FILENAME])
 
+    mask_aggregates: dict | None = None
     if operational_thresholds:
-        from .report_masks import MASK_FILENAMES, build_trainable_masks, write_mask_csvs
+        from .report_masks import build_trainable_masks, summarize_masks, write_mask_csvs
 
         pos_t = {k: v["positive_threshold"] for k, v in operational_thresholds.items()}
         neg_t = {k: v["negative_threshold"] for k, v in operational_thresholds.items()}
@@ -1952,6 +1992,7 @@ def run_notebook_report_labeling(
                 positive_thresholds=pos_t,
                 negative_thresholds=neg_t,
             )
+            mask_aggregates = summarize_masks(masks)
             written = write_mask_csvs(masks, private_dir)
             for name, path in written.items():
                 private_paths[name] = path
@@ -1977,6 +2018,7 @@ def run_notebook_report_labeling(
         warnings=warnings,
         hashes=hashes,
         config=config,
+        mask_aggregates=mask_aggregates,
     )
     sanitized_paths = {
         SANITIZED_SUMMARY_FILENAME: sanitized_dir / SANITIZED_SUMMARY_FILENAME,
@@ -1985,6 +2027,7 @@ def run_notebook_report_labeling(
         SANITIZED_WEAK_FILENAME: sanitized_dir / SANITIZED_WEAK_FILENAME,
         SANITIZED_ERRORS_FILENAME: sanitized_dir / SANITIZED_ERRORS_FILENAME,
         SANITIZED_HASHES_FILENAME: sanitized_dir / SANITIZED_HASHES_FILENAME,
+        SANITIZED_MASKS_FILENAME: sanitized_dir / SANITIZED_MASKS_FILENAME,
         SANITIZED_MANIFEST_FILENAME: sanitized_dir / SANITIZED_MANIFEST_FILENAME,
     }
     sanitized_paths[SANITIZED_SUMMARY_FILENAME].write_text(summary, encoding="utf-8")
@@ -2003,6 +2046,9 @@ def run_notebook_report_labeling(
     )
     sanitized_paths[SANITIZED_HASHES_FILENAME].write_text(
         json.dumps(hashes, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    sanitized_paths[SANITIZED_MASKS_FILENAME].write_text(
+        json.dumps(jsonable(mask_aggregates), indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
     manifest = {
         "created_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),

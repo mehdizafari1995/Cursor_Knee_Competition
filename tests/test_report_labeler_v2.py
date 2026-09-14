@@ -111,6 +111,13 @@ def test_fixture_v2_run_writes_masks_without_leaking_text(tmp_path):
         for fold in payload.get("folds") or []:
             assert "train_ids" not in fold
             assert "test_ids" not in fold
+    mask_agg_path = out / "sanitized" / "mask_aggregates.json"
+    assert mask_agg_path.is_file()
+    mask_agg = json.loads(mask_agg_path.read_text(encoding="utf-8"))
+    assert mask_agg["files"]["mask_disagreement.csv"]["n_true_cells"] == 0
+    for uid in REPORT_LABEL_GOLD_UIDS + REPORT_LABEL_WEAK_UIDS:
+        assert uid not in mask_agg_path.read_text(encoding="utf-8")
+    assert REPORT_LABEL_LEAK_TOKEN not in mask_agg_path.read_text(encoding="utf-8")
 
 
 def test_committed_v2_reports_are_sanitized():
@@ -148,6 +155,9 @@ def test_v2_kaggle_comparison_is_scientific_and_uses_oof_statuses():
     assert "out-of-fold" in lowered or "oof" in lowered
     assert "invalid" in lowered
     assert "merge" in lowered
+    assert "all-zero" in lowered
+    assert "n_unsupported_language" in lowered
+    assert "88c075136991356891ea0735b61692d21c8f469c9ba766ca2e0a9ece3764cdac" in text
     assert REPORT_LABEL_LEAK_TOKEN not in text
     assert _UID_LIKE.search(text) is None
     assert "kaggle.json" not in lowered

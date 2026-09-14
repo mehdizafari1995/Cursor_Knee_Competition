@@ -24,6 +24,15 @@ MASK_FILENAMES = (
     MASK_UNSUPPORTED_LANGUAGE,
 )
 
+DISAGREEMENT_GENERATOR = (
+    "disagreement_frame from the optional second reader; all-zero when the "
+    "reader is disabled or disagreement_frame is omitted"
+)
+UNSUPPORTED_LANGUAGE_GENERATOR = (
+    "quality_flags contains unsupported_language, set when language.supported "
+    "is false (language code not in the configured supported list)"
+)
+
 MASK_REASONS_NEVER_ZERO = frozenset(
     {"unknown", "disagreement", "unsupported_language", "second_reader_abstain", "no_finding_mentioned"}
 )
@@ -102,6 +111,7 @@ def build_trainable_masks(
         pos[official] = high_pos.astype(np.int8)
         neg[official] = high_neg.astype(np.int8)
         unknown[official] = unknown_row.astype(np.int8)
+        # Independent writers: disagreement is not copied from unsupported language.
         disagree[official] = disagrees.astype(np.int8)
         unsup[official] = unsup_row.astype(np.int8)
 
@@ -118,6 +128,56 @@ def build_trainable_masks(
         MASK_DISAGREEMENT: disagree,
         MASK_UNSUPPORTED_LANGUAGE: unsup,
     }
+
+
+def summarize_masks(masks: dict[str, pd.DataFrame]) -> dict[str, Any]:
+    """Aggregate true-counts for sanitized logs. Never includes study identifiers."""
+    out: dict[str, Any] = {
+        "disagreement_generator": DISAGREEMENT_GENERATOR,
+        "unsupported_language_generator": UNSUPPORTED_LANGUAGE_GENERATOR,
+    }
+    per_file: dict[str, Any] = {}
+    for name in MASK_FILENAMES:
+        frame = masks.get(name)
+        if frame is None:
+            continue
+        cols = [c for c in OFFICIAL_TARGET_COLUMNS if c in frame.columns]
+        values = frame.loc[:, cols].to_numpy(dtype=np.int64) if cols else np.zeros((len(frame), 0), dtype=np.int64)
+        true_cells = int((values == 1).sum())
+        n_studies_any = int((values == 1).any(axis=1).sum()) if values.size else 0
+        by_target = {col: int((frame[col].to_numpy() == 1).sum()) for col in cols}
+        per_file[name] = {
+            "n_rows": int(len(frame)),
+            "n_target_columns": len(cols),
+            "n_true_cells": true_cells,
+            "n_nonzero_cells": int((values != 0).sum()),
+            "n_studies_with_any_true": n_studies_any,
+            "n_targets_with_any_true": int(sum(1 for value in by_target.values() if value > 0)),
+            "true_cells_by_target": by_target,
+            "all_zero": true_cells == 0 and int((values != 0).sum()) == 0,
+        }
+    out["files"] = per_file
+    disagree = masks.get(MASK_DISAGREEMENT)
+    unsup = masks.get(MASK_UNSUPPORTED_LANGUAGE)
+    if disagree is not None and unsup is not None:
+        d_cols = [c for c in OFFICIAL_TARGET_COLUMNS if c in disagree.columns]
+        u_cols = [c for c in OFFICIAL_TARGET_COLUMNS if c in unsup.columns]
+        cells_identical = d_cols == u_cols and np.array_equal(
+            disagree.loc[:, d_cols].to_numpy(), unsup.loc[:, u_cols].to_numpy()
+        )
+        ids_aligned = False
+        if STUDY_ID_COLUMN in disagree.columns and STUDY_ID_COLUMN in unsup.columns:
+            ids_aligned = (
+                disagree[STUDY_ID_COLUMN].astype(str).tolist()
+                == unsup[STUDY_ID_COLUMN].astype(str).tolist()
+            )
+        out["disagreement_and_unsupported_target_cells_identical"] = bool(cells_identical)
+        out["disagreement_and_unsupported_id_order_aligned"] = bool(ids_aligned)
+        out["identical_all_zero_expected_when_second_reader_off_and_no_unsupported"] = bool(
+            per_file.get(MASK_DISAGREEMENT, {}).get("all_zero")
+            and per_file.get(MASK_UNSUPPORTED_LANGUAGE, {}).get("all_zero")
+        )
+    return out
 
 
 def _assert_masks_not_forcing_zero(

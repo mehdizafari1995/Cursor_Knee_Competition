@@ -166,3 +166,16 @@ performance.
 - leaderboard submission
 - external pretrained language models
 - quoting reports
+
+## 8. Coordinator gates after gold evaluation
+
+After the real 58-study evaluation of `report-labeler-v1.0.0`:
+
+- `NOT_READY_FOR_HARD_WEAK_LABEL_TRAINING`
+- `READY_FOR_SELECTIVE_LABEL_REFINEMENT`
+
+`HARD_WEAK_LABEL_TRAINING_ALLOWED` in `knee/report_labels.py` is `false`.
+The Kaggle notebook must not flip it. Image training that treats report weak
+labels as hard 0/1 is forbidden. Unknown stays unknown. Selective rule
+refinement against the gold studies is allowed and must bump the extractor
+version. See `reports/weak_label_training_readiness.md`.

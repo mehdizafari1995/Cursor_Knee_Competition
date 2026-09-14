@@ -220,6 +220,7 @@ class TestScaffolding:
             "reports/competition_pretrained_model_rules.md",
             "configs/report_labeler_v1.yaml",
             "notebooks/03_kaggle_report_labeler_v2.ipynb",
+            "reports/weak_label_training_readiness.md",
             "reports/real_data_audit_summary.md",
             "reports/data_audit.md",
             "reports/baseline_design.md",

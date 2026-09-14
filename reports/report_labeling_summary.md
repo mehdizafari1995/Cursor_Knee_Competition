@@ -232,3 +232,15 @@ Confidence distribution (mean / p50):
 
 Row-level weak labels, gold predictions, language assignments, and report
 text remain in gitignored / Kaggle working outputs only.
+
+## Coordinator decision
+
+**`NOT_READY_FOR_HARD_WEAK_LABEL_TRAINING`**
+**`READY_FOR_SELECTIVE_LABEL_REFINEMENT`**
+
+Hard 0/1 image training on the 4,349-study weak-label table is refused:
+macro specificity 0.388, coverage 0.299, and weak-label prevalence that
+diverges from expert rates on meniscus, OA, synovitis, and Baker's. Unknown
+must stay unknown. Selective extractor refinement against the 58 gold studies
+is allowed in a new extractor version. Full rationale:
+`reports/weak_label_training_readiness.md`.

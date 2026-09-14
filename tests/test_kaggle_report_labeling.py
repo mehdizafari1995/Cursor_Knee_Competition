@@ -180,6 +180,10 @@ def test_committed_summary_is_scientific_and_sanitized():
     assert "Aggregate error categories" in text
     assert "n_gold_studies: 58" in text
     assert "n_report_only_studies: 4349" in text
+    assert "`NOT_READY_FOR_HARD_WEAK_LABEL_TRAINING`" in text
+    assert "`READY_FOR_SELECTIVE_LABEL_REFINEMENT`" in text
+    assert "`READY_FOR_HARD_WEAK_LABEL_TRAINING`" not in text
+    assert "NOT_READY_FOR_SELECTIVE_LABEL_REFINEMENT" not in text
 
 
 def test_committed_phase4_reports_have_no_identifiers_or_report_tokens():
@@ -193,6 +197,7 @@ def test_committed_phase4_reports_have_no_identifiers_or_report_tokens():
         "reports/report_labeler_v2_kaggle_comparison.md",
         "reports/kaggle_report_labeler_v2_run.md",
         "reports/competition_pretrained_model_rules.md",
+        "reports/weak_label_training_readiness.md",
     ):
         text = (REPO_ROOT / relative).read_text(encoding="utf-8")
         assert REPORT_LABEL_LEAK_TOKEN not in text

@@ -64,6 +64,10 @@ Kaggle run against the attached competition dataset (no API token). See
 Phase 4 adds `notebooks/02_kaggle_report_labeling.ipynb` for private
 multilingual report-label generation and gold-label evaluation (internet off,
 GPU off, no image training). See `reports/report_labeling_protocol.md`.
+Coordinator gates after the real gold evaluation:
+`NOT_READY_FOR_HARD_WEAK_LABEL_TRAINING` and
+`READY_FOR_SELECTIVE_LABEL_REFINEMENT`
+(`reports/weak_label_training_readiness.md`).
 
 Phase 4B adds `notebooks/03_kaggle_report_labeler_v2.ipynb` for coverage-aware
 evaluation, OOF confidence policies, and private trainable masks. See

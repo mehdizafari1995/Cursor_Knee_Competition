@@ -78,6 +78,13 @@ hashes (from the Kaggle sanitized hash file):
 | `gold_predictions.csv` | `0fca30d35dff4de90d0b99b930f135a590da5c52f3feed98a7bf24cd801dc5c5` | 63438 |
 | `language_assignments.csv` | `57c71e90c1c819094ec67094c3ccee991f44bd8ef2a164dbdbe70a4e36cea484` | 520091 |
 
+## Coordinator decision
+
+- `NOT_READY_FOR_HARD_WEAK_LABEL_TRAINING`
+- `READY_FOR_SELECTIVE_LABEL_REFINEMENT`
+
+See `reports/weak_label_training_readiness.md`.
+
 ## Unresolved
 
 - Heuristic language IDs for Greek, Bulgarian, Czech, and Danish are mostly

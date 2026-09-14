@@ -123,12 +123,27 @@ def header_summary(ds: Dataset) -> dict:
         value = getattr(ds, keyword, None)
         if value not in (None, "", "Anon", "ANON"):
             phi_tags.append(keyword)
+    def _optional_float(tag: str) -> float | None:
+        raw = getattr(ds, tag, None)
+        if raw is None or raw == "":
+            return None
+        try:
+            return float(raw)
+        except (TypeError, ValueError):
+            return None
+
     return {
         "modality": str(getattr(ds, "Modality", "") or ""),
         "series_description": str(getattr(ds, "SeriesDescription", "") or ""),
         "protocol_name": str(getattr(ds, "ProtocolName", "") or ""),
         "scanning_sequence": str(getattr(ds, "ScanningSequence", "") or ""),
         "sequence_variant": str(getattr(ds, "SequenceVariant", "") or ""),
+        "manufacturer": str(getattr(ds, "Manufacturer", "") or ""),
+        "manufacturer_model_name": str(getattr(ds, "ManufacturerModelName", "") or ""),
+        "body_part_examined": str(getattr(ds, "BodyPartExamined", "") or ""),
+        "magnetic_field_strength": _optional_float("MagneticFieldStrength"),
+        "echo_time": _optional_float("EchoTime"),
+        "repetition_time": _optional_float("RepetitionTime"),
         "rows": int(rows) if rows is not None else None,
         "columns": int(cols) if cols is not None else None,
         "pixel_spacing": spacing,
@@ -141,6 +156,8 @@ def header_summary(ds: Dataset) -> dict:
         ),
         "phi_tag_keywords_present": phi_tags,
         "has_patient_id_tag": hasattr(ds, "PatientID") and bool(str(getattr(ds, "PatientID", "") or "")),
+        "has_study_instance_uid": bool(str(getattr(ds, "StudyInstanceUID", "") or "")),
+        "has_series_instance_uid": bool(str(getattr(ds, "SeriesInstanceUID", "") or "")),
     }
 
 

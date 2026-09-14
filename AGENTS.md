@@ -67,6 +67,12 @@ python scripts/create_folds.py
 python scripts/train_baseline.py --smoke    # software verification only
 python scripts/predict_baseline.py --smoke
 python scripts/make_submission.py --predictions ... --sample-submission ...
+
+# Phase 3: Kaggle real-data audit notebook (no API token; internet off on Kaggle)
+python scripts/build_kaggle_bundle.py   # allowlisted zip under outputs/ (gitignored)
+# Upload notebooks/01_kaggle_real_data_audit.ipynb on Kaggle with the
+# competition dataset and the private source zip attached. See
+# reports/kaggle_notebook_instructions.md
 ```
 
 Run the whole suite, not one file. `tests/test_pipeline.py` covers the modelling
@@ -74,3 +80,6 @@ pipeline; `tests/test_agent_configuration.py` validates the agent definitions, t
 policy docs and the target registry. Run both after editing anything under
 `.cursor/agents/`, `docs/` or `knee/config.py`. Phase 2 adds tests for audit,
 folds/leakage, labels, metrics, DICOM loading, submission format, and CPU smoke.
+Phase 3 adds a Kaggle internet-off audit notebook, allowlisted source packaging,
+and tests for path detection, provenance, deterministic sampling, report-text
+exclusion, bundle allowlists, and missing-data failure.

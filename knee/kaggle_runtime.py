@@ -34,7 +34,10 @@ SOURCE_COPY_DIRS = ("knee", "scripts", "configs", "notebooks")
 SOURCE_COPY_FILES = ("pyproject.toml", "requirements.txt", "README.md")
 # GitHub-archive datasets nest as dataset/Repo-main/Repo-main/knee. Bound the
 # walk so competition DICOM trees (skipped by slug) are never traversed.
-SOURCE_SEARCH_MAX_DEPTH = 3
+SOURCE_SEARCH_MAX_DEPTH = 6
+SOURCE_WALK_SKIP_DIRS = frozenset(
+    {"train_series", "test_series", ".git", "__pycache__", ".venv", "data"}
+)
 
 
 class PreflightError(RuntimeError):
@@ -119,13 +122,23 @@ def find_source_in_tree(
     if max_depth <= 0 or not root.is_dir():
         return None
     try:
-        children = sorted(p for p in root.iterdir() if p.is_dir())
+        root_resolved = root.resolve()
     except OSError:
         return None
-    for child in children:
-        found = find_source_in_tree(child, max_depth=max_depth - 1)
-        if found is not None:
-            return found
+    for dirpath, dirnames, _filenames in os.walk(root):
+        current = Path(dirpath)
+        try:
+            rel = current.resolve().relative_to(root_resolved)
+            depth = 0 if str(rel) == "." else len(rel.parts)
+        except (OSError, ValueError):
+            dirnames[:] = []
+            continue
+        dirnames[:] = sorted(d for d in dirnames if d not in SOURCE_WALK_SKIP_DIRS)
+        if depth > max_depth:
+            dirnames[:] = []
+            continue
+        if looks_like_source_root(current):
+            return current
     return None
 
 
@@ -178,6 +191,11 @@ def find_source_zip(layout: KaggleLayout) -> Path | None:
             for zip_path in sorted(child.glob("*.zip")):
                 if _zip_contains_source(zip_path):
                     zips.append(zip_path)
+            # One extra nested folder, e.g. GitHub-archive datasets.
+            for nested in sorted(p for p in child.iterdir() if p.is_dir()):
+                for zip_path in sorted(nested.glob("*.zip")):
+                    if _zip_contains_source(zip_path):
+                        zips.append(zip_path)
     return zips[0] if zips else None
 
 

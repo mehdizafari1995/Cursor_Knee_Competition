@@ -1,7 +1,8 @@
 """Kaggle mount detection, preflight, source extraction, and read-only input guards.
 
 The notebook runs with internet disabled. Competition data is attached through
-the Kaggle UI at ``/kaggle/input/rsna-knee-abnormality-detection``. Repository
+the Kaggle UI at ``/kaggle/input/rsna-knee-abnormality-detection`` or
+``/kaggle/input/competitions/rsna-knee-abnormality-detection``. Repository
 source is a separate private input and is copied or extracted only under
 ``/kaggle/working``. Nothing in this module writes under ``/kaggle/input``.
 """
@@ -32,6 +33,12 @@ DATA_SOURCE_LOCAL = "local_competition_data"
 SOURCE_MARKERS = ("knee/config.py", "knee/kaggle_audit.py")
 SOURCE_COPY_DIRS = ("knee", "scripts", "configs", "notebooks")
 SOURCE_COPY_FILES = ("pyproject.toml", "requirements.txt", "README.md")
+# GitHub-archive datasets nest as dataset/Repo-main/Repo-main/knee. Bound the
+# walk so competition DICOM trees (skipped by slug) are never traversed.
+SOURCE_SEARCH_MAX_DEPTH = 6
+SOURCE_WALK_SKIP_DIRS = frozenset(
+    {"train_series", "test_series", ".git", "__pycache__", ".venv", "data"}
+)
 
 
 class PreflightError(RuntimeError):
@@ -57,6 +64,20 @@ class KaggleLayout:
     @property
     def competition_dir(self) -> Path:
         return Path(self.input_root) / self.competition_slug
+
+    def competition_dir_candidates(self) -> list[Path]:
+        """Classic ``/kaggle/input/<slug>`` plus newer ``.../competitions/<slug>``."""
+        root = Path(self.input_root)
+        slug = self.competition_slug
+        candidates = [root / slug, root / "competitions" / slug]
+        if root.is_dir():
+            for child in sorted(root.iterdir()):
+                if not child.is_dir():
+                    continue
+                nested = child / slug
+                if nested not in candidates:
+                    candidates.append(nested)
+        return candidates
 
     @property
     def output_dir(self) -> Path:
@@ -105,6 +126,55 @@ def looks_like_source_root(path: Path) -> bool:
     return all((path / marker).is_file() for marker in SOURCE_MARKERS)
 
 
+def resolve_competition_dir(layout: KaggleLayout | None = None) -> Path:
+    """Return the mounted competition root, including the nested competitions/ layout."""
+    layout = layout or default_layout()
+    candidates = layout.competition_dir_candidates()
+    for path in candidates:
+        if is_competition_root(path):
+            return path
+    for path in candidates:
+        if path.is_dir():
+            return path
+    return candidates[0]
+
+
+def skip_source_input_child(child: Path, layout: KaggleLayout) -> bool:
+    """Do not search the competition mount when locating repository source."""
+    return child.name in {layout.competition_slug, "competitions"}
+
+
+def find_source_in_tree(
+    root: Path,
+    max_depth: int = SOURCE_SEARCH_MAX_DEPTH,
+) -> Path | None:
+    """Find ``knee/config.py`` under ``root`` without walking DICOM series trees."""
+    root = Path(root)
+    if looks_like_source_root(root):
+        return root
+    if max_depth <= 0 or not root.is_dir():
+        return None
+    try:
+        root_resolved = root.resolve()
+    except OSError:
+        return None
+    for dirpath, dirnames, _filenames in os.walk(root):
+        current = Path(dirpath)
+        try:
+            rel = current.resolve().relative_to(root_resolved)
+            depth = 0 if str(rel) == "." else len(rel.parts)
+        except (OSError, ValueError):
+            dirnames[:] = []
+            continue
+        dirnames[:] = sorted(d for d in dirnames if d not in SOURCE_WALK_SKIP_DIRS)
+        if depth > max_depth:
+            dirnames[:] = []
+            continue
+        if looks_like_source_root(current):
+            return current
+    return None
+
+
 def list_top_level(path: Path) -> list[str]:
     """Names of direct children only. Never recurse into DICOM series trees."""
     if not path.is_dir():
@@ -146,7 +216,7 @@ def find_source_zip(layout: KaggleLayout) -> Path | None:
         return None
     zips: list[Path] = []
     for child in sorted(layout.input_root.iterdir()):
-        if child.name == layout.competition_slug:
+        if skip_source_input_child(child, layout):
             continue
         if child.is_file() and child.suffix.lower() == ".zip" and _zip_contains_source(child):
             zips.append(child)
@@ -154,6 +224,11 @@ def find_source_zip(layout: KaggleLayout) -> Path | None:
             for zip_path in sorted(child.glob("*.zip")):
                 if _zip_contains_source(zip_path):
                     zips.append(zip_path)
+            # One extra nested folder, e.g. GitHub-archive datasets.
+            for nested in sorted(p for p in child.iterdir() if p.is_dir()):
+                for zip_path in sorted(nested.glob("*.zip")):
+                    if _zip_contains_source(zip_path):
+                        zips.append(zip_path)
     return zips[0] if zips else None
 
 
@@ -173,14 +248,12 @@ def find_source_root(
     if not layout.input_root.is_dir():
         return None
     for child in sorted(layout.input_root.iterdir()):
-        if child.name == layout.competition_slug:
+        if skip_source_input_child(child, layout):
             continue
-        if child.is_dir() and looks_like_source_root(child):
-            return child
         if child.is_dir():
-            for nested in sorted(p for p in child.iterdir() if p.is_dir()):
-                if looks_like_source_root(nested):
-                    return nested
+            found = find_source_in_tree(child, max_depth=SOURCE_SEARCH_MAX_DEPTH)
+            if found is not None:
+                return found
     return None
 
 
@@ -233,12 +306,9 @@ def extract_source_to_working(
             is_kaggle_runtime(layout) and located == PROJECT_ROOT
         ):
             _safe_extract_zip(zip_path, dest)
-            # Zip members may nest the package one directory down.
-            if looks_like_source_root(dest):
-                return dest
-            for child in sorted(p for p in dest.iterdir() if p.is_dir()):
-                if looks_like_source_root(child):
-                    return child
+            found = find_source_in_tree(dest, max_depth=SOURCE_SEARCH_MAX_DEPTH)
+            if found is not None:
+                return found
             raise PreflightError(
                 f"extracted {zip_path} under {dest} but knee/config.py was not found"
             )
@@ -363,7 +433,7 @@ class PreflightResult:
             "layout": {
                 "input_root": str(self.layout.input_root),
                 "working_root": str(self.layout.working_root),
-                "competition_dir": str(self.layout.competition_dir),
+                "competition_dir": str(resolve_competition_dir(self.layout)),
                 "output_dir": str(self.layout.output_dir),
                 "src_extract_dir": str(self.layout.src_extract_dir),
             },
@@ -386,7 +456,7 @@ def infer_data_source(
         resolved = resolved.resolve()
     except OSError:
         pass
-    competition = layout.competition_dir
+    competition = resolve_competition_dir(layout)
     try:
         competition_resolved = competition.resolve() if competition.exists() else competition
     except OSError:
@@ -419,12 +489,13 @@ def preflight(
     layout = layout or default_layout()
     kaggle = is_kaggle_runtime(layout)
 
+    competition_dir = resolve_competition_dir(layout)
     if data_root is not None:
         resolved_data = Path(data_root).expanduser()
-    elif kaggle and is_competition_root(layout.competition_dir):
-        resolved_data = layout.competition_dir
+    elif kaggle and is_competition_root(competition_dir):
+        resolved_data = competition_dir
     else:
-        resolved_data = layout.competition_dir if kaggle else None
+        resolved_data = competition_dir if kaggle else None
 
     explicit_source = Path(source_root).expanduser() if source_root is not None else None
     located_source = find_source_root(layout, explicit=explicit_source, search_repo=True)
@@ -456,7 +527,7 @@ def preflight(
         message = (
             "AUDIT STOPPED: competition data were not found. On Kaggle, attach the "
             f"{KAGGLE_COMPETITION_SLUG} dataset through the Notebook Data panel "
-            f"(expected at {layout.competition_dir}). This notebook does not use "
+            f"(expected at {competition_dir} or {layout.competition_dir}). This notebook does not use "
             "a Kaggle API token and does not download files."
         )
     elif not is_competition_root(Path(resolved_data)):
@@ -524,7 +595,7 @@ def raise_if_preflight_failed(result: PreflightResult) -> None:
 def detect_kaggle_paths(layout: KaggleLayout | None = None) -> dict:
     """Public helper used by tests and the notebook: detected paths, no DICOM walk."""
     layout = layout or default_layout()
-    competition = layout.competition_dir
+    competition = resolve_competition_dir(layout)
     return {
         "kaggle_input_root": str(layout.input_root),
         "kaggle_working_root": str(layout.working_root),

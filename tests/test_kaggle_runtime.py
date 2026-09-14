@@ -21,6 +21,7 @@ from knee.kaggle_runtime import (
     is_kaggle_input_path,
     list_top_level,
     preflight,
+    resolve_competition_dir,
 )
 from tests.competition_fixtures import make_kaggle_audit_fixture
 
@@ -155,3 +156,42 @@ def test_find_source_root_prefers_repo_checkout():
     root = find_source_root(KaggleLayout(), search_repo=True)
     assert root is not None
     assert (root / "knee" / "config.py").is_file()
+
+
+def test_resolve_competition_dir_nested_competitions_layout(tmp_path):
+    layout = _layout(tmp_path)
+    nested = layout.input_root / "competitions" / KAGGLE_COMPETITION_SLUG
+    make_kaggle_audit_fixture(nested)
+    (layout.working_root).mkdir(parents=True)
+    source = layout.input_root / "datasets" / "mahdimzafari" / "cursor-knee-source"
+    (source / "knee").mkdir(parents=True)
+    (source / "knee" / "config.py").write_text("TARGET_KEYS = ()\n")
+    (source / "knee" / "kaggle_audit.py").write_text("def run_notebook_audit():\n    pass\n")
+
+    assert resolve_competition_dir(layout) == nested
+    detected = detect_kaggle_paths(layout)
+    assert detected["competition_dir"] == str(nested)
+    assert detected["competition_dir_exists"] is True
+    assert detected["is_competition_root"] is True
+    ok = preflight(layout=layout, data_source="software_fixture")
+    assert ok.ok is True
+    assert ok.data_root == nested
+    found = find_source_root(layout, search_repo=False)
+    assert found == source
+
+
+def test_find_source_root_double_nested_github_archive(tmp_path):
+    layout = _layout(tmp_path)
+    layout.input_root.mkdir(parents=True)
+    layout.working_root.mkdir(parents=True)
+    nested = (
+        layout.input_root
+        / "cursor-knee-source"
+        / "Cursor_Knee_Competition-main"
+        / "Cursor_Knee_Competition-main"
+    )
+    (nested / "knee").mkdir(parents=True)
+    (nested / "knee" / "config.py").write_text("TARGET_KEYS = ()\n")
+    (nested / "knee" / "kaggle_audit.py").write_text("def run_notebook_audit():\n    pass\n")
+    found = find_source_root(layout, search_repo=False)
+    assert found == nested

@@ -11,6 +11,9 @@ This is not a training run. It does not report AUC.
 1. **Competition data** (official dataset):
    `rsna-knee-abnormality-detection`
    Expected mount: `/kaggle/input/rsna-knee-abnormality-detection`
+   Current Kaggle sessions may instead mount it at
+   `/kaggle/input/competitions/rsna-knee-abnormality-detection`.
+   The notebook preflight accepts either path.
 2. **Private source dataset** you create from this repository's allowlisted ZIP.
    The notebook copies or extracts that source under `/kaggle/working/rsna_knee_src`
    and never writes under `/kaggle/input`.

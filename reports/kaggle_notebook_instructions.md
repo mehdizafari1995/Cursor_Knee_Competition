@@ -116,3 +116,29 @@ fixture counts into a scientific report.
 - Never enable internet to `pip install` extra packages; the allowlisted source
   plus Kaggle's default Python stack is the runtime.
 - Never quote Level C sample findings as if they described the full 819,640-file dataset.
+
+## Phase 4: report labeling notebook
+
+Upload `notebooks/02_kaggle_report_labeling.ipynb` with the same competition
+mount and the same private source ZIP (rebuild the ZIP after this phase so
+`knee/report_labels.py` and `configs/report_labeler.yaml` are included).
+
+Settings: **Internet off**, **Accelerator: None**. Outputs:
+
+- `/kaggle/working/rsna_report_label_outputs/private` — row-level weak labels,
+  gold predictions, language assignments (do not commit)
+- `/kaggle/working/rsna_report_label_outputs/sanitized` — aggregate reports
+  and private-file hashes only
+
+Retrieve only the sanitized directory into git. Do not download or open the
+private CSVs in Cursor. Fixture pytest runs are not scientific performance.
+
+Current Kaggle sessions may mount the competition at
+`/kaggle/input/competitions/rsna-knee-abnormality-detection` and the source
+ZIP at `/kaggle/input/datasets/<user>/cursor-knee-source`. The notebook walks
+those nested paths and never enables internet or a GPU.
+
+Coordinator gates after the real gold evaluation:
+`NOT_READY_FOR_HARD_WEAK_LABEL_TRAINING` and
+`READY_FOR_SELECTIVE_LABEL_REFINEMENT`. Do not train an image model on the
+weak-label CSV as hard 0/1. See `reports/weak_label_training_readiness.md`.

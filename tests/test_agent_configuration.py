@@ -203,6 +203,18 @@ class TestScaffolding:
             "scripts/make_submission.py",
             "scripts/build_kaggle_bundle.py",
             "notebooks/01_kaggle_real_data_audit.ipynb",
+            "notebooks/02_kaggle_report_labeling.ipynb",
+            "configs/report_labeler.yaml",
+            "knee/report_labels.py",
+            "knee/report_language.py",
+            "knee/report_negation.py",
+            "scripts/evaluate_report_labeler.py",
+            "scripts/generate_weak_labels.py",
+            "reports/report_labeling_protocol.md",
+            "reports/report_labeling_summary.md",
+            "reports/kaggle_report_labeling_run.md",
+            "reports/weak_label_training_readiness.md",
+            "reports/real_data_audit_summary.md",
             "reports/data_audit.md",
             "reports/baseline_design.md",
             "reports/kaggle_notebook_instructions.md",
@@ -369,7 +381,8 @@ class TestGitignorePolicy:
         "pattern",
         ["*.pdf", "*.png", "*.dcm", "*.nii", "*.ckpt", "*.pt", "*.safetensors",
          "reports/*", "data/", "outputs/", "kaggle.json", ".env", ".venv/",
-         "cache/", "predictions/", ".kaggle/", "*.zip"],
+         "cache/", "predictions/", ".kaggle/", "*.zip",
+         "weak_labels.csv", "gold_predictions.csv", "language_assignments.csv"],
     )
     def test_restricted_artefact_is_ignored(self, gitignore_patterns, pattern):
         assert pattern in gitignore_patterns

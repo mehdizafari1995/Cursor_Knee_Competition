@@ -59,6 +59,25 @@ def test_train_and_predict_scripts_smoke(tmp_path):
     assert payload["scientific_evaluation"] is False
 
     mini = make_mini_competition_root(tmp_path / "mini")
+    refuse = subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "scripts" / "train_baseline.py"),
+            "--data-root",
+            str(mini),
+            "--allow-training",
+            "--output-dir",
+            str(tmp_path / "train_refused"),
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert refuse.returncode == 3, refuse.stdout + refuse.stderr
+    combined = refuse.stdout + refuse.stderr
+    assert "NOT_READY_FOR_HARD_WEAK_LABEL_TRAINING" in combined
+    assert "READY_FOR_SELECTIVE_LABEL_REFINEMENT" in combined
     pred_path = tmp_path / "preds.csv"
     proc = subprocess.run(
         [

@@ -73,6 +73,15 @@ python scripts/build_kaggle_bundle.py   # allowlisted zip under outputs/ (gitign
 # Upload notebooks/01_kaggle_real_data_audit.ipynb on Kaggle with the
 # competition dataset and the private source zip attached. See
 # reports/kaggle_notebook_instructions.md
+
+# Phase 4: private multilingual report-label generation (no image training)
+python scripts/evaluate_report_labeler.py   # 58 gold studies when RSNA_DATA_ROOT is set
+python scripts/generate_weak_labels.py      # 4349 report-only studies; gitignored CSV
+# Upload notebooks/02_kaggle_report_labeling.ipynb (internet off, GPU off).
+# Retrieve sanitized aggregates only. See reports/report_labeling_protocol.md
+# Coordinator gates: NOT_READY_FOR_HARD_WEAK_LABEL_TRAINING,
+# READY_FOR_SELECTIVE_LABEL_REFINEMENT
+# (reports/weak_label_training_readiness.md). Do not train on hard 0/1 weak labels.
 ```
 
 Run the whole suite, not one file. `tests/test_pipeline.py` covers the modelling
@@ -82,4 +91,10 @@ policy docs and the target registry. Run both after editing anything under
 folds/leakage, labels, metrics, DICOM loading, submission format, and CPU smoke.
 Phase 3 adds a Kaggle internet-off audit notebook, allowlisted source packaging,
 and tests for path detection, provenance, deterministic sampling, report-text
-exclusion, bundle allowlists, and missing-data failure.
+exclusion, bundle allowlists, and missing-data failure. Phase 4 adds a
+deterministic report-label extractor, gold-label evaluation with bootstrap
+intervals, weak-label generation for report-only studies, and privacy tests
+that fail if report text or identifiers enter sanitized artefacts. After the
+real gold evaluation the coordinator gates are
+`NOT_READY_FOR_HARD_WEAK_LABEL_TRAINING` and
+`READY_FOR_SELECTIVE_LABEL_REFINEMENT`.

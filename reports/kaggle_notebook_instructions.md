@@ -137,3 +137,8 @@ Current Kaggle sessions may mount the competition at
 `/kaggle/input/competitions/rsna-knee-abnormality-detection` and the source
 ZIP at `/kaggle/input/datasets/<user>/cursor-knee-source`. The notebook walks
 those nested paths and never enables internet or a GPU.
+
+Coordinator gates after the real gold evaluation:
+`NOT_READY_FOR_HARD_WEAK_LABEL_TRAINING` and
+`READY_FOR_SELECTIVE_LABEL_REFINEMENT`. Do not train an image model on the
+weak-label CSV as hard 0/1. See `reports/weak_label_training_readiness.md`.

@@ -83,6 +83,28 @@ LABEL_UNKNOWN = "unknown"
 SMALL_N_DEFAULT = ("mcl_injury", "lateral_compartment_oa", "baker_cyst")
 DEFAULT_CONFIG_PATH = PROJECT_ROOT / "configs" / "report_labeler.yaml"
 
+# Coordinator gates after the real gold-label evaluation (n=58). These are not
+# extractor config keys and must not be flipped by the Kaggle notebook.
+HARD_WEAK_LABEL_TRAINING_VERDICT = "NOT_READY_FOR_HARD_WEAK_LABEL_TRAINING"
+SELECTIVE_LABEL_REFINEMENT_VERDICT = "READY_FOR_SELECTIVE_LABEL_REFINEMENT"
+HARD_WEAK_LABEL_TRAINING_ALLOWED = False
+SELECTIVE_LABEL_REFINEMENT_ALLOWED = True
+
+
+class HardWeakLabelTrainingError(RuntimeError):
+    """Raised when image training would treat report weak labels as hard 0/1."""
+
+
+def assert_hard_weak_label_training_forbidden() -> None:
+    """Refuse image-model training on hard-imputed report weak labels."""
+    if HARD_WEAK_LABEL_TRAINING_ALLOWED:
+        return
+    raise HardWeakLabelTrainingError(
+        f"{HARD_WEAK_LABEL_TRAINING_VERDICT}: report weak labels must not be "
+        "used as hard 0/1 training targets. Unknown stays unknown. "
+        f"{SELECTIVE_LABEL_REFINEMENT_VERDICT}."
+    )
+
 PRIVATE_WEAK_FILENAME = "weak_labels.csv"
 PRIVATE_GOLD_PRED_FILENAME = "gold_predictions.csv"
 PRIVATE_LANGUAGE_FILENAME = "language_assignments.csv"

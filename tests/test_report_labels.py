@@ -19,11 +19,17 @@ from knee.config import (
 )
 from knee.report_labels import (
     EXTRACTOR_FORBIDDEN_PARAMS,
+    HARD_WEAK_LABEL_TRAINING_ALLOWED,
+    HARD_WEAK_LABEL_TRAINING_VERDICT,
     LABEL_NEGATIVE,
     LABEL_POSITIVE,
     LABEL_UNKNOWN,
     PrivacyLeakError,
+    SELECTIVE_LABEL_REFINEMENT_ALLOWED,
+    SELECTIVE_LABEL_REFINEMENT_VERDICT,
+    HardWeakLabelTrainingError,
     assert_extractor_has_no_gold_parameter,
+    assert_hard_weak_label_training_forbidden,
     assert_no_identifiers,
     collect_identifiers,
     evaluate_gold_predictions,
@@ -201,3 +207,22 @@ def test_assert_no_identifiers_raises(tmp_path):
     path.write_text("study " + REPORT_LABEL_GOLD_UIDS[0] + "\n")
     with pytest.raises(PrivacyLeakError):
         assert_no_identifiers([path], list(REPORT_LABEL_GOLD_UIDS))
+
+
+def test_hard_weak_label_training_is_forbidden():
+    assert HARD_WEAK_LABEL_TRAINING_ALLOWED is False
+    assert SELECTIVE_LABEL_REFINEMENT_ALLOWED is True
+    assert HARD_WEAK_LABEL_TRAINING_VERDICT == "NOT_READY_FOR_HARD_WEAK_LABEL_TRAINING"
+    assert SELECTIVE_LABEL_REFINEMENT_VERDICT == "READY_FOR_SELECTIVE_LABEL_REFINEMENT"
+    with pytest.raises(HardWeakLabelTrainingError, match="NOT_READY_FOR_HARD_WEAK_LABEL_TRAINING"):
+        assert_hard_weak_label_training_forbidden()
+
+
+def test_committed_readiness_report_has_both_verdicts():
+    path = Path(__file__).resolve().parents[1] / "reports" / "weak_label_training_readiness.md"
+    text = path.read_text(encoding="utf-8")
+    assert "`NOT_READY_FOR_HARD_WEAK_LABEL_TRAINING`" in text
+    assert "`READY_FOR_SELECTIVE_LABEL_REFINEMENT`" in text
+    assert "`READY_FOR_HARD_WEAK_LABEL_TRAINING`" not in text
+    assert "NOT_READY_FOR_SELECTIVE_LABEL_REFINEMENT" not in text
+    assert REPORT_LABEL_LEAK_TOKEN not in text

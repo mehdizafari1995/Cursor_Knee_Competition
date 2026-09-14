@@ -91,9 +91,22 @@ def main() -> int:
 
     # Opt-in path is implemented so the script exists, but this phase must not
     # start a full training run. Keep a hard guard.
+    from knee.report_labels import (
+        HARD_WEAK_LABEL_TRAINING_VERDICT,
+        SELECTIVE_LABEL_REFINEMENT_VERDICT,
+        HardWeakLabelTrainingError,
+        assert_hard_weak_label_training_forbidden,
+    )
+
+    try:
+        assert_hard_weak_label_training_forbidden()
+    except HardWeakLabelTrainingError as exc:
+        print(str(exc))
     print(
         "Refusing to start full training in this phase even with "
-        "--allow-training. Use a later training phase."
+        "--allow-training. Use a later training phase after "
+        f"{HARD_WEAK_LABEL_TRAINING_VERDICT} is lifted. "
+        f"Current allowed work: {SELECTIVE_LABEL_REFINEMENT_VERDICT}."
     )
     return 3
 

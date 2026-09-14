@@ -213,6 +213,7 @@ class TestScaffolding:
             "reports/report_labeling_protocol.md",
             "reports/report_labeling_summary.md",
             "reports/kaggle_report_labeling_run.md",
+            "reports/weak_label_training_readiness.md",
             "reports/real_data_audit_summary.md",
             "reports/data_audit.md",
             "reports/baseline_design.md",

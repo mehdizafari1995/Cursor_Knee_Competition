@@ -123,6 +123,7 @@ def test_notebook_file_is_offline_and_tokenless():
     assert "train_baseline" not in lowered
     assert "internet_used=false" in lowered
     assert "rsna_report_label_outputs" in lowered
+    assert "_walk_input_for_source" in source
     assert "/kaggle/input/rsna-knee-abnormality-detection" in source
     assert "scientific_evaluation" in lowered
     meta = payload.get("metadata") or {}

@@ -79,6 +79,11 @@ python scripts/evaluate_report_labeler.py   # 58 gold studies when RSNA_DATA_ROO
 python scripts/generate_weak_labels.py      # 4349 report-only studies; gitignored CSV
 # Upload notebooks/02_kaggle_report_labeling.ipynb (internet off, GPU off).
 # Retrieve sanitized aggregates only. See reports/report_labeling_protocol.md
+
+# Phase 4B: coverage-aware evaluation + report-labeler v2 (no image training)
+# Fixture tests in Cursor. Real gold/weak evaluation on Kaggle:
+# notebooks/03_kaggle_report_labeler_v2.ipynb (internet off). See
+# reports/report_labeler_v2_protocol.md
 # Coordinator gates: NOT_READY_FOR_HARD_WEAK_LABEL_TRAINING,
 # READY_FOR_SELECTIVE_LABEL_REFINEMENT
 # (reports/weak_label_training_readiness.md). Do not train on hard 0/1 weak labels.
@@ -94,7 +99,10 @@ and tests for path detection, provenance, deterministic sampling, report-text
 exclusion, bundle allowlists, and missing-data failure. Phase 4 adds a
 deterministic report-label extractor, gold-label evaluation with bootstrap
 intervals, weak-label generation for report-only studies, and privacy tests
-that fail if report text or identifiers enter sanitized artefacts. After the
-real gold evaluation the coordinator gates are
+that fail if report text or identifiers enter sanitized artefacts. Phase 4B
+adds coverage-aware capture/abstention metrics, target-specific OOF confidence
+policies, an independent offline language detector, private trainable masks,
+and per-target TRAINABLE / NOT_TRAINABLE statuses. It does not train an image
+model. After the real gold evaluation the coordinator gates are
 `NOT_READY_FOR_HARD_WEAK_LABEL_TRAINING` and
 `READY_FOR_SELECTIVE_LABEL_REFINEMENT`.

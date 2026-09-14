@@ -52,10 +52,10 @@ LANGUAGE_CUES: dict[str, tuple[str, ...]] = {
         "ve", "ile", "bir", "yok", "bulgular", "diz", "menisküs", "bağ",
         "kırık", "öykü",
     ),
-    "el": (
-        "και", "του", "την", "στο", "ευρήματα", "γόνατος", "μηνίσκος",
-        "σύνδεσμος", "ρήξη", "κάταγμα",
-    ),
+            "el": (
+                "και", "του", "την", "στο", "της", "των", "από", "δεν", "χωρίς",
+                "ευρήματα", "γόνατος", "μηνίσκος", "σύνδεσμος", "ρήξη", "κάταγμα",
+            ),
     "bg": (
         "на", "за", "при", "без", "находка", "коляно", "менискус",
         "връзка", "фрактура", "излив",
@@ -149,6 +149,12 @@ class LanguageResult:
     scripts: tuple[str, ...]
     mixed_scripts: bool
     supported: bool
+    heuristic_language: str | None = None
+    heuristic_uncertain: bool = True
+    ngram_language: str | None = None
+    ngram_score: float = 0.0
+    ngram_uncertain: bool = True
+    detectors_agree: bool = False
 
 
 @dataclass
@@ -201,14 +207,24 @@ def _disambiguate_cyrillic(tokens: list[str], scores: dict[str, float]) -> None:
             scores[lang] = scores.get(lang, 0.0) + 3.0 * hit
 
 
-def detect_language(
+def _latin_plus_single_body_script(scripts: tuple[str, ...]) -> bool:
+    """Latin MRI abbreviations plus one body script (Greek/Cyrillic) is expected."""
+    body = [s for s in scripts if s in {"greek", "cyrillic"}]
+    extra = [
+        s for s in scripts
+        if s not in {"latin", "greek", "cyrillic", "other_non_ascii"}
+    ]
+    return "latin" in scripts and len(body) == 1 and not extra
+
+
+def detect_language_heuristic(
     text: str,
     *,
     supported: tuple[str, ...] | None = None,
     uncertain_margin: float = 0.15,
     min_score: float = 2.0,
 ) -> LanguageResult:
-    """Classify one report. Empty text is ``und`` (undetermined), uncertain."""
+    """Cue + script heuristic only. Empty text is ``und`` (undetermined)."""
     supported_set = set(supported or LANGUAGE_CUES)
     raw = "" if text is None else str(text)
     stripped = raw.strip()
@@ -223,6 +239,8 @@ def detect_language(
             scripts=(),
             mixed_scripts=False,
             supported=False,
+            heuristic_language="und",
+            heuristic_uncertain=True,
         )
 
     scripts = tuple(scripts_in_text(stripped))
@@ -262,15 +280,15 @@ def detect_language(
             if reason == "top_cue_score":
                 reason = "cyrillic_family"
 
-    mixed = len([s for s in scripts if s not in {"latin"}]) + int("latin" in scripts) > 1 and len(scripts) > 1
-    if mixed and reason in {"top_cue_score", "low_score"}:
-        uncertain = True
-        reason = "mixed_scripts"
+    mixed = len(scripts) > 1
+    latin_plus_body = _latin_plus_single_body_script(scripts)
+    if mixed and reason in {"top_cue_score", "low_score"} and not latin_plus_body:
+        extra_scripts = [s for s in scripts if s not in {"latin", "other_non_ascii"}]
+        if len(extra_scripts) > 1:
+            uncertain = True
+            reason = "mixed_scripts"
 
     supported_flag = language in supported_set
-    if language not in supported_set and language not in {"und"}:
-        # Still return the guessed code, but mark unsupported.
-        pass
     return LanguageResult(
         language=language,
         score=float(score),
@@ -281,6 +299,80 @@ def detect_language(
         scripts=scripts,
         mixed_scripts=mixed,
         supported=supported_flag,
+        heuristic_language=language,
+        heuristic_uncertain=uncertain,
+    )
+
+
+def detect_language(
+    text: str,
+    *,
+    supported: tuple[str, ...] | None = None,
+    uncertain_margin: float = 0.15,
+    min_score: float = 2.0,
+) -> LanguageResult:
+    """Ensemble: cue heuristic plus independent character-trigram detector.
+
+    Uncertain assignments stay uncertain when the two detectors disagree.
+    No network, translation API, or pretrained neural model is used.
+    """
+    from .report_ngram_language import detect_language_ngram
+
+    heuristic = detect_language_heuristic(
+        text,
+        supported=supported,
+        uncertain_margin=uncertain_margin,
+        min_score=min_score,
+    )
+    ngram = detect_language_ngram(text)
+    supported_set = set(supported or LANGUAGE_CUES)
+
+    language = heuristic.language
+    score = heuristic.score
+    uncertain = heuristic.uncertain
+    reason = heuristic.reason
+    agree = (
+        ngram.language == heuristic.language
+        and heuristic.language not in {"und", ""}
+        and ngram.language not in {"und", ""}
+    )
+    if heuristic.language == "und" and ngram.language not in {"und", ""}:
+        language = ngram.language
+        score = ngram.score
+        uncertain = True
+        reason = "ngram_only_kept_uncertain"
+        agree = False
+    elif agree:
+        if ngram.uncertain and heuristic.uncertain:
+            uncertain = True
+            reason = "detectors_agree_both_uncertain"
+        else:
+            uncertain = False
+            reason = "detectors_agree"
+    else:
+        # Keep the heuristic code but do not promote a disagreement to certain.
+        uncertain = True
+        reason = "detector_disagreement"
+        if heuristic.language == "und":
+            language = ngram.language
+            score = ngram.score
+
+    return LanguageResult(
+        language=language,
+        score=float(score),
+        runner_up=heuristic.runner_up,
+        runner_up_score=heuristic.runner_up_score,
+        uncertain=uncertain,
+        reason=reason,
+        scripts=heuristic.scripts,
+        mixed_scripts=heuristic.mixed_scripts,
+        supported=language in supported_set,
+        heuristic_language=heuristic.language,
+        heuristic_uncertain=heuristic.uncertain,
+        ngram_language=ngram.language,
+        ngram_score=float(ngram.score),
+        ngram_uncertain=ngram.uncertain,
+        detectors_agree=agree,
     )
 
 
@@ -391,6 +483,11 @@ def aggregate_language_audit(
     n_empty = 0
     n_mixed = 0
     n_non_ascii = 0
+    n_ngram_agree = 0
+    n_ngram_disagree = 0
+    ngram_counts: Counter[str] = Counter()
+    heuristic_counts: Counter[str] = Counter()
+    n_uncertain_kept = 0
     for raw in reports:
         lang = detect_language(
             raw,
@@ -400,9 +497,16 @@ def aggregate_language_audit(
         )
         fmt = audit_report_format(raw)
         language_counts[lang.language] += 1
+        heuristic_counts[str(lang.heuristic_language or lang.language)] += 1
+        ngram_counts[str(lang.ngram_language or "und")] += 1
+        if lang.detectors_agree:
+            n_ngram_agree += 1
+        elif lang.ngram_language:
+            n_ngram_disagree += 1
         if lang.uncertain:
             n_uncertain += 1
             uncertain_counts[lang.language] += 1
+            n_uncertain_kept += 1
         reason_counts[lang.reason] += 1
         if not lang.supported:
             n_unsupported += 1
@@ -426,16 +530,22 @@ def aggregate_language_audit(
         "n_uncertain_language": n_uncertain,
         "n_unsupported_language": n_unsupported,
         "n_mixed_scripts": n_mixed,
+        "n_independent_detector_agree": n_ngram_agree,
+        "n_independent_detector_disagree": n_ngram_disagree,
+        "n_uncertain_kept_separate": n_uncertain_kept,
         "language_counts": dict(language_counts),
+        "heuristic_language_counts": dict(heuristic_counts),
+        "ngram_language_counts": dict(ngram_counts),
         "uncertain_language_counts": dict(uncertain_counts),
         "reason_counts": dict(reason_counts),
         "scripts_observed": dict(script_counts),
         "quality_flag_counts": dict(flag_counts),
         "length_bucket_counts": dict(length_counts),
         "note": (
-            "Language codes are heuristic (Unicode script + function-word and "
-            "section cues). Uncertain classifications are counted separately. "
-            "Report text is not exported."
+            "Language codes combine a Unicode-script + function-word heuristic "
+            "with an independent offline character-trigram detector. "
+            "Uncertain classifications are counted separately and are never "
+            "promoted when the two detectors disagree. Report text is not exported."
         ),
     }
 

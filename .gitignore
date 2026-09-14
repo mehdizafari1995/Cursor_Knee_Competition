@@ -41,6 +41,11 @@ outputs/
 weak_labels.csv
 gold_predictions.csv
 language_assignments.csv
+mask_high_conf_positive.csv
+mask_high_conf_negative.csv
+mask_unknown.csv
+mask_disagreement.csv
+mask_unsupported_language.csv
 
 # Generated Kaggle source bundles (never commit)
 *.zip

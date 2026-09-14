@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pandas as pd
@@ -130,3 +131,83 @@ def test_notebook_file_is_offline_and_tokenless():
     kaggle_meta = meta.get("kaggle") or {}
     assert kaggle_meta.get("isInternetEnabled") is False
     assert kaggle_meta.get("gpu") is False
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+_UID_LIKE = re.compile(r"\b1\.2\.840\.\d+")
+_PRIVATE_ROW_FILES = ("weak_labels.csv", "gold_predictions.csv", "language_assignments.csv")
+
+
+def test_fixture_summary_includes_language_and_error_sections(tmp_path):
+    root = make_report_labeling_fixture(tmp_path / "mini")
+    out = tmp_path / "rsna_report_label_outputs"
+    run_notebook_report_labeling(
+        data_root=root,
+        output_dir=out,
+        data_source="software_fixture",
+    )
+    text = (out / "sanitized" / SANITIZED_SUMMARY_FILENAME).read_text(encoding="utf-8")
+    assert "Language-level gold performance" in text
+    assert "Aggregate error categories" in text
+    assert REPORT_LABEL_LEAK_TOKEN not in text
+
+
+def test_committed_summary_is_scientific_and_sanitized():
+    path = REPO_ROOT / "reports" / "report_labeling_summary.md"
+    text = path.read_text(encoding="utf-8")
+    lowered = text.lower()
+    assert "scientific_evaluation: `true`" in lowered
+    assert "data_source: `real_kaggle_mount`" in lowered
+    assert "software fixture" not in lowered
+    assert "kaggle.json" not in lowered
+    assert "kaggle_key" not in lowered
+    assert REPORT_LABEL_LEAK_TOKEN not in text
+    assert _UID_LIKE.search(text) is None
+    for uid in REPORT_LABEL_GOLD_UIDS + REPORT_LABEL_WEAK_UIDS:
+        assert uid not in text
+    for patient in REPORT_LABEL_PATIENTS:
+        assert patient not in text
+    assert "Language-level gold performance" in text
+    assert "Aggregate error categories" in text
+    assert "n_gold_studies: 58" in text
+    assert "n_report_only_studies: 4349" in text
+
+
+def test_committed_phase4_reports_have_no_identifiers_or_report_tokens():
+    for relative in (
+        "reports/report_labeling_summary.md",
+        "reports/report_labeling_protocol.md",
+        "reports/kaggle_report_labeling_run.md",
+        "reports/kaggle_notebook_instructions.md",
+    ):
+        text = (REPO_ROOT / relative).read_text(encoding="utf-8")
+        assert REPORT_LABEL_LEAK_TOKEN not in text
+        assert _UID_LIKE.search(text) is None
+        assert "kaggle.json" not in text.lower() or relative.endswith(
+            "kaggle_notebook_instructions.md"
+        )
+        for uid in REPORT_LABEL_GOLD_UIDS + REPORT_LABEL_WEAK_UIDS:
+            assert uid not in text, relative
+        for patient in REPORT_LABEL_PATIENTS:
+            assert patient not in text, relative
+
+
+def test_git_does_not_track_private_row_level_label_files():
+    import subprocess
+
+    result = subprocess.run(
+        ["git", "ls-files", "-z"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        check=True,
+        text=True,
+    )
+    tracked = [path for path in result.stdout.split("\0") if path]
+    offenders = [
+        path
+        for path in tracked
+        if Path(path).name in _PRIVATE_ROW_FILES
+    ]
+    assert not offenders, f"private row-level files are tracked: {offenders}"
+    for name in _PRIVATE_ROW_FILES:
+        assert name not in tracked

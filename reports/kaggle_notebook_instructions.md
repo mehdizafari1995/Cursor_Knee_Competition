@@ -132,3 +132,8 @@ Settings: **Internet off**, **Accelerator: None**. Outputs:
 
 Retrieve only the sanitized directory into git. Do not download or open the
 private CSVs in Cursor. Fixture pytest runs are not scientific performance.
+
+Current Kaggle sessions may mount the competition at
+`/kaggle/input/competitions/rsna-knee-abnormality-detection` and the source
+ZIP at `/kaggle/input/datasets/<user>/cursor-knee-source`. The notebook walks
+those nested paths and never enables internet or a GPU.

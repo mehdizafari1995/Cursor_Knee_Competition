@@ -25,6 +25,7 @@ def test_would_include_allowlist_and_forbidden_paths():
     assert would_include("knee/report_labels.py")
     assert not would_include("knee/weak_labels.csv")
     assert not would_include("knee/gold_predictions.csv")
+    assert not would_include("knee/language_assignments.csv")
     assert would_include("pyproject.toml")
     assert not would_include(".git/config")
     assert not would_include(".venv/lib/python3.12/site.py")

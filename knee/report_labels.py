@@ -1166,6 +1166,86 @@ def _fmt_ci(ci: dict | None, name: str) -> str:
     return f"{_fmt_metric(low)}–{_fmt_metric(high)}"
 
 
+def _render_language_level_section(lang_level: dict) -> list[str]:
+    """Aggregate language-level gold metrics. Never includes report text."""
+    lines = [
+        "### Language-level gold performance",
+        "",
+        "Reported only when a language has at least 8 gold studies. Other",
+        "languages are listed as underpowered. Counts are study counts, not",
+        "report quotations.",
+        "",
+        "| language | n_gold | reported |",
+        "| --- | ---: | --- |",
+    ]
+    if not lang_level:
+        lines.extend(["| n/a | 0 | no |", ""])
+        return lines
+    ranked = sorted(
+        lang_level.items(),
+        key=lambda item: (-int((item[1] or {}).get("n") or 0), str(item[0])),
+    )
+    for lang, payload in ranked:
+        payload = payload or {}
+        if payload.get("reported"):
+            reported = "yes"
+        else:
+            reported = f"no ({payload.get('reason') or 'underpowered'})"
+        lines.append(f"| {lang} | {payload.get('n', 0)} | {reported} |")
+    for lang, payload in ranked:
+        payload = payload or {}
+        if not payload.get("reported"):
+            continue
+        lines.extend(
+            [
+                "",
+                f"#### Language `{lang}` (n={payload.get('n')})",
+                "",
+                "| Official column | TP | TN | FP | FN | coverage | sens | spec | prec | f1 | bal acc |",
+                "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+            ]
+        )
+        per_target = payload.get("per_target") or {}
+        for official in OFFICIAL_TARGET_COLUMNS:
+            stats = per_target.get(official) or {}
+            lines.append(
+                "| {col} | {tp} | {tn} | {fp} | {fn} | {cov} | {sens} | {spec} | {prec} | {f1} | {bal} |".format(
+                    col=official,
+                    tp=stats.get("tp", "n/a"),
+                    tn=stats.get("tn", "n/a"),
+                    fp=stats.get("fp", "n/a"),
+                    fn=stats.get("fn", "n/a"),
+                    cov=_fmt_metric(stats.get("coverage")),
+                    sens=_fmt_metric(stats.get("sensitivity")),
+                    spec=_fmt_metric(stats.get("specificity")),
+                    prec=_fmt_metric(stats.get("precision")),
+                    f1=_fmt_metric(stats.get("f1")),
+                    bal=_fmt_metric(stats.get("balanced_accuracy")),
+                )
+            )
+    lines.append("")
+    return lines
+
+
+def _render_error_category_section(errors: dict) -> list[str]:
+    """Aggregate error-category counts. Categories never include quotations."""
+    lines = [
+        "### Aggregate error categories",
+        "",
+        "Counts only. Categories never include report quotations.",
+        "",
+        "| category | n |",
+        "| --- | ---: |",
+    ]
+    if not errors:
+        lines.extend(["| none | 0 |", ""])
+        return lines
+    for name in sorted(errors):
+        lines.append(f"| {name} | {errors[name]} |")
+    lines.append("")
+    return lines
+
+
 def render_sanitized_summary(
     *,
     language_audit: dict,
@@ -1298,6 +1378,8 @@ def render_sanitized_summary(
                 "n is small; intervals are wide."
             )
         lines.extend(["", gold_eval.get("note") or "", ""])
+        lines.extend(_render_language_level_section(gold_eval.get("language_level") or {}))
+        lines.extend(_render_error_category_section(gold_eval.get("error_categories") or {}))
 
     if weak_agg is None:
         lines.extend(["## Weak labels (report-only studies)", "", "Not generated.", ""])
@@ -1374,7 +1456,7 @@ def render_sanitized_summary(
             "",
         ]
     )
-    return "\n".join(lines) + "\n"
+    return "\n".join(lines).rstrip() + "\n"
 
 
 def hash_private_outputs(paths: dict[str, Path]) -> dict:

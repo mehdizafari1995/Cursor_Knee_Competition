@@ -37,6 +37,11 @@ reports/*
 # Pipeline artifacts (submission.csv, metrics.json, plots, model.pt)
 outputs/
 
+# Private row-level report labels (never commit, even outside outputs/)
+weak_labels.csv
+gold_predictions.csv
+language_assignments.csv
+
 # Generated Kaggle source bundles (never commit)
 *.zip
 dist/

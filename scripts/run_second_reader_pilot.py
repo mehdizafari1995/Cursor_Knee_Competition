@@ -12,7 +12,10 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from knee.config import PROJECT_ROOT  # noqa: E402
-from knee.report_labels import assert_hard_weak_label_training_forbidden  # noqa: E402
+from knee.report_labels import (  # noqa: E402
+    HARD_WEAK_LABEL_TRAINING_ALLOWED,
+    SCALE_TO_REPORT_ONLY_SECOND_READER_ALLOWED,
+)
 from knee.second_reader_pilot import run_second_reader_gold_pilot  # noqa: E402
 
 
@@ -27,7 +30,8 @@ def main() -> int:
     parser.add_argument("--weights", default=None)
     args = parser.parse_args()
 
-    assert_hard_weak_label_training_forbidden()
+    assert HARD_WEAK_LABEL_TRAINING_ALLOWED is False
+    assert SCALE_TO_REPORT_ONLY_SECOND_READER_ALLOWED is False
     result = run_second_reader_gold_pilot(
         data_root=args.data_root,
         output_dir=args.output_dir,

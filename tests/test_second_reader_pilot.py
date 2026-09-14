@@ -328,6 +328,10 @@ def test_notebook_is_offline_gpu_and_gold_only():
     assert "run_second_reader_gold_pilot" in source
     assert "_walk_input_for_source" in source
     assert "literature/ontology.yaml" in source
+    assert "HARD_WEAK_LABEL_TRAINING_ALLOWED" in source
+    assert "SCALE_TO_REPORT_ONLY_SECOND_READER_ALLOWED" in source
+    assert "assert_hard_weak_label_training_forbidden" not in source
+    assert "assert_second_reader_report_only_scale_forbidden" not in source
     meta = payload.get("metadata") or {}
     kaggle_meta = meta.get("kaggle") or {}
     assert kaggle_meta.get("isInternetEnabled") is False

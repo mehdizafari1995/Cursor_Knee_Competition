@@ -312,6 +312,25 @@ def _cuda_usable() -> bool:
     return major >= 7
 
 
+def _load_causal_lm(weights_dir: Path, load_kwargs: dict[str, Any], selected: dict) -> Any:
+    """Load with the in-library Phi-3 class when possible.
+
+    The 2024 snapshot ships ``modeling_phi3.py``. Mixing that file with a newer
+    transformers cache API raises ``DynamicCache.from_legacy_cache``. Native
+    weights still load locally; remote custom code is the fallback.
+    """
+    from transformers import AutoModelForCausalLM
+
+    native = dict(load_kwargs)
+    native["trust_remote_code"] = False
+    try:
+        return AutoModelForCausalLM.from_pretrained(str(weights_dir), **native)
+    except Exception:
+        fallback = dict(load_kwargs)
+        fallback["trust_remote_code"] = bool(selected.get("trust_remote_code"))
+        return AutoModelForCausalLM.from_pretrained(str(weights_dir), **fallback)
+
+
 def _generate_with_transformers(
     report: str,
     *,
@@ -341,16 +360,15 @@ def _generate_with_transformers(
         use_cuda = _cuda_usable()
         load_kwargs: dict[str, Any] = {
             "local_files_only": True,
-            "trust_remote_code": bool(selected.get("trust_remote_code")),
             "torch_dtype": torch.float16 if use_cuda else torch.float32,
             "device_map": "auto" if use_cuda else "cpu",
         }
         try:
             load_kwargs["attn_implementation"] = "eager"
-            model = AutoModelForCausalLM.from_pretrained(str(weights_dir), **load_kwargs)
+            model = _load_causal_lm(weights_dir, load_kwargs, selected)
         except TypeError:
             load_kwargs.pop("attn_implementation", None)
-            model = AutoModelForCausalLM.from_pretrained(str(weights_dir), **load_kwargs)
+            model = _load_causal_lm(weights_dir, load_kwargs, selected)
         model.eval()
         _TRANSFORMERS_CACHE[cache_key] = (tokenizer, model)
     else:
@@ -401,6 +419,7 @@ def _generate_with_transformers(
         "max_new_tokens": int(decoding.get("max_new_tokens") or 1024),
         "do_sample": do_sample,
         "pad_token_id": pad_token_id,
+        "use_cache": False,
     }
     if do_sample:
         generate_kwargs["temperature"] = float(decoding.get("temperature") or 0.0) or 1e-5

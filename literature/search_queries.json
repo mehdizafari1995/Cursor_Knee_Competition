@@ -2,7 +2,8 @@
   "pilot_name": "RSNA Knee Abnormality Detection first literature pilot",
   "answerable_questions": [
     "Which API-returned publications characterize MRI findings, acquisition, report terminology, and mimics for the 12 canonical knee abnormalities?",
-    "Which API-returned publications address negation, uncertainty, postoperative and multilingual report language, weak supervision, knee-MRI ML, multi-instance learning, and 2.5D classification?"
+    "Which API-returned publications address negation, uncertainty, postoperative and multilingual report language, weak supervision, knee-MRI ML, multi-instance learning, and 2.5D classification?",
+    "Which PubMed abstracts directly state knee-MRI bone-contusion synonyms, signal or sequence characteristics, anatomy/distribution, or diagnostic characteristics?"
   ],
   "deduplication_priority": [
     "pmid",
@@ -14,7 +15,7 @@
   "email": "rsna-knee-literature@users.noreply.github.com",
   "ncbi_api_key_used": false,
   "maximum_request_rate_per_second": 2.7777777777777777,
-  "combined_unique_records": 89,
+  "combined_unique_records": 92,
   "searches": [
     {
       "query_id": "Q01_ligaments",
@@ -598,6 +599,33 @@
       "tool_version": "cursor_knee_clinical_ontology_pilot/1.0",
       "query_id": "baker_cyst_mri_gap",
       "target_abnormalities": []
+    },
+    {
+      "query_id": "Q12_bone_contusion_direct_evidence",
+      "question": "Which PubMed abstracts directly state knee-MRI bone-contusion synonyms, signal or sequence characteristics, anatomy/distribution, or diagnostic characteristics?",
+      "query": "(\"Knee Joint\"[MeSH Terms] OR knee[Title/Abstract]) AND (\"Magnetic Resonance Imaging\"[MeSH Terms] OR MRI[Title/Abstract] OR \"MR imaging\"[Title/Abstract]) AND (\"bone contusion\"[Title/Abstract] OR \"bone bruise\"[Title/Abstract]) AND (definition[Title/Abstract] OR synonym*[Title/Abstract] OR signal[Title/Abstract] OR sequence*[Title/Abstract] OR pattern*[Title/Abstract] OR distribution[Title/Abstract] OR diagnos*[Title/Abstract])",
+      "query_translation": "(\"Knee Joint\"[MeSH Terms] OR \"knee\"[Title/Abstract]) AND (\"Magnetic Resonance Imaging\"[MeSH Terms] OR \"MRI\"[Title/Abstract] OR \"MR imaging\"[Title/Abstract]) AND (\"bone contusion\"[Title/Abstract] OR \"bone bruise\"[Title/Abstract]) AND (\"definition\"[Title/Abstract] OR \"synonym*\"[Title/Abstract] OR \"signal\"[Title/Abstract] OR \"sequence*\"[Title/Abstract] OR \"pattern*\"[Title/Abstract] OR \"distribution\"[Title/Abstract] OR \"diagnos*\"[Title/Abstract])",
+      "database": "pubmed",
+      "executed_at_utc": "2026-09-14T00:05:42.164404+00:00",
+      "limits": {
+        "date_range": null,
+        "language": null,
+        "publication_type": null,
+        "result_order": "relevance",
+        "retmax": 20,
+        "new_record_retention_cap": 3
+      },
+      "hit_count": 126,
+      "retained_count": 2,
+      "screening_rule": "Prefer existing records with directly supporting API abstracts; otherwise retain at most 3 new records whose PubMed abstracts directly state distinct bone-contusion synonym, signal/sequence, distribution, or diagnostic characteristics. Deduplicate by DOI, then PMID, then normalized title; keep the corpus at no more than 100 unique papers.",
+      "tool_version": "rsna-knee-literature-followup/1.0",
+      "retained_pmids": [
+        "26557590",
+        "33411563"
+      ],
+      "target_abnormalities": [
+        "bone_contusion"
+      ]
     }
   ],
   "pmc_oa_web_service_note": "The documented OA Web Service returned HTTP 404 after its 2026-08-25 retirement; retained PMC licences remain null unless returned verbatim."

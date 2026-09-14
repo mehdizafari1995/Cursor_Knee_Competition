@@ -191,15 +191,15 @@ def test_rejected_claims_are_preserved_but_removed_from_active_evidence():
     active_ids = {claim["claim_id"] for claim in active}
     rejected_ids = {claim["claim_id"] for claim in rejected}
 
-    assert len(active) == 99
-    assert len(rejected) == 55
+    assert len(active) == 83
+    assert len(rejected) == 75
     assert active_ids.isdisjoint(rejected_ids)
     assert {claim["prior_verdict"] for claim in rejected} == {
         "partially_supported",
         "unsupported",
     }
-    assert sum(claim["prior_verdict"] == "partially_supported" for claim in rejected) == 53
-    assert sum(claim["prior_verdict"] == "unsupported" for claim in rejected) == 2
+    assert sum(claim["prior_verdict"] == "partially_supported" for claim in rejected) == 72
+    assert sum(claim["prior_verdict"] == "unsupported" for claim in rejected) == 3
 
     required = {
         "claim_id",
@@ -230,6 +230,7 @@ def test_each_target_retains_at_least_three_active_clinical_claims():
         if target in counts:
             counts[target] += 1
     assert all(count >= 3 for count in counts.values()), counts
+    assert counts["bone_contusion"] == 5
 
 
 def test_active_supporting_quotes_are_at_most_25_words():

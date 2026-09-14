@@ -16,8 +16,9 @@ Pilot scope: records returned by the documented queries on the execution dates; 
 | `Q10_multi_instance` | pubmed | 2026-09-13T23:26:50.508048+00:00 | 1 | 1 |
 | `Q11_2_5d` | pubmed | 2026-09-13T23:26:51.840820+00:00 | 2 | 2 |
 | `PMC01_knee_mri_oa` | pmc | 2026-09-13T23:31:35.077869+00:00 | 4585 | 5 |
+| `Q12_bone_contusion_direct_evidence` | pubmed | 2026-09-14T00:05:42.164404+00:00 | 126 | 2 |
 
-Combined unique records after PMID → DOI → normalized-title deduplication: 64.
+Combined unique records after PMID → DOI → normalized-title deduplication: 92.
 
 ## Q01_ligaments
 
@@ -165,3 +166,24 @@ Limits: `{"date_range": null, "language": null, "publication_type": null, "open_
 Screening: Retain up to the first 5 PMC records sorted by relevance with PMIDs resolvable through PMC esummary and PubMed efetch; global deduplication is PMID, then DOI, then normalized title.
 
 OA licence lookup: the documented PMC OA Web Service was queried for every retained PMCID. It returned HTTP 404 after its 2026-08-25 retirement; no licence was inferred.
+
+
+## Q12_bone_contusion_direct_evidence
+
+Question: Which PubMed abstracts directly state knee-MRI bone-contusion synonyms, signal or sequence characteristics, anatomy/distribution, or diagnostic characteristics?
+
+Exact query: `("Knee Joint"[MeSH Terms] OR knee[Title/Abstract]) AND ("Magnetic Resonance Imaging"[MeSH Terms] OR MRI[Title/Abstract] OR "MR imaging"[Title/Abstract]) AND ("bone contusion"[Title/Abstract] OR "bone bruise"[Title/Abstract]) AND (definition[Title/Abstract] OR synonym*[Title/Abstract] OR signal[Title/Abstract] OR sequence*[Title/Abstract] OR pattern*[Title/Abstract] OR distribution[Title/Abstract] OR diagnos*[Title/Abstract])`
+
+PubMed translation: `("Knee Joint"[MeSH Terms] OR "knee"[Title/Abstract]) AND ("Magnetic Resonance Imaging"[MeSH Terms] OR "MRI"[Title/Abstract] OR "MR imaging"[Title/Abstract]) AND ("bone contusion"[Title/Abstract] OR "bone bruise"[Title/Abstract]) AND ("definition"[Title/Abstract] OR "synonym*"[Title/Abstract] OR "signal"[Title/Abstract] OR "sequence*"[Title/Abstract] OR "pattern*"[Title/Abstract] OR "distribution"[Title/Abstract] OR "diagnos*"[Title/Abstract])`
+
+Executed UTC: `2026-09-14T00:05:42.164404+00:00`
+
+Limits: `{"date_range": null, "language": null, "publication_type": null, "result_order": "relevance", "retmax": 20, "new_record_retention_cap": 3}`
+
+Hits: 126. Retained: 2 (PMID 26557590 and PMID 33411563).
+
+Screening: Prefer existing records with directly supporting API abstracts; otherwise retain at most 3 new records whose PubMed abstracts directly state distinct bone-contusion synonym, signal/sequence, distribution, or diagnostic characteristics. Deduplicate by DOI, then PMID, then normalized title; keep the corpus at no more than 100 unique papers.
+
+Identifier validation: PubMed efetch returned each PMID/PMCID/DOI triplet; the current PMC ID Converter independently returned the same triplets for PMC4625309, PMC8214466, PMC11581473, and linked corrected article PMC11112499. DOI resolver requests were also performed for the two retained records, the erratum, and PMID 34968719.
+
+Access status: PMCID presence was not treated as evidence of licence or open-access status; both fields remain unknown unless returned explicitly by an authoritative API.

@@ -398,7 +398,9 @@ AU  - De Mits, S
 AU  - Wittoek, R
 AU  - Van Ginckel, A
 AU  - Calders, P
-PY  - 2021
+PY  - 2022
+Y1  - 2022/04
+N1  - Electronic publication date: 2021-12-27
 JO  - Osteoarthritis and cartilage
 AB  - OBJECTIVE: To systematically review the literature on the relationship between markers of inflammation and pain in patients with knee osteoarthritis (OA).
 METHODS: We searched MEDLINE, Web of Science and EMBASE databases from inception until June 2021. Eligible articles had to report on the association between inflammation (as measured by effusion, synovitis, baker's cysts, cytokines and C-reactive protein) and pain in patients with radiographic knee OA. Two reviewers independently performed a screening on title and abstracts, data extraction and risk of bias assessment using the Newcastle-Ottawa Scale (NOS). A best evidence synthesis was conducted for each inflammatory sign included in this review.
@@ -1469,3 +1471,55 @@ AN  - PMID:31489217
 AN  - PMCID:PMC6711279
 UR  - https://pubmed.ncbi.nlm.nih.gov/31489217/
 ER  - 
+
+TY  - JOUR
+TI  - Imaging Patterns in MRI in Recent Bone Injuries Following Negative or Inconclusive Plain Radiographs.
+AU  - Sadineni, Raghu Teja
+AU  - Pasumarthy, Ashirwad
+AU  - Bellapa, Narayan Chander
+AU  - Velicheti, Sandeep
+PY  - 2015
+JO  - Journal of clinical and diagnostic research : JCDR
+AB  - BACKGROUND: Few bony injuries and most soft tissue injuries cannot be detected on plain radiography. Magnetic resonance imaging (MRI) can detect such occult bony injuries due to signal changes in bone marrow. In addition to excluding serious bony injuries, it can also identify tendon, ligament, cartilage and other soft tissue injuries and thus help in localizing the cause of morbidity.
+AB  - AIMS AND OBJECTIVES: To determine the MRI imaging patterns in recent bone injuries (less than 4 weeks) following negative or inconclusive plain radiographs. To determine the role of MRI in recent fractures.
+AB  - RESULTS: Out of the 75 individuals with history of recent injury of less than 4 weeks duration, fracture line was demonstrated in 16 patients (21%) who had no obvious evidence of bone injury on plain radiographs. Bone contusion or bruising of the bone was demonstrated in 39 (52%) patients. This was the commonest abnormality detected in MRI. The remaining 20 patients did not show any obvious injury to the bone on MR imaging however, soft tissue injury could be demonstrated in 12 (16%) patients which show that the extent of soft tissue injury was relatively well demonstrated by MR imaging. The present study showed that occult injuries commonly occur at the Knee followed by Ankle, Wrist, Foot, Elbow, Leg, Hands, Hips & Spine.
+AB  - CONCLUSION: The study showed that MR is efficient in the detection of occult bone injuries which are missed on radiography. Compared to radiographs, MRI clearly depicted the extent of injuries and associated soft tissue involvement. MRI demonstrates both acute and chronic injuries and also differentiates both, whereas radiography has poor sensitivity for acute injuries. Also, the soft tissue injuries like tendionous and ligamentous injuries cannot be identified on radiographs.
+DO  - 10.7860/JCDR/2015/15451.6685
+AN  - PMID:26557590
+AN  - PMCID:PMC4625309
+UR  - https://pubmed.ncbi.nlm.nih.gov/26557590/
+ER  -
+
+TY  - JOUR
+TI  - Distribution of Bone Contusion Patterns in Acute Noncontact Anterior Cruciate Ligament-Torn Knees.
+AU  - Kim-Wang, Sophia Y
+AU  - Scribani, Melissa B
+AU  - Whiteside, Michael B
+AU  - DeFrate, Louis E
+AU  - Lassiter, Tally E
+AU  - Wittstein, Jocelyn R
+PY  - 2021
+JO  - The American journal of sports medicine
+AB  - BACKGROUND: Bone contusions are commonly observed on magnetic resonance imaging (MRI) in individuals who have sustained a noncontact anterior cruciate ligament (ACL) injury. Time from injury to image acquisition affects the ability to visualize these bone contusions, as contusions resolve with time.
+AB  - PURPOSE: To quantify the number of bone contusions and their locations (lateral tibial plateau [LTP], lateral femoral condyle [LFC], medial tibial plateau [MTP], and medial femoral condyle [MFC]) observed on MRI scans of noncontact ACL-injured knees acquired within 6 weeks of injury.
+AB  - STUDY DESIGN: Cross-sectional study; Level of evidence, 3.
+AB  - METHODS: We retrospectively reviewed clinic notes, operative notes, and imaging of 136 patients undergoing ACL reconstruction. The following exclusion criteria were applied: MRI scans acquired beyond 6 weeks after injury, contact ACL injury, and previous knee trauma. Fat-suppressed fast spin-echo T2-weighted MRI scans were reviewed by a blinded musculoskeletal radiologist. The number of contusions and their locations (LTP, LFC, MTP, and MFC) were recorded.
+AB  - RESULTS: Contusions were observed in 135 of 136 patients. Eight patients (6%) had 1 contusion, 39 (29%) had 2, 41 (30%) had 3, and 47 (35%) had 4. The most common contusion patterns within each of these groups were 6 (75%) with LTP for 1 contusion, 29 (74%) with LTP/LFC for 2 contusions, 33 (80%) with LTP/LFC/MTP for 3 contusions, and 47 (100%) with LTP/LFC/MTP/MFC for 4 contusions. No sex differences were detected in contusion frequency in the 4 locations (P > .05). Among the participants, 50 (37%) had medial meniscal tears and 52 (38%) had lateral meniscal tears.
+AB  - CONCLUSION: The most common contusion patterns observed were 4 locations (LTP/LFC/MTP/MFC) and 3 locations (LTP/LFC/MTP).
+DO  - 10.1177/0363546520981569
+AN  - PMID:33411563
+AN  - PMCID:PMC8214466
+UR  - https://pubmed.ncbi.nlm.nih.gov/33411563/
+ER  -
+
+TY  - JOUR
+TI  - Data Errors in Text and Table.
+PY  - 2024
+JO  - JAMA
+DO  - 10.1001/jama.2024.20532
+AN  - PMID:39325448
+AN  - PMCID:PMC11581473
+N1  - Publication type: Erratum
+N1  - Erratum for PMID:38776073; DOI:10.1001/jama.2024.6063
+UR  - https://pubmed.ncbi.nlm.nih.gov/39325448/
+ER  -

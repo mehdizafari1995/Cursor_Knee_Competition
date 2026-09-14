@@ -12,9 +12,11 @@ weakly supervised from free-text multilingual radiology reports; inference is
 image-only.
 
 `TARGET_KEYS` in `knee/config.py` is the single source of truth for the twelve
-targets and their `submission.csv` column order. `docs/clinical_ontology_schema.md`
+targets and their internal order. `docs/clinical_ontology_schema.md`
 mirrors it, and the test suite fails if the two drift apart. No agent adds, drops or
-renames a target.
+renames a target. Official Kaggle `sample_submission.csv` headers use different
+spelling (`OFFICIAL_TARGET_COLUMNS` in `knee/config.py`); competition submissions
+must use that spelling without renaming `TARGET_KEYS`.
 
 ## Subagents
 
@@ -56,10 +58,19 @@ These are binding on the coordinator and every subagent. Full text in
 bash .cursor/install.sh        # creates .venv and installs pinned dependencies
 source .venv/bin/activate
 pytest                         # pyproject.toml points this at tests/
-python -m knee.pipeline        # end-to-end run, writes to outputs/
+python -m knee.pipeline        # synthetic end-to-end run, writes to outputs/
+
+# Competition data (not shipped). Never hard-code a machine path.
+export RSNA_DATA_ROOT=/path/to/rsna-knee-abnormality-detection
+python scripts/audit_competition_data.py
+python scripts/create_folds.py
+python scripts/train_baseline.py --smoke    # software verification only
+python scripts/predict_baseline.py --smoke
+python scripts/make_submission.py --predictions ... --sample-submission ...
 ```
 
 Run the whole suite, not one file. `tests/test_pipeline.py` covers the modelling
 pipeline; `tests/test_agent_configuration.py` validates the agent definitions, the
 policy docs and the target registry. Run both after editing anything under
-`.cursor/agents/`, `docs/` or `knee/config.py`.
+`.cursor/agents/`, `docs/` or `knee/config.py`. Phase 2 adds tests for audit,
+folds/leakage, labels, metrics, DICOM loading, submission format, and CPU smoke.

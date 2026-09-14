@@ -1,0 +1,20 @@
+seed: 42
+data_root_env: RSNA_DATA_ROOT
+n_folds: 5
+encoder: resnet18
+pretrained: true
+image_size: 224
+num_slices: 8
+slice_sampling: linspace
+intensity_percentiles: [1.0, 99.0]
+batch_size: 2
+epochs: 1
+learning_rate: 0.0001
+weight_decay: 0.0001
+aggregation: mean
+num_targets: 12
+device: cpu
+smoke: false
+allow_training: false
+max_train_steps: 1
+output_dir: outputs/baseline

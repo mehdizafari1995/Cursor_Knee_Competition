@@ -29,10 +29,9 @@ Each knee MRI **study** is scored for **twelve independent binary findings**:
 - **Inference:** test-time prediction uses **MRI images only** — no report text
   is consumed at inference.
 
-> No real patient data is used or downloaded. Synthetic MRI studies encode each
-> finding as a lesion at a fixed anatomical location so the multi-label model
-> has a genuinely learnable signal, and synthetic multilingual reports provide
-> the weak-supervision source.
+> The synthetic pipeline (`python -m knee.pipeline`) still uses generated
+> studies only. The Phase 2 audit and baseline talk to real competition files
+> only when `RSNA_DATA_ROOT` points at a local copy; they do not download data.
 
 ## Quick start
 
@@ -49,6 +48,12 @@ python -m knee.pipeline --no-weak-supervision
 
 # Run the test suite
 pytest -q
+
+# Phase 2: competition audit + baseline smoke (no full training)
+export RSNA_DATA_ROOT=/path/to/rsna-knee-abnormality-detection   # if you have the data
+python scripts/audit_competition_data.py                        # DATA_NOT_AVAILABLE if unset
+python scripts/train_baseline.py --smoke                        # tiny generated tensors only
+python scripts/predict_baseline.py --smoke
 ```
 
 Outputs are written to `outputs/`:
@@ -65,19 +70,24 @@ Outputs are written to `outputs/`:
 
 ```
 knee/
-  config.py     # hyperparameters, paths, the 12 target definitions
-  data.py       # synthetic MRI study generation + PyTorch datasets
-  reports.py    # multilingual report synthesis + weak-label extraction
-  model.py      # small multi-label CNN classifier
-  train.py      # training loop + macro ROC AUC evaluation
-  report.py     # plots + submission writer
-  pipeline.py   # end-to-end entrypoint (python -m knee.pipeline)
-tests/          # fast pytest smoke tests
+  config.py     # hyperparameters, TARGET_KEYS, official Kaggle column mapping
+  paths.py      # RSNA_DATA_ROOT resolution (no hard-coded machine path)
+  audit.py      # read-only competition-data audit
+  folds.py      # grouped multilabel cross-validation
+  dicom_io.py   # deterministic DICOM load + slice order
+  ...
+configs/baseline.yaml
+scripts/        # audit, folds, train, predict, submission
+tests/          # pipeline, agents, literature, audit, leakage, labels, metrics
 ```
+
+Official Kaggle submission headers (`ACL`, `MCL`, …, `Baker's`, …) are listed
+in `knee/config.py` as `OFFICIAL_TARGET_COLUMNS`. Internal `TARGET_KEYS` are
+not renamed. See `reports/baseline_design.md` and `reports/data_audit.md`.
 
 ## Development environment
 
 The environment is configured in `.cursor/environment.json`, which runs
 `.cursor/install.sh` to create a Python virtual environment and install the
 pinned dependencies in `requirements.txt` (NumPy, pandas, scikit-learn,
-Matplotlib, Pillow, and CPU builds of PyTorch / torchvision).
+Matplotlib, Pillow, pydicom, and CPU builds of PyTorch / torchvision).

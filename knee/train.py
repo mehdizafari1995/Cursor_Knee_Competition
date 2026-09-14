@@ -9,38 +9,17 @@ from __future__ import annotations
 
 import numpy as np
 import torch
-from sklearn.metrics import roc_auc_score
 from torch import nn
 from torch.utils.data import DataLoader
 
 from .config import Config
+from .metrics import macro_roc_auc
 from .model import KneeMRINet
 
 
 def set_seed(seed: int) -> None:
     np.random.seed(seed)
     torch.manual_seed(seed)
-
-
-def macro_roc_auc(y_true: np.ndarray, y_prob: np.ndarray):
-    """Macro-averaged ROC AUC across targets (the official metric).
-
-    Targets that are single-class in the evaluation split are skipped (AUC is
-    undefined) and reported as NaN, matching how such degenerate columns are
-    handled in practice.
-    """
-    per_target = []
-    valid = []
-    for j in range(y_true.shape[1]):
-        col = y_true[:, j]
-        if col.min() == col.max():
-            per_target.append(float("nan"))
-            continue
-        auc = float(roc_auc_score(col, y_prob[:, j]))
-        per_target.append(auc)
-        valid.append(auc)
-    macro = float(np.mean(valid)) if valid else float("nan")
-    return macro, per_target
 
 
 @torch.no_grad()

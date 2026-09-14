@@ -35,6 +35,12 @@ reports/*
 # Pipeline artifacts (submission.csv, metrics.json, plots, model.pt)
 outputs/
 
+# Generated Kaggle source bundles (never commit)
+*.zip
+dist/
+bundles/
+kaggle_working/
+
 # Local caches, predictions, experiment dumps
 cache/
 caches/

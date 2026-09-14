@@ -200,8 +200,11 @@ class TestScaffolding:
             "scripts/train_baseline.py",
             "scripts/predict_baseline.py",
             "scripts/make_submission.py",
+            "scripts/build_kaggle_bundle.py",
+            "notebooks/01_kaggle_real_data_audit.ipynb",
             "reports/data_audit.md",
             "reports/baseline_design.md",
+            "reports/kaggle_notebook_instructions.md",
         ],
     )
     def test_required_path_exists(self, relative_path):
@@ -365,7 +368,7 @@ class TestGitignorePolicy:
         "pattern",
         ["*.pdf", "*.png", "*.dcm", "*.nii", "*.ckpt", "*.pt", "*.safetensors",
          "reports/*", "data/", "outputs/", "kaggle.json", ".env", ".venv/",
-         "cache/", "predictions/", ".kaggle/"],
+         "cache/", "predictions/", ".kaggle/", "*.zip"],
     )
     def test_restricted_artefact_is_ignored(self, gitignore_patterns, pattern):
         assert pattern in gitignore_patterns

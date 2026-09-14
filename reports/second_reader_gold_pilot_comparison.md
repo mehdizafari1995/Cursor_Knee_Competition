@@ -16,6 +16,7 @@ values, and PatientID values are not included.
 - scientific_evaluation: `false`
 - gold_only: `true`
 - n_gold_studies_planned: 58
+- n_gold_studies_processed: 0
 - n_report_only_studies_processed: 0
 - unknown_imputed_as_negative: `false`
 - internet_used: `false`
@@ -23,17 +24,24 @@ values, and PatientID values are not included.
 - training_run: `false`
 - folds_created: `false`
 
-## SOFTWARE FIXTURE / PENDING REAL KAGGLE GPU RUN
+## SOFTWARE FIXTURE / PREFLIGHT STOP
 
 Cursor executed parser, consensus, privacy, and coverage-aware **fixture**
 tests only. No weights were downloaded. No scientific precision, NPV, or
 capture numbers for the 58 expert-labelled studies are claimed here.
 
-The operator run is `notebooks/04_kaggle_second_reader_gold_pilot.ipynb`
-with internet disabled, GPU enabled, the competition dataset, the private
-source ZIP, and the checksummed Phi-3.5 snapshot attached. After that run,
-replace this file with sanitized aggregates and private-output hashes from
-Kaggle. Do not copy fixture counts into a scientific table.
+Preflight of the frozen shard SHA-256 values against the Hugging Face tree
+for revision `2fe192450127e6a83f7441aef6e3ca586c338b77` found a mismatch on
+`model-00001-of-00002.safetensors`. Protocol required a stop before
+inference. Details: `reports/kaggle_second_reader_pilot_run.md`.
+
+After the frozen shard-1 digest is corrected to the published 64-character
+LFS oid for that same revision, run
+`notebooks/04_kaggle_second_reader_gold_pilot.ipynb` with internet
+disabled, GPU enabled, the competition dataset, the private source ZIP, and
+a checksummed Phi-3.5 snapshot attached. Then replace this file with
+sanitized aggregates and private-output hashes from Kaggle. Do not copy
+fixture counts into a scientific table.
 
 ## Planned comparison (real run)
 

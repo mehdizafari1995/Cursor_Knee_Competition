@@ -241,12 +241,20 @@ def test_rejected_original_claims_match_the_pre_remediation_ledger():
 
 def test_each_target_retains_at_least_three_active_clinical_claims():
     counts = {target: 0 for target in TARGET_KEYS}
-    for claim in read_jsonl(CLAIMS):
+    claims = read_jsonl(CLAIMS)
+    for claim in claims:
         target = claim.get("target_id")
         if target in counts:
             counts[target] += 1
     assert all(count >= 3 for count in counts.values()), counts
     assert counts["bone_contusion"] == 5
+    assert {claim["pilot_status"] for claim in claims} == {"verified"}
+
+    ontology = yaml.safe_load((LITERATURE / "ontology.yaml").read_text(encoding="utf-8"))
+    assert {
+        target["verification"]["status"] for target in ontology["targets"]
+    } == {"verified"}
+    assert "**PASS**" in (REPORTS / "evidence_verification.md").read_text(encoding="utf-8")
 
 
 def test_active_supporting_quotes_are_at_most_25_words():

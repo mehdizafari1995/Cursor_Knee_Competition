@@ -81,6 +81,7 @@ prohibited binary was downloaded. The target registry was not changed.
 
 ## Audit state
 
-All ontology target records remain `unverified` with
-`review_state: pending_fresh_evidence_audit`. The second-round removals do not
-promote the retained or newly added claims; ontology audit state remains pending.
+The final independent audit returned **PASS**: 83 supported active claims, zero
+partially supported, zero unsupported, zero not-checkable, and zero fabricated
+citations. All 83 active claim rows and all 12 ontology target records are now
+marked `verified` and reference `reports/evidence_verification.md`.

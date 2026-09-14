@@ -4,7 +4,7 @@ Retrieval date: 2026-09-13
 
 ## Scope and method
 
-This bounded pilot retained 89 unique records returned by the documented PubMed
+This bounded pilot retained 92 unique records returned by the documented PubMed
 and PubMed Central API searches in `literature/search_queries.json`. It is not an
 exhaustive search. Requests used the NCBI E-utilities and PMC APIs without an API
 key and remained below three requests per second. Records were deduplicated by
@@ -17,12 +17,13 @@ licence follow-up; licences were therefore left unknown rather than inferred.
 
 ## Corpus summary
 
-- Unique papers: 89
-- Primary/non-review records: 65
+- Unique papers: 92
+- Primary/non-review records: 68
 - Review records: 24
-- Open-access status: 23 true, 6 false, 60 unknown
+- Open-access status: 23 true, 6 false, 63 unknown
 - Records with a known licence: 3 (two `CC BY`, one `CC BY-NC-ND`)
-- Cited ontology claims: 154
+- Active verified claims: 83
+- Rejected claims retained in audit history: 75
 
 ## Papers per target
 
@@ -38,7 +39,7 @@ licence follow-up; licences were therefore left unknown rather than inferred.
 | Joint effusion | 11 |
 | Synovitis | 11 |
 | Baker cyst | 11 |
-| Bone contusion | 11 |
+| Bone contusion | 13 |
 | Fracture | 12 |
 
 Counts are non-exclusive because a paper may cover multiple targets.

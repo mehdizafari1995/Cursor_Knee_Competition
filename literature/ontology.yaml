@@ -173,10 +173,10 @@
         "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
       },
       "verification": {
-        "status": "unverified",
-        "verified_at_utc": null,
+        "status": "verified",
+        "verified_at_utc": "2026-09-14T00:22:00+00:00",
         "report": "reports/evidence_verification.md",
-        "review_state": "pending_fresh_evidence_audit"
+        "review_state": "accepted_after_independent_audit"
       }
     },
     {
@@ -316,10 +316,10 @@
         "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
       },
       "verification": {
-        "status": "unverified",
-        "verified_at_utc": null,
+        "status": "verified",
+        "verified_at_utc": "2026-09-14T00:22:00+00:00",
         "report": "reports/evidence_verification.md",
-        "review_state": "pending_fresh_evidence_audit"
+        "review_state": "accepted_after_independent_audit"
       }
     },
     {
@@ -476,10 +476,10 @@
         "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
       },
       "verification": {
-        "status": "unverified",
-        "verified_at_utc": null,
+        "status": "verified",
+        "verified_at_utc": "2026-09-14T00:22:00+00:00",
         "report": "reports/evidence_verification.md",
-        "review_state": "pending_fresh_evidence_audit"
+        "review_state": "accepted_after_independent_audit"
       }
     },
     {
@@ -636,10 +636,10 @@
         "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
       },
       "verification": {
-        "status": "unverified",
-        "verified_at_utc": null,
+        "status": "verified",
+        "verified_at_utc": "2026-09-14T00:22:00+00:00",
         "report": "reports/evidence_verification.md",
-        "review_state": "pending_fresh_evidence_audit"
+        "review_state": "accepted_after_independent_audit"
       }
     },
     {
@@ -787,10 +787,10 @@
         "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
       },
       "verification": {
-        "status": "unverified",
-        "verified_at_utc": null,
+        "status": "verified",
+        "verified_at_utc": "2026-09-14T00:22:00+00:00",
         "report": "reports/evidence_verification.md",
-        "review_state": "pending_fresh_evidence_audit"
+        "review_state": "accepted_after_independent_audit"
       }
     },
     {
@@ -938,10 +938,10 @@
         "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
       },
       "verification": {
-        "status": "unverified",
-        "verified_at_utc": null,
+        "status": "verified",
+        "verified_at_utc": "2026-09-14T00:22:00+00:00",
         "report": "reports/evidence_verification.md",
-        "review_state": "pending_fresh_evidence_audit"
+        "review_state": "accepted_after_independent_audit"
       }
     },
     {
@@ -1101,10 +1101,10 @@
         "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
       },
       "verification": {
-        "status": "unverified",
-        "verified_at_utc": null,
+        "status": "verified",
+        "verified_at_utc": "2026-09-14T00:22:00+00:00",
         "report": "reports/evidence_verification.md",
-        "review_state": "pending_fresh_evidence_audit"
+        "review_state": "accepted_after_independent_audit"
       }
     },
     {
@@ -1213,10 +1213,10 @@
         "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
       },
       "verification": {
-        "status": "unverified",
-        "verified_at_utc": null,
+        "status": "verified",
+        "verified_at_utc": "2026-09-14T00:22:00+00:00",
         "report": "reports/evidence_verification.md",
-        "review_state": "pending_fresh_evidence_audit"
+        "review_state": "accepted_after_independent_audit"
       }
     },
     {
@@ -1362,10 +1362,10 @@
         "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
       },
       "verification": {
-        "status": "unverified",
-        "verified_at_utc": null,
+        "status": "verified",
+        "verified_at_utc": "2026-09-14T00:22:00+00:00",
         "report": "reports/evidence_verification.md",
-        "review_state": "pending_fresh_evidence_audit"
+        "review_state": "accepted_after_independent_audit"
       }
     },
     {
@@ -1465,10 +1465,10 @@
         "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
       },
       "verification": {
-        "status": "unverified",
-        "verified_at_utc": null,
+        "status": "verified",
+        "verified_at_utc": "2026-09-14T00:22:00+00:00",
         "report": "reports/evidence_verification.md",
-        "review_state": "pending_fresh_evidence_audit"
+        "review_state": "accepted_after_independent_audit"
       }
     },
     {
@@ -1578,10 +1578,10 @@
         "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
       },
       "verification": {
-        "status": "unverified",
-        "verified_at_utc": null,
+        "status": "verified",
+        "verified_at_utc": "2026-09-14T00:22:00+00:00",
         "report": "reports/evidence_verification.md",
-        "review_state": "pending_fresh_evidence_audit"
+        "review_state": "accepted_after_independent_audit"
       }
     },
     {
@@ -1737,10 +1737,10 @@
         "pilot_scope": "Non-exhaustive staging corpus capped at 30 PubMed records."
       },
       "verification": {
-        "status": "unverified",
-        "verified_at_utc": null,
+        "status": "verified",
+        "verified_at_utc": "2026-09-14T00:22:00+00:00",
         "report": "reports/evidence_verification.md",
-        "review_state": "pending_fresh_evidence_audit"
+        "review_state": "accepted_after_independent_audit"
       }
     }
   ],

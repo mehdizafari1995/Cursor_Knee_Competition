@@ -80,7 +80,9 @@ def main() -> int:
     except PrivacyLeakError:
         raise
     print(f"wrote {metrics_path}")
-    print(f"macro_balanced_accuracy={metrics['macro'].get('balanced_accuracy')}")
+    print(f"macro_positive_capture={metrics['macro'].get('positive_capture')}")
+    print(f"macro_conditional_sensitivity={metrics['macro'].get('conditional_sensitivity')}")
+    print("conditional_sensitivity_is_not_full_set_sensitivity=true")
     print(f"report_column_in_metrics={REPORT_COLUMN in json.dumps(jsonable(metrics))}")
     return 0
 

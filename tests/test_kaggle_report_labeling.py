@@ -135,7 +135,16 @@ def test_notebook_file_is_offline_and_tokenless():
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 _UID_LIKE = re.compile(r"\b1\.2\.840\.\d+")
-_PRIVATE_ROW_FILES = ("weak_labels.csv", "gold_predictions.csv", "language_assignments.csv")
+_PRIVATE_ROW_FILES = (
+    "weak_labels.csv",
+    "gold_predictions.csv",
+    "language_assignments.csv",
+    "mask_high_conf_positive.csv",
+    "mask_high_conf_negative.csv",
+    "mask_unknown.csv",
+    "mask_disagreement.csv",
+    "mask_unsupported_language.csv",
+)
 
 
 def test_fixture_summary_includes_language_and_error_sections(tmp_path):
@@ -179,6 +188,9 @@ def test_committed_phase4_reports_have_no_identifiers_or_report_tokens():
         "reports/report_labeling_protocol.md",
         "reports/kaggle_report_labeling_run.md",
         "reports/kaggle_notebook_instructions.md",
+        "reports/report_labeler_v2_summary.md",
+        "reports/report_labeler_v2_protocol.md",
+        "reports/competition_pretrained_model_rules.md",
     ):
         text = (REPO_ROOT / relative).read_text(encoding="utf-8")
         assert REPORT_LABEL_LEAK_TOKEN not in text

@@ -65,6 +65,11 @@ Phase 4 adds `notebooks/02_kaggle_report_labeling.ipynb` for private
 multilingual report-label generation and gold-label evaluation (internet off,
 GPU off, no image training). See `reports/report_labeling_protocol.md`.
 
+Phase 4B adds `notebooks/03_kaggle_report_labeler_v2.ipynb` for coverage-aware
+evaluation, OOF confidence policies, and private trainable masks. See
+`reports/report_labeler_v2_protocol.md`. Version-1 metrics stay available for
+comparison. Do not treat weak labels as hard gold.
+
 Outputs are written to `outputs/`:
 
 | File | Description |

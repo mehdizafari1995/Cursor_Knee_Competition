@@ -1,16 +1,20 @@
-# Frozen runtime lexicon for Phase 4 report-label extraction.
+# Frozen runtime lexicon for Phase 4B report-label extraction.
 # Ontology-verified terms come from literature/ontology.yaml.
 # Additional multilingual items are clinical-standard abbreviations/phrases
 # and are NOT claimed as ontology-verified. No external language model is used.
-extractor_version: report-labeler-v1.0.0
-eval_protocol_version: gold-eval-v1.0.0
-schema_version: 1
+# Version 1 is frozen at configs/report_labeler_v1.yaml for direct comparison.
+extractor_version: report-labeler-v2.0.0
+eval_protocol_version: gold-eval-v2.0.0
+schema_version: 2
+v1_config: configs/report_labeler_v1.yaml
+preserve_v1_metrics: true
 source_of_truth_targets: knee/config.py::TARGET_KEYS
 no_external_language_model: true
 internet_required: false
 gpu_required: false
 unknown_policy: never_impute_as_negative
 gold_labels_in_extractor: forbidden
+conditional_sensitivity_is_not_full_set_sensitivity: true
 
 bootstrap:
   n_resamples: 1000
@@ -31,6 +35,69 @@ confidence:
   multilingual_standard: 0.70
   uncertain: 0.35
   unknown: 0.0
+
+confidence_policies:
+  default:
+    min_positive_precision: 0.85
+    min_negative_npv: 0.85
+    min_positive_coverage: 0.05
+    min_negative_coverage: 0.05
+    do_not_lower_thresholds_globally: true
+  oof:
+    n_folds: 5
+    seed: 42
+  targets:
+    acl_injury:
+      positive_threshold: 0.85
+      negative_threshold: 0.80
+    mcl_injury:
+      positive_threshold: 0.90
+      negative_threshold: 0.85
+    medial_meniscus_injury:
+      positive_threshold: 0.92
+      negative_threshold: 0.85
+    lateral_meniscus_injury:
+      positive_threshold: 0.92
+      negative_threshold: 0.85
+    medial_compartment_oa:
+      positive_threshold: 0.92
+      negative_threshold: 0.88
+    lateral_compartment_oa:
+      positive_threshold: 0.92
+      negative_threshold: 0.88
+    patellofemoral_oa:
+      positive_threshold: 0.92
+      negative_threshold: 0.88
+    joint_effusion:
+      positive_threshold: 0.88
+      negative_threshold: 0.85
+    synovitis:
+      positive_threshold: 0.92
+      negative_threshold: 0.88
+    baker_cyst:
+      positive_threshold: 0.90
+      negative_threshold: 0.85
+    bone_contusion:
+      positive_threshold: 0.90
+      negative_threshold: 0.85
+    fracture:
+      positive_threshold: 0.90
+      negative_threshold: 0.85
+
+second_reader:
+  enabled: false
+  download_weights: false
+  internet_required: false
+  combiner: conservative_agreement
+  rules_documented_in: reports/competition_pretrained_model_rules.md
+  model_id: null
+  weights_path: null
+  weights_sha256: null
+  note: >
+    Public pretrained models are allowed by the competition overview when they
+    are freely and publicly available, of minimal cost, and attached locally
+    because scoring notebooks disable internet. This extractor does not
+    download or load weights in v2.0.0.
 
 languages:
   supported:
@@ -56,6 +123,9 @@ languages:
     - ca
   uncertain_margin: 0.15
   min_score: 2.0
+  independent_detector: char_trigram
+  keep_uncertain_separate: true
+  latin_technical_tokens_do_not_force_mixed_uncertain: true
   unsupported_policy: unknown_unless_language_agnostic_abbreviation
 
 oa_severity:
@@ -292,7 +362,8 @@ targets:
         - kontinyu
     language_agnostic_abbreviations:
       - ACL
-    notes: "Cruciate without anterior/posterior is insufficient. Graft/reconstruction without current graft tear is postoperative unknown."
+    require_pathology_morphology: true
+    notes: "Cruciate without anterior/posterior is insufficient. Graft/reconstruction without current graft tear is postoperative unknown. Anatomy mention without tear/rupture language is unknown."
 
   mcl_injury:
     ontology_verified:
@@ -350,7 +421,8 @@ targets:
         - preserved
     language_agnostic_abbreviations:
       - MCL
-    notes: "Collateral without medial/tibial is insufficient for MCL."
+    require_pathology_morphology: true
+    notes: "Collateral without medial/tibial is insufficient for MCL. Anatomy mention without tear/sprain language is unknown."
 
   medial_meniscus_injury:
     ontology_verified:
@@ -411,7 +483,8 @@ targets:
         - no tear
     language_agnostic_abbreviations: []
     laterality: medial
-    notes: "Unspecified meniscus tear is unknown for both meniscus targets. MM abbreviation alone is too ambiguous."
+    require_pathology_morphology: true
+    notes: "Unspecified meniscus tear is unknown for both meniscus targets. MM abbreviation alone is too ambiguous. Degeneration/grade 1-2 without surface tear is unknown, not injury."
 
   lateral_meniscus_injury:
     ontology_verified:
@@ -469,7 +542,8 @@ targets:
         - no tear
     language_agnostic_abbreviations: []
     laterality: lateral
-    notes: "Unspecified meniscus tear is unknown for both meniscus targets."
+    require_pathology_morphology: true
+    notes: "Unspecified meniscus tear is unknown for both meniscus targets. Degeneration/grade 1-2 without surface tear is unknown, not injury."
 
   medial_compartment_oa:
     ontology_verified:

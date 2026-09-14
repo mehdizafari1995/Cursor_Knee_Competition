@@ -228,9 +228,35 @@ def _gpu_memory_bytes() -> int | None:
         import torch
     except ImportError:
         return None
-    if not torch.cuda.is_available():
+    try:
+        if not torch.cuda.is_available():
+            return None
+        return int(torch.cuda.max_memory_allocated())
+    except Exception:
         return None
-    return int(torch.cuda.max_memory_allocated())
+
+
+def _gpu_runtime_info() -> dict[str, Any]:
+    info: dict[str, Any] = {
+        "gpu_memory_bytes": _gpu_memory_bytes(),
+        "gpu_name": None,
+        "cuda_capability": None,
+        "cuda_kernels_usable": False,
+    }
+    try:
+        import torch
+    except ImportError:
+        return info
+    try:
+        if not torch.cuda.is_available():
+            return info
+        info["gpu_name"] = str(torch.cuda.get_device_name(0))
+        major, minor = torch.cuda.get_device_capability(0)
+        info["cuda_capability"] = f"{major}.{minor}"
+        info["cuda_kernels_usable"] = major >= 7
+    except Exception:
+        return info
+    return info
 
 
 def render_pilot_summary(
@@ -294,6 +320,9 @@ def render_pilot_summary(
             f"- wall_seconds: {runtime.get('wall_seconds')}",
             f"- mean_seconds_per_study: {runtime.get('mean_seconds_per_study')}",
             f"- gpu_memory_bytes: {runtime.get('gpu_memory_bytes')}",
+            f"- gpu_name: `{runtime.get('gpu_name')}`",
+            f"- cuda_capability: `{runtime.get('cuda_capability')}`",
+            f"- cuda_kernels_usable: `{runtime.get('cuda_kernels_usable')}`",
             f"- inference_backend: `{runtime.get('inference_backend')}`",
             f"- malformed_output_rate: {runtime.get('malformed_output_rate')}",
             "",
@@ -546,11 +575,15 @@ def run_second_reader_gold_pilot(
         malformed_output_rate=float(np.mean(malformed_flags) if malformed_flags else 0.0),
         config=config,
     )
+    gpu_info = _gpu_runtime_info()
     runtime = {
         "n_studies_scored": len(gold_ids),
         "wall_seconds": wall,
         "mean_seconds_per_study": float(np.mean(per_study_seconds) if per_study_seconds else 0.0),
-        "gpu_memory_bytes": _gpu_memory_bytes(),
+        "gpu_memory_bytes": gpu_info.get("gpu_memory_bytes"),
+        "gpu_name": gpu_info.get("gpu_name"),
+        "cuda_capability": gpu_info.get("cuda_capability"),
+        "cuda_kernels_usable": gpu_info.get("cuda_kernels_usable"),
         "inference_backend": backend,
         "malformed_output_rate": float(np.mean(malformed_flags) if malformed_flags else 0.0),
         "n_malformed_studies": int(sum(malformed_flags)),

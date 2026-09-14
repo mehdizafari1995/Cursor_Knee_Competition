@@ -297,6 +297,21 @@ def locate_weights_directory(cfg: dict, weights_path: str | Path | None) -> Path
 _TRANSFORMERS_CACHE: dict[str, tuple[Any, Any]] = {}
 
 
+def _cuda_usable() -> bool:
+    """True when the attached GPU can run the current PyTorch CUDA kernels."""
+    try:
+        import torch
+    except ImportError:
+        return False
+    if not torch.cuda.is_available():
+        return False
+    try:
+        major, _minor = torch.cuda.get_device_capability(0)
+    except Exception:
+        return False
+    return major >= 7
+
+
 def _generate_with_transformers(
     report: str,
     *,
@@ -323,13 +338,19 @@ def _generate_with_transformers(
             local_files_only=True,
             trust_remote_code=bool(selected.get("trust_remote_code")),
         )
-        model = AutoModelForCausalLM.from_pretrained(
-            str(weights_dir),
-            local_files_only=True,
-            trust_remote_code=bool(selected.get("trust_remote_code")),
-            torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
-            device_map="auto" if torch.cuda.is_available() else None,
-        )
+        use_cuda = _cuda_usable()
+        load_kwargs: dict[str, Any] = {
+            "local_files_only": True,
+            "trust_remote_code": bool(selected.get("trust_remote_code")),
+            "torch_dtype": torch.float16 if use_cuda else torch.float32,
+            "device_map": "auto" if use_cuda else "cpu",
+        }
+        try:
+            load_kwargs["attn_implementation"] = "eager"
+            model = AutoModelForCausalLM.from_pretrained(str(weights_dir), **load_kwargs)
+        except TypeError:
+            load_kwargs.pop("attn_implementation", None)
+            model = AutoModelForCausalLM.from_pretrained(str(weights_dir), **load_kwargs)
         model.eval()
         _TRANSFORMERS_CACHE[cache_key] = (tokenizer, model)
     else:

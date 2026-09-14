@@ -388,3 +388,9 @@ def test_freeze_manifest_hashes_ontology_when_cwd_is_elsewhere(tmp_path, monkeyp
     assert freeze["metrics_computed"] is False
     assert freeze["file_sha256"]["ontology"] == sha256_file(REPO_ROOT / "literature" / "ontology.yaml")
     assert freeze["file_sha256"]["prompt"] == sha256_file(REPO_ROOT / "configs" / "second_reader_prompt.yaml")
+
+
+def test_cuda_usable_is_false_on_cpu_fixture_hosts():
+    from knee.report_second_reader import _cuda_usable
+
+    assert _cuda_usable() is False

@@ -76,6 +76,8 @@ def test_fixture_v2_run_writes_masks_without_leaking_text(tmp_path):
     )
     assert result["scientific_evaluation"] is False
     assert result["extractor_version"] == "report-labeler-v2.0.0"
+    assert result["second_reader_enabled"] is False
+    assert result["second_reader_weights_downloaded"] is False
     summary = (out / "sanitized" / "report_labeling_summary.md").read_text(encoding="utf-8")
     assert REPORT_LABEL_LEAK_TOKEN not in summary
     assert "positive_capture" in summary
@@ -136,9 +138,12 @@ def test_v2_notebook_is_offline_and_does_not_train():
     assert "openai" not in lowered
     assert "train_baseline" not in lowered
     assert "internet_used=false" in lowered
+    assert "second_reader_enabled" in lowered
+    assert "deterministic extractor" in lowered
     meta = payload.get("metadata") or {}
     kaggle_meta = meta.get("kaggle") or {}
     assert kaggle_meta.get("isInternetEnabled") is False
+    assert kaggle_meta.get("gpu") is False
 
 
 def test_v1_config_remains_frozen():

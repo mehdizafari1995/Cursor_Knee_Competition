@@ -2040,6 +2040,10 @@ def run_notebook_report_labeling(
         "warnings": warnings,
         "extractor_version": extractor_version_of(config),
         "eval_protocol_version": eval_protocol_version_of(config),
+        "second_reader_enabled": bool((config.get("second_reader") or {}).get("enabled")),
+        "second_reader_weights_downloaded": bool(
+            ((gold_eval or {}).get("second_reader") or {}).get("weights_downloaded")
+        ),
         "preflight": pre.to_dict(),
         "note": (
             "THIS RUN USED A SOFTWARE FIXTURE, NOT THE KAGGLE COMPETITION DATA."

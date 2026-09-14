@@ -185,30 +185,76 @@ def _repair_positive_coverage(
     group_to_fold: dict[str, int],
     n_folds: int,
 ) -> dict[str, int]:
-    """Move a positive group into an empty fold when that target has enough groups."""
+    """Move positive groups into empty folds when that target has enough groups."""
     assignment = dict(group_to_fold)
-    for t in range(grouped_labels.shape[1]):
-        pos_groups = [
+    n_targets = grouped_labels.shape[1]
+    group_index = {str(g): i for i, g in enumerate(groups)}
+
+    def pos_groups_for(t: int) -> list[str]:
+        return [
             str(g)
             for g, row in zip(groups, grouped_labels)
             if np.isfinite(row[t]) and row[t] == 1
         ]
-        if len(pos_groups) < n_folds:
-            continue
-        for fold in range(n_folds):
-            has_pos = any(assignment[g] == fold for g in pos_groups)
-            if has_pos:
+
+    def fold_has_pos(t: int, fold: int) -> bool:
+        return any(assignment[g] == fold for g in pos_groups_for(t))
+
+    # Repeated passes: moving a group to cover target t can uncover target u.
+    for _ in range(len(groups) * max(n_targets, 1) + n_folds):
+        moved = False
+        for t in range(n_targets):
+            pos_groups = pos_groups_for(t)
+            if len(pos_groups) < n_folds:
                 continue
-            donor = None
-            for g in pos_groups:
-                src = assignment[g]
-                src_count = sum(1 for other in pos_groups if assignment[other] == src)
-                if src_count >= 2:
-                    donor = g
-                    break
-            if donor is None:
-                continue
-            assignment[donor] = fold
+            for fold in range(n_folds):
+                if fold_has_pos(t, fold):
+                    continue
+                donor = None
+                best_src_count = 0
+                for g in pos_groups:
+                    src = assignment[g]
+                    src_count = sum(1 for other in pos_groups if assignment[other] == src)
+                    if src_count < 2:
+                        continue
+                    # Prefer donors that will not uncover another coverable target.
+                    src_index = group_index[g]
+                    row = grouped_labels[src_index]
+                    unsafe = False
+                    for u in range(n_targets):
+                        if not (np.isfinite(row[u]) and row[u] == 1):
+                            continue
+                        other_pos = pos_groups_for(u)
+                        if len(other_pos) < n_folds:
+                            continue
+                        remaining = sum(
+                            1 for other in other_pos
+                            if other != g and assignment[other] == src
+                        )
+                        if remaining == 0:
+                            unsafe = True
+                            break
+                    if unsafe:
+                        continue
+                    if src_count > best_src_count:
+                        best_src_count = src_count
+                        donor = g
+                if donor is None:
+                    # Last resort: any donor with >= 2 positives for t.
+                    for g in pos_groups:
+                        src = assignment[g]
+                        src_count = sum(
+                            1 for other in pos_groups if assignment[other] == src
+                        )
+                        if src_count >= 2:
+                            donor = g
+                            break
+                if donor is None:
+                    continue
+                assignment[donor] = fold
+                moved = True
+        if not moved:
+            break
     return assignment
 
 

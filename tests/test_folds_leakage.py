@@ -29,13 +29,11 @@ def _balanced_frame(n_patients: int = 20, studies_per_patient: int = 2, seed: in
             for col in OFFICIAL_TARGET_COLUMNS:
                 row[col] = int(rng.random() < 0.4)
             rows.append(row)
-    # Guarantee every target has plenty of positive patients.
     frame = pd.DataFrame(rows)
+    # Guarantee every target has many distinct positive patients (>= n_folds + 3).
     for i, col in enumerate(OFFICIAL_TARGET_COLUMNS):
-        pos_patients = frame.loc[frame[col] == 1, "PatientID"].unique()
-        if len(pos_patients) < 8:
-            extra = frame["PatientID"].unique()[:8]
-            frame.loc[frame["PatientID"].isin(extra), col] = 1
+        chosen = [f"P{(p + i) % n_patients:03d}" for p in range(8)]
+        frame.loc[frame["PatientID"].isin(chosen), col] = 1
     return frame
 
 

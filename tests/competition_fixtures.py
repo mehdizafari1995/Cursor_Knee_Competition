@@ -6,8 +6,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import pydicom
-from pydicom.dataset import Dataset, FileDataset
+from pydicom.dataset import Dataset, FileDataset, FileMetaDataset
 from pydicom.uid import ExplicitVRLittleEndian, generate_uid
 
 from knee.competition import SAMPLE_SUBMISSION_COLUMNS
@@ -29,7 +28,7 @@ def write_mr_slice(
 ) -> None:
     """Write an uncompressed MR instance. Pixel values are synthetic."""
     rng = np.random.default_rng(seed + instance_number)
-    file_meta = Dataset()
+    file_meta = FileMetaDataset()
     file_meta.MediaStorageSOPClassUID = "1.2.840.10008.5.1.4.1.1.4"
     file_meta.MediaStorageSOPInstanceUID = generate_uid()
     file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
@@ -99,14 +98,14 @@ def make_mini_competition_root(root: Path) -> Path:
     root.mkdir(parents=True, exist_ok=True)
 
     train_studies = [
-        ("1.2.840.train.1", "P001", "ACL tear. No fracture."),
-        ("1.2.840.train.2", "P001", "Rotura del menisco medial."),
-        ("1.2.840.train.3", "P002", "Rupture du LCA. Epanchement articulaire."),
-        ("1.2.840.train.4", "P002", "Fractura. Contusion osea."),
+        (generate_uid(), "P001", "ACL tear. No fracture."),
+        (generate_uid(), "P001", "Rotura del menisco medial."),
+        (generate_uid(), "P002", "Rupture du LCA. Epanchement articulaire."),
+        (generate_uid(), "P002", "Fractura. Contusion osea."),
     ]
     test_studies = [
-        ("1.2.840.test.1", "P003"),
-        ("1.2.840.test.2", "P004"),
+        (generate_uid(), "P003"),
+        (generate_uid(), "P004"),
     ]
 
     train_rows = []
@@ -117,7 +116,7 @@ def make_mini_competition_root(root: Path) -> Path:
         for i, col in enumerate(OFFICIAL_TARGET_COLUMNS):
             row[col] = int(rng.random() < 0.5)
         train_rows.append(row)
-        series_uid = study_uid + ".series1"
+        series_uid = generate_uid()
         train_series_rows.append(
             {
                 STUDY_ID_COLUMN: study_uid,
@@ -142,7 +141,7 @@ def make_mini_competition_root(root: Path) -> Path:
     test_rows = [{STUDY_ID_COLUMN: uid} for uid, _pid in test_studies]
     test_series_rows = []
     for study_uid, patient_id in test_studies:
-        series_uid = study_uid + ".series1"
+        series_uid = generate_uid()
         test_series_rows.append(
             {
                 STUDY_ID_COLUMN: study_uid,

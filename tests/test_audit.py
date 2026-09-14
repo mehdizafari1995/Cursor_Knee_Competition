@@ -71,7 +71,7 @@ def test_audit_detects_missing_series_dir(tmp_path):
 
     series = pd.read_csv(root / "train_series.csv")
     series.loc[len(series)] = {
-        "StudyInstanceUID": "1.2.840.missing",
+        "StudyInstanceUID": "1.2.840.10008.1.missing",
         "SeriesInstanceUID": "1.2.840.missing.series",
         "Fluid_Sensitive": 1,
         "Fat_Suppression": 1,

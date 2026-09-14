@@ -70,7 +70,7 @@ These are committed software files, not private Kaggle outputs.
 
 | file | sha256 | bytes |
 | --- | --- | ---: |
-| `configs/second_reader_pilot.yaml` | `0bfcff9d79aac8282d1ad1b01dc16c7315f913b3935c1bd397cf9bb749c058ba` | 2546 |
+| `configs/second_reader_pilot.yaml` | `82c257f2e8cf14cb5476e1a949ed9acbe0693308e9fdf2a8470a9ab58d5a42a5` | 2825 |
 | `configs/second_reader_prompt.yaml` | `e5bbfd9ce21bc8c5b6c25ca19177e3ef96b5cfcd9ccde5da61f5e2f1f27645d5` | 3498 |
 | `configs/second_reader_schema.json` | `639c41cc4f9ba1621cc1dd45404ca82ab0a6595c3e7494dca2ef2be1888f9b20` | 26690 |
 | `literature/ontology.yaml` | `a9ce5da072e339c5a8688c294269b7c3b43819ecd8698fb5041c0f6f80c3342c` | 66808 |

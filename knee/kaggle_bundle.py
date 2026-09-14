@@ -32,6 +32,7 @@ ALLOWLIST_FILES = (
     "pyproject.toml",
     "requirements.txt",
     "README.md",
+    "literature/ontology.yaml",
 )
 
 EXCLUDED_DIR_NAMES = {

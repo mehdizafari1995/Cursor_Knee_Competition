@@ -49,8 +49,11 @@ from .report_labels import (
 from .report_second_reader import (
     GenerateFn,
     assert_second_reader_has_no_gold_parameter,
+    digest_map_from_config,
     load_prompt_bundle,
+    locate_weights_directory,
     run_second_reader,
+    verify_attached_snapshot,
 )
 from .second_reader_acceptance import decide_all_pilot_targets
 from .second_reader_consensus import strict_agreement
@@ -420,6 +423,28 @@ def run_second_reader_gold_pilot(
     identifiers = collect_identifiers(train)
     gold_frame, report_only = split_gold_and_report_only(train)
     n_report_only = int(len(report_only))
+    if n_report_only and config.get("process_report_only_studies"):
+        raise ReportOnlyScaleError("pilot config must keep process_report_only_studies false")
+
+    digest_map = digest_map_from_config(config)
+    if generate_fn is None:
+        directory = locate_weights_directory(config.get("second_reader") or {}, weights_path)
+        if source == DATA_SOURCE_REAL_KAGGLE:
+            if directory is None:
+                raise RuntimeError(
+                    "PILOT STOPPED: checksummed Phi-3.5 snapshot is not attached"
+                )
+            verified = verify_attached_snapshot(directory, digest_map)
+            freeze["verified_file_sha256"] = verified
+            freeze["weights_directory_name"] = directory.name
+            (sanitized_dir / SANITIZED_FREEZE_FILENAME).write_text(
+                json.dumps(freeze, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+            )
+            weights_path = directory
+        elif directory is not None and digest_map:
+            verify_attached_snapshot(directory, digest_map)
+            weights_path = directory
+
     extractor_cfg = load_extractor_config(extractor_config_path)
     det_pred = extract_frame_reports(gold_frame, config=extractor_cfg)
 

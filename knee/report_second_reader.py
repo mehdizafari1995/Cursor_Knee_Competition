@@ -155,6 +155,49 @@ def expected_sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def digest_map_from_config(cfg: dict) -> dict[str, str]:
+    """Merge weight-shard and config/tokenizer checksums from a frozen config."""
+    selected = cfg.get("selected_model") or {}
+    merged: dict[str, str] = {}
+    for key in ("shard_sha256", "file_sha256"):
+        payload = selected.get(key) or cfg.get(key) or {}
+        if isinstance(payload, dict):
+            merged.update({str(name): str(digest) for name, digest in payload.items() if digest})
+    if cfg.get("weights_sha256") and "weights" not in merged:
+        merged["weights"] = str(cfg.get("weights_sha256"))
+    return merged
+
+
+_SNAPSHOT_CACHE: dict[tuple[str, tuple[tuple[str, str], ...]], dict[str, str]] = {}
+
+
+def verify_attached_snapshot(directory: Path, digest_map: dict[str, str]) -> dict[str, str]:
+    """Hash every listed snapshot file. Raise on a missing file or mismatch."""
+    if not digest_map:
+        raise RuntimeError("second-reader snapshot checksums are not recorded")
+    cache_key = (str(Path(directory).resolve()), tuple(sorted(digest_map.items())))
+    cached = _SNAPSHOT_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
+    observed: dict[str, str] = {}
+    for name, expected in sorted(digest_map.items()):
+        path = directory / name if directory.is_dir() else directory
+        if not path.is_file():
+            raise RuntimeError(f"second-reader shard missing: {name}")
+        digest = expected_sha256(path)
+        if expected and digest != expected:
+            raise RuntimeError(f"second-reader weights sha256 mismatch for {name}")
+        observed[name] = digest
+    _SNAPSHOT_CACHE[cache_key] = observed
+    return observed
+
+
+def _verify_shards(directory: Path, shard_sha256: dict[str, str]) -> str:
+    observed = verify_attached_snapshot(directory, shard_sha256)
+    joined = "\n".join(f"{name}:{digest}" for name, digest in sorted(observed.items()))
+    return hashlib.sha256(joined.encode("utf-8")).hexdigest()
+
+
 def _second_reader_cfg(config: dict | None) -> dict:
     if not config:
         return {}
@@ -304,12 +347,14 @@ def _generate_with_transformers(
         inputs = tokenizer(render_user_prompt(report, prompt=prompt), return_tensors="pt")
     if torch.cuda.is_available():
         inputs = {key: value.to(model.device) for key, value in inputs.items()}
+    pad_token_id = tokenizer.eos_token_id if tokenizer.pad_token_id is None else tokenizer.pad_token_id
     with torch.no_grad():
         output_ids = model.generate(
             **inputs,
             max_new_tokens=int(decoding.get("max_new_tokens") or 1024),
             do_sample=bool(decoding.get("do_sample") or False),
             temperature=float(decoding.get("temperature") or 0.0) or None,
+            pad_token_id=pad_token_id,
         )
     prompt_len = inputs["input_ids"].shape[-1]
     generated = tokenizer.decode(output_ids[0][prompt_len:], skip_special_tokens=True)
@@ -389,11 +434,7 @@ def run_second_reader(
     else:
         assert_compliance_allows_load(root_cfg if root_cfg.get("compliance") else {"compliance": cfg.get("compliance"), **cfg})
         directory = locate_weights_directory(cfg, weights_path)
-        shard_map = dict(
-            ((cfg.get("selected_model") or {}).get("shard_sha256"))
-            or (cfg.get("shard_sha256") or {})
-            or ({"weights": cfg["weights_sha256"]} if cfg.get("weights_sha256") else {})
-        )
+        shard_map = digest_map_from_config(root_cfg if root_cfg.get("selected_model") else cfg)
         if directory is None:
             return SecondReaderResult(
                 enabled=True,

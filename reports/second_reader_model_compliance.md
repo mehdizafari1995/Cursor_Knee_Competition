@@ -49,8 +49,11 @@ A candidate must:
 | Gated | no |
 | Cost | free |
 | Kaggle attachment | Private dataset or Kaggle Model of this revision |
-| Shard SHA-256 | `model-00001-of-00002.safetensors` = `c5214cdb995ed3dd716add8d9efbfe016b76bb2f1c4c1c6a95497d7a8837` |
+| Shard SHA-256 | `model-00001-of-00002.safetensors` = `c5214cdb995ed3dd716add8d9efbfe016b76bb2f1c4c1e6c1c6a95497d7a8837` |
 | | `model-00002-of-00002.safetensors` = `41246eed2b75b66526339c5d32d6f7acdefe0bd24180f97c74303f4656877344` |
+| Config / tokenizer SHA-256 | `config.json` = `224de4f6a15b9d2a89695ec04b7f7ab2dd93a008a506979925e5a88cb5804974` |
+| | `tokenizer_config.json` = `92a6e3f894075fda19f47d8755c6ce65b2a974716307d13ae5d79196011ebb44` |
+| | `tokenizer.model` = `9e556afd44213b6bd1be2b850ebbbd98f5481437a8021afaf58ee7fb1818d347` |
 | Verdict | **PASS** — clear OSI licence, ungated, multilingual instruct, fits 16 GB |
 
 Custom `modeling_phi3.py` is part of the snapshot (`trust_remote_code` on local files only).

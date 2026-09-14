@@ -105,6 +105,22 @@ def test_candidates_are_instruction_models_with_licenses():
         assert row["expected_gpu_memory_gb"] <= 16
 
 
+def test_frozen_phi35_shard_checksums_are_full_sha256():
+    import yaml
+    from knee.report_second_reader import digest_map_from_config
+
+    config = yaml.safe_load((REPO_ROOT / "configs" / "second_reader_pilot.yaml").read_text())
+    digests = digest_map_from_config(config)
+    shard1 = digests["model-00001-of-00002.safetensors"]
+    shard2 = digests["model-00002-of-00002.safetensors"]
+    assert len(shard1) == 64
+    assert len(shard2) == 64
+    assert shard1 == "c5214cdb995ed3dd716add8d9efbfe016b76bb2f1c4c1e6c1c6a95497d7a8837"
+    assert shard2 == "41246eed2b75b66526339c5d32d6f7acdefe0bd24180f97c74303f4656877344"
+    assert len(digests["config.json"]) == 64
+    assert len(digests["tokenizer.model"]) == 64
+
+
 def test_download_weights_is_refused():
     try:
         assert_no_weight_download({"download_weights": True})
@@ -340,7 +356,7 @@ def test_committed_pilot_reports_are_sanitized_and_not_scientific():
     from knee.kaggle_bundle import sha256_file
     from knee.config import PROJECT_ROOT
     for rel, digest in (
-        ("configs/second_reader_pilot.yaml", "0bfcff9d79aac8282d1ad1b01dc16c7315f913b3935c1bd397cf9bb749c058ba"),
+        ("configs/second_reader_pilot.yaml", "82c257f2e8cf14cb5476e1a949ed9acbe0693308e9fdf2a8470a9ab58d5a42a5"),
         ("configs/second_reader_prompt.yaml", "e5bbfd9ce21bc8c5b6c25ca19177e3ef96b5cfcd9ccde5da61f5e2f1f27645d5"),
         ("configs/second_reader_schema.json", "639c41cc4f9ba1621cc1dd45404ca82ab0a6595c3e7494dca2ef2be1888f9b20"),
     ):

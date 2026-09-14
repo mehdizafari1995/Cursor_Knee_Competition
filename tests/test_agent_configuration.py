@@ -194,6 +194,14 @@ class TestScaffolding:
             "tests/test_agent_configuration.py",
             "AGENTS.md",
             ".gitignore",
+            "configs/baseline.yaml",
+            "scripts/audit_competition_data.py",
+            "scripts/create_folds.py",
+            "scripts/train_baseline.py",
+            "scripts/predict_baseline.py",
+            "scripts/make_submission.py",
+            "reports/data_audit.md",
+            "reports/baseline_design.md",
         ],
     )
     def test_required_path_exists(self, relative_path):
@@ -356,7 +364,8 @@ class TestGitignorePolicy:
     @pytest.mark.parametrize(
         "pattern",
         ["*.pdf", "*.png", "*.dcm", "*.nii", "*.ckpt", "*.pt", "*.safetensors",
-         "reports/*", "data/", "outputs/", "kaggle.json", ".env", ".venv/"],
+         "reports/*", "data/", "outputs/", "kaggle.json", ".env", ".venv/",
+         "cache/", "predictions/", ".kaggle/"],
     )
     def test_restricted_artefact_is_ignored(self, gitignore_patterns, pattern):
         assert pattern in gitignore_patterns
@@ -378,6 +387,7 @@ class TestProjectConfiguration:
         text = flat((REPO_ROOT / "requirements.txt").read_text())
         assert "pytest" in text
         assert "pyyaml" in text, "the agent-configuration tests need PyYAML"
+        assert "pydicom" in text, "the DICOM loader and audit need pydicom"
 
     def test_agents_md_points_at_the_single_source_of_truth(self):
         text = flat((REPO_ROOT / "AGENTS.md").read_text())

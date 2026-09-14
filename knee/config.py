@@ -15,9 +15,18 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_DIR = PROJECT_ROOT / "outputs"
 
-# The twelve study-level binary findings, in the official order.
-# TARGET_KEYS are machine-friendly column names used in submission.csv;
-# TARGET_NAMES are the human-readable labels used in plots and reports.
+# Environment variable that points at a local copy of the Kaggle dataset.
+# Never hard-code a machine-specific path; resolve through this variable.
+DATA_ROOT_ENV = "RSNA_DATA_ROOT"
+
+# Official Kaggle identifier column (sample_submission.csv / train.csv).
+STUDY_ID_COLUMN = "StudyInstanceUID"
+SERIES_ID_COLUMN = "SeriesInstanceUID"
+REPORT_COLUMN = "Report"
+
+# Internal machine-friendly ids. These are the project's single source of truth
+# for ontology records and must not be added to, dropped, or renamed. They are
+# *not* the Kaggle submission header; see OFFICIAL_TARGET_COLUMNS.
 TARGET_KEYS = (
     "acl_injury",
     "mcl_injury",
@@ -48,8 +57,31 @@ TARGET_NAMES = (
     "Fracture",
 )
 
+# Verbatim Kaggle sample_submission.csv header names, in official order.
+# Spelling, spacing, and the apostrophe in "Baker's" are significant.
+# Source: https://www.kaggle.com/competitions/rsna-knee-abnormality-detection/overview
+OFFICIAL_TARGET_COLUMNS = (
+    "ACL",
+    "MCL",
+    "Medial Meniscus",
+    "Lateral Meniscus",
+    "Medial OA",
+    "Lateral OA",
+    "PF OA",
+    "Effusion",
+    "Synovitis",
+    "Baker's",
+    "Contusion",
+    "Fracture",
+)
+
 NUM_TARGETS = len(TARGET_KEYS)
 assert NUM_TARGETS == 12, "RSNA Knee Abnormality Detection has exactly 12 targets"
+assert len(OFFICIAL_TARGET_COLUMNS) == NUM_TARGETS
+assert len(TARGET_NAMES) == NUM_TARGETS
+
+TARGET_KEY_TO_OFFICIAL: dict[str, str] = dict(zip(TARGET_KEYS, OFFICIAL_TARGET_COLUMNS))
+OFFICIAL_TO_TARGET_KEY: dict[str, str] = dict(zip(OFFICIAL_TARGET_COLUMNS, TARGET_KEYS))
 
 
 @dataclass

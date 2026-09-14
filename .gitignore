@@ -35,6 +35,14 @@ reports/*
 # Pipeline artifacts (submission.csv, metrics.json, plots, model.pt)
 outputs/
 
+# Local caches, predictions, experiment dumps
+cache/
+caches/
+.cache/
+predictions/
+runs/
+weights/
+
 # Credentials
 .env
 .env.*

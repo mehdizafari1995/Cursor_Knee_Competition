@@ -97,7 +97,7 @@ DICOM files, model checkpoints, or unqualified completeness claims.
 
 An independent read-only runtime verifier then executed:
 
-- Full `pytest`: **147 passed**, 14 warnings, 3.01 seconds.
+- Full `pytest`: **148 passed**, 14 warnings, 3.10 seconds.
 - `git diff --check`: passed with no output.
 - Baseline history comparison: 75/75 `original_claim` values exactly match
   commit `237372c`; no rejected ID remains among 83 active rows.

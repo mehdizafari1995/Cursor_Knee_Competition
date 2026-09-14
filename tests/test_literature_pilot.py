@@ -223,6 +223,22 @@ def test_rejected_claims_are_preserved_but_removed_from_active_evidence():
         )
 
 
+def test_rejected_original_claims_match_the_pre_remediation_ledger():
+    baseline_text = subprocess.run(
+        ["git", "show", "237372c:literature/claims.jsonl"],
+        cwd=ROOT,
+        capture_output=True,
+        check=True,
+        text=True,
+    ).stdout
+    baseline = {
+        claim["claim_id"]: claim["claim"]
+        for claim in (json.loads(line) for line in baseline_text.splitlines())
+    }
+    for rejected in read_jsonl(REJECTED_CLAIMS):
+        assert rejected["original_claim"] == baseline[rejected["claim_id"]]
+
+
 def test_each_target_retains_at_least_three_active_clinical_claims():
     counts = {target: 0 for target in TARGET_KEYS}
     for claim in read_jsonl(CLAIMS):

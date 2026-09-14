@@ -402,3 +402,181 @@ def make_kaggle_audit_fixture(root: Path) -> Path:
     sample = sample.loc[:, list(SAMPLE_SUBMISSION_COLUMNS)]
     sample.to_csv(root / "sample_submission.csv", index=False)
     return root
+
+
+REPORT_LABEL_LEAK_TOKEN = "UNIQUE_FIXTURE_REPORT_TOKEN_PHASE4_LEAK"
+
+# Distinctive identifiers used by privacy tests. Never copy these into sanitized reports.
+REPORT_LABEL_GOLD_UIDS = tuple(f"1.2.840.FAKE.LEAK.GOLD.{i:04d}" for i in range(12))
+REPORT_LABEL_WEAK_UIDS = tuple(f"1.2.840.FAKE.LEAK.WEAK.{i:04d}" for i in range(4))
+REPORT_LABEL_PATIENTS = tuple(f"LEAKPATIENT_GOLD_{i:03d}" for i in range(12)) + tuple(
+    f"LEAKPATIENT_WEAK_{i:03d}" for i in range(4)
+)
+
+
+def _blank_labels() -> dict[str, float]:
+    return {col: np.nan for col in OFFICIAL_TARGET_COLUMNS}
+
+
+def _all_negative_labels() -> dict[str, int]:
+    return {col: 0 for col in OFFICIAL_TARGET_COLUMNS}
+
+
+def _labels_with(**positive: int) -> dict[str, int]:
+    row = _all_negative_labels()
+    for official, value in positive.items():
+        row[official] = value
+    return row
+
+
+def make_report_labeling_fixture(root: Path) -> Path:
+    """Tiny train.csv covering gold vs report-only rows and privacy leak tokens.
+
+    No real radiology text. Tokens are synthetic and unique so leak tests fail
+    if they appear in sanitized outputs. Gold labels are never required by the
+    extractor; they exist only for evaluation.
+    """
+    root = Path(root)
+    root.mkdir(parents=True, exist_ok=True)
+
+    gold_reports = [
+        (
+            REPORT_LABEL_GOLD_UIDS[0],
+            REPORT_LABEL_PATIENTS[0],
+            f"FINDINGS: Complete ACL tear. MCL is intact. No fracture. {REPORT_LABEL_LEAK_TOKEN}_ACL.",
+            _labels_with(**{"ACL": 1, "MCL": 0, "Fracture": 0}),
+        ),
+        (
+            REPORT_LABEL_GOLD_UIDS[1],
+            REPORT_LABEL_PATIENTS[1],
+            f"Hallazgos: Rotura del LCA. Sin fractura. {REPORT_LABEL_LEAK_TOKEN}_ES.",
+            _labels_with(**{"ACL": 1, "Fracture": 0}),
+        ),
+        (
+            REPORT_LABEL_GOLD_UIDS[2],
+            REPORT_LABEL_PATIENTS[2],
+            f"FINDINGS: The ACL is intact. No MCL injury. {REPORT_LABEL_LEAK_TOKEN}_NEG.",
+            _labels_with(**{"ACL": 0, "MCL": 0}),
+        ),
+        (
+            REPORT_LABEL_GOLD_UIDS[3],
+            REPORT_LABEL_PATIENTS[3],
+            f"FINDINGS: Possible ACL tear. {REPORT_LABEL_LEAK_TOKEN}_UNC.",
+            _labels_with(**{"ACL": 1}),
+        ),
+        (
+            REPORT_LABEL_GOLD_UIDS[4],
+            REPORT_LABEL_PATIENTS[4],
+            f"HISTORY: prior ACL tear. FINDINGS: ACL graft is intact. {REPORT_LABEL_LEAK_TOKEN}_HX.",
+            _labels_with(**{"ACL": 0}),
+        ),
+        (
+            REPORT_LABEL_GOLD_UIDS[5],
+            REPORT_LABEL_PATIENTS[5],
+            f"FINDINGS: Medial meniscus tear. Lateral meniscus is intact. {REPORT_LABEL_LEAK_TOKEN}_MM.",
+            _labels_with(**{"Medial Meniscus": 1, "Lateral Meniscus": 0}),
+        ),
+        (
+            REPORT_LABEL_GOLD_UIDS[6],
+            REPORT_LABEL_PATIENTS[6],
+            f"FINDINGS: Tricompartmental osteoarthritis. {REPORT_LABEL_LEAK_TOKEN}_OA.",
+            _labels_with(**{"Medial OA": 1, "Lateral OA": 1, "PF OA": 1}),
+        ),
+        (
+            REPORT_LABEL_GOLD_UIDS[7],
+            REPORT_LABEL_PATIENTS[7],
+            f"FINDINGS: Large joint effusion. No synovitis. No Baker's cyst. {REPORT_LABEL_LEAK_TOKEN}_EFF.",
+            _labels_with(**{"Effusion": 1, "Synovitis": 0, "Baker's": 0}),
+        ),
+        (
+            REPORT_LABEL_GOLD_UIDS[8],
+            REPORT_LABEL_PATIENTS[8],
+            f"FINDINGS: Synovial thickening without joint effusion. {REPORT_LABEL_LEAK_TOKEN}_SYN.",
+            _labels_with(**{"Synovitis": 1, "Effusion": 0}),
+        ),
+        (
+            REPORT_LABEL_GOLD_UIDS[9],
+            REPORT_LABEL_PATIENTS[9],
+            f"FINDINGS: Baker's cyst. No joint effusion. {REPORT_LABEL_LEAK_TOKEN}_BAKER.",
+            _labels_with(**{"Baker's": 1, "Effusion": 0}),
+        ),
+        (
+            REPORT_LABEL_GOLD_UIDS[10],
+            REPORT_LABEL_PATIENTS[10],
+            f"FINDINGS: Bone contusion of the lateral femoral condyle. No fracture. {REPORT_LABEL_LEAK_TOKEN}_BONE.",
+            _labels_with(**{"Contusion": 1, "Fracture": 0}),
+        ),
+        (
+            REPORT_LABEL_GOLD_UIDS[11],
+            REPORT_LABEL_PATIENTS[11],
+            f"IMPRESSION: Normal MRI of the knee. No significant abnormality. {REPORT_LABEL_LEAK_TOKEN}_NORM.",
+            _all_negative_labels(),
+        ),
+    ]
+
+    weak_reports = [
+        (
+            REPORT_LABEL_WEAK_UIDS[0],
+            REPORT_LABEL_PATIENTS[12],
+            f"FINDINGS: MCL tear. {REPORT_LABEL_LEAK_TOKEN}_WEAK0.",
+        ),
+        (
+            REPORT_LABEL_WEAK_UIDS[1],
+            REPORT_LABEL_PATIENTS[13],
+            f"Constatations: Rupture du LCA. Epanchement articulaire. {REPORT_LABEL_LEAK_TOKEN}_WEAK1.",
+        ),
+        (
+            REPORT_LABEL_WEAK_UIDS[2],
+            REPORT_LABEL_PATIENTS[14],
+            f"FINDINGS: Trace joint effusion. {REPORT_LABEL_LEAK_TOKEN}_WEAK2.",
+        ),
+        (
+            REPORT_LABEL_WEAK_UIDS[3],
+            REPORT_LABEL_PATIENTS[15],
+            f"FINDINGS: Lateral compartment osteoarthritis. {REPORT_LABEL_LEAK_TOKEN}_WEAK3.",
+        ),
+    ]
+
+    train_rows = []
+    for uid, patient, report, labels in gold_reports:
+        row = {STUDY_ID_COLUMN: uid, REPORT_COLUMN: report, "PatientID": patient}
+        row.update(labels)
+        train_rows.append(row)
+    for uid, patient, report in weak_reports:
+        row = {STUDY_ID_COLUMN: uid, REPORT_COLUMN: report, "PatientID": patient}
+        row.update(_blank_labels())
+        train_rows.append(row)
+
+    pd.DataFrame(train_rows).to_csv(root / "train.csv", index=False)
+    pd.DataFrame(
+        [
+            {
+                STUDY_ID_COLUMN: row[STUDY_ID_COLUMN],
+                "SeriesInstanceUID": f"SER.{row[STUDY_ID_COLUMN][-4:]}",
+                "Fluid_Sensitive": 1,
+                "Fat_Suppression": 1,
+                "Anatomical_Plane": "Sagittal",
+            }
+            for row in train_rows
+        ]
+    ).to_csv(root / "train_series.csv", index=False)
+
+    test_ids = ["1.2.840.FAKE.LEAK.TEST.0001"]
+    pd.DataFrame({STUDY_ID_COLUMN: test_ids}).to_csv(root / "test.csv", index=False)
+    pd.DataFrame(
+        [
+            {
+                STUDY_ID_COLUMN: test_ids[0],
+                "SeriesInstanceUID": "SER.TEST.1",
+                "Fluid_Sensitive": 0,
+                "Fat_Suppression": 0,
+                "Anatomical_Plane": "Coronal",
+            }
+        ]
+    ).to_csv(root / "test_series.csv", index=False)
+    sample = pd.DataFrame({STUDY_ID_COLUMN: test_ids})
+    for col in OFFICIAL_TARGET_COLUMNS:
+        sample[col] = 0.5
+    sample = sample.loc[:, list(SAMPLE_SUBMISSION_COLUMNS)]
+    sample.to_csv(root / "sample_submission.csv", index=False)
+    return root

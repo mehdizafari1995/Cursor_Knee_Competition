@@ -54,12 +54,16 @@ export RSNA_DATA_ROOT=/path/to/rsna-knee-abnormality-detection   # if you have t
 python scripts/audit_competition_data.py                        # DATA_NOT_AVAILABLE if unset
 python scripts/train_baseline.py --smoke                        # tiny generated tensors only
 python scripts/predict_baseline.py --smoke
-python scripts/build_kaggle_bundle.py    # Phase 3 allowlisted Kaggle source zip
+python scripts/build_kaggle_bundle.py    # Phase 3/4 allowlisted Kaggle source zip
 ```
 
 Phase 3 adds `notebooks/01_kaggle_real_data_audit.ipynb` for an internet-off
 Kaggle run against the attached competition dataset (no API token). See
 `reports/kaggle_notebook_instructions.md`. The generated ZIP is gitignored.
+
+Phase 4 adds `notebooks/02_kaggle_report_labeling.ipynb` for private
+multilingual report-label generation and gold-label evaluation (internet off,
+GPU off, no image training). See `reports/report_labeling_protocol.md`.
 
 Outputs are written to `outputs/`:
 

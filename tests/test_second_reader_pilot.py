@@ -327,6 +327,7 @@ def test_notebook_is_offline_gpu_and_gold_only():
     assert "process_report_only=false" in lowered
     assert "run_second_reader_gold_pilot" in source
     assert "_walk_input_for_source" in source
+    assert "literature/ontology.yaml" in source
     meta = payload.get("metadata") or {}
     kaggle_meta = meta.get("kaggle") or {}
     assert kaggle_meta.get("isInternetEnabled") is False
@@ -368,3 +369,17 @@ def test_disabled_second_reader_still_skips_without_weights():
     result = run_second_reader("FINDINGS: ACL tear.", config={"second_reader": {"enabled": False, "download_weights": False}})
     assert result.enabled is False
     assert result.inference_backend == "skipped"
+
+
+def test_freeze_manifest_hashes_ontology_when_cwd_is_elsewhere(tmp_path, monkeypatch):
+    from knee.kaggle_bundle import sha256_file
+    from knee.report_second_reader import load_prompt_bundle
+    from knee.second_reader_pilot import freeze_manifest, load_pilot_config
+
+    monkeypatch.chdir(tmp_path)
+    config = load_pilot_config()
+    prompt = load_prompt_bundle(REPO_ROOT / "configs" / "second_reader_prompt.yaml")
+    freeze = freeze_manifest(config, prompt=prompt)
+    assert freeze["metrics_computed"] is False
+    assert freeze["file_sha256"]["ontology"] == sha256_file(REPO_ROOT / "literature" / "ontology.yaml")
+    assert freeze["file_sha256"]["prompt"] == sha256_file(REPO_ROOT / "configs" / "second_reader_prompt.yaml")

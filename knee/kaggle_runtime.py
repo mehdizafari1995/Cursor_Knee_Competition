@@ -32,7 +32,12 @@ DATA_SOURCE_LOCAL = "local_competition_data"
 
 SOURCE_MARKERS = ("knee/config.py", "knee/kaggle_audit.py")
 SOURCE_COPY_DIRS = ("knee", "scripts", "configs", "notebooks")
-SOURCE_COPY_FILES = ("pyproject.toml", "requirements.txt", "README.md")
+SOURCE_COPY_FILES = (
+    "pyproject.toml",
+    "requirements.txt",
+    "README.md",
+    "literature/ontology.yaml",
+)
 # GitHub-archive datasets nest as dataset/Repo-main/Repo-main/knee. Bound the
 # walk so competition DICOM trees (skipped by slug) are never traversed.
 SOURCE_SEARCH_MAX_DEPTH = 6
@@ -282,7 +287,9 @@ def _copy_allowlisted_source(src_root: Path, dest: Path) -> None:
     for filename in SOURCE_COPY_FILES:
         src_file = src_root / filename
         if src_file.is_file():
-            shutil.copy2(src_file, dest / filename)
+            dest_file = dest / filename
+            dest_file.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src_file, dest_file)
 
 
 def extract_source_to_working(

@@ -98,11 +98,29 @@ def _sha256_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
+def _resolve_pilot_file(path_value: str | Path | None, default: Path) -> Path:
+    """Resolve freeze-file paths against the package root when relative."""
+    path = Path(path_value) if path_value else Path(default)
+    if path.is_file():
+        return path
+    if not path.is_absolute():
+        candidate = PROJECT_ROOT / path
+        if candidate.is_file():
+            return candidate
+    return path
+
+
 def freeze_manifest(config: dict, *, prompt: dict) -> dict:
     """Record versions and hashes before metrics are computed."""
-    prompt_path = Path(config.get("prompt_path") or PROJECT_ROOT / "configs" / "second_reader_prompt.yaml")
-    schema_path = Path(config.get("schema_path") or PROJECT_ROOT / "configs" / "second_reader_schema.json")
-    ontology_path = Path(config.get("ontology_path") or PROJECT_ROOT / "literature" / "ontology.yaml")
+    prompt_path = _resolve_pilot_file(
+        config.get("prompt_path"), PROJECT_ROOT / "configs" / "second_reader_prompt.yaml"
+    )
+    schema_path = _resolve_pilot_file(
+        config.get("schema_path"), PROJECT_ROOT / "configs" / "second_reader_schema.json"
+    )
+    ontology_path = _resolve_pilot_file(
+        config.get("ontology_path"), PROJECT_ROOT / "literature" / "ontology.yaml"
+    )
     extractor_cfg_path = PROJECT_ROOT / "configs" / "report_labeler.yaml"
     files = {
         "prompt": str(prompt_path),
@@ -111,7 +129,10 @@ def freeze_manifest(config: dict, *, prompt: dict) -> dict:
         "pilot_config": str(config.get("_config_path") or DEFAULT_PILOT_CONFIG_PATH),
         "extractor_config": str(extractor_cfg_path),
     }
-    hashes = {name: sha256_file(Path(path)) for name, path in files.items() if Path(path).is_file()}
+    missing = [name for name, path in files.items() if not Path(path).is_file()]
+    if missing:
+        raise FileNotFoundError(f"freeze files missing: {missing}")
+    hashes = {name: sha256_file(Path(path)) for name, path in files.items()}
     selected = config.get("selected_model") or {}
     decoding = config.get("decoding") or {}
     return {

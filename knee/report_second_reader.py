@@ -259,20 +259,6 @@ def _predictions_from_parsed(
     return out
 
 
-def _verify_shards(directory: Path, shard_sha256: dict[str, str]) -> str:
-    digests: list[str] = []
-    for name, expected in sorted(shard_sha256.items()):
-        path = directory / name
-        if not path.is_file():
-            raise RuntimeError(f"second-reader shard missing: {name}")
-        digest = expected_sha256(path)
-        if expected and digest != expected:
-            raise RuntimeError(f"second-reader weights sha256 mismatch for {name}")
-        digests.append(f"{name}:{digest}")
-    joined = "\n".join(digests)
-    return hashlib.sha256(joined.encode("utf-8")).hexdigest()
-
-
 def locate_weights_directory(cfg: dict, weights_path: str | Path | None) -> Path | None:
     candidates: list[Path] = []
     if weights_path:
@@ -304,6 +290,9 @@ def locate_weights_directory(cfg: dict, weights_path: str | Path | None) -> Path
     return None
 
 
+_TRANSFORMERS_CACHE: dict[str, tuple[Any, Any]] = {}
+
+
 def _generate_with_transformers(
     report: str,
     *,
@@ -322,40 +311,74 @@ def _generate_with_transformers(
 
     selected = cfg.get("selected_model") or cfg
     decoding = cfg.get("decoding") or {}
-    tokenizer = AutoTokenizer.from_pretrained(
-        str(weights_dir),
-        local_files_only=True,
-        trust_remote_code=bool(selected.get("trust_remote_code")),
-    )
-    model = AutoModelForCausalLM.from_pretrained(
-        str(weights_dir),
-        local_files_only=True,
-        trust_remote_code=bool(selected.get("trust_remote_code")),
-        torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
-        device_map="auto" if torch.cuda.is_available() else None,
-    )
+    cache_key = str(Path(weights_dir).resolve())
+    packed = _TRANSFORMERS_CACHE.get(cache_key)
+    if packed is None:
+        tokenizer = AutoTokenizer.from_pretrained(
+            str(weights_dir),
+            local_files_only=True,
+            trust_remote_code=bool(selected.get("trust_remote_code")),
+        )
+        model = AutoModelForCausalLM.from_pretrained(
+            str(weights_dir),
+            local_files_only=True,
+            trust_remote_code=bool(selected.get("trust_remote_code")),
+            torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
+            device_map="auto" if torch.cuda.is_available() else None,
+        )
+        model.eval()
+        _TRANSFORMERS_CACHE[cache_key] = (tokenizer, model)
+    else:
+        tokenizer, model = packed
     messages = [
         {"role": "system", "content": str(prompt.get("system") or "")},
         {"role": "user", "content": render_user_prompt(report, prompt=prompt)},
     ]
     if hasattr(tokenizer, "apply_chat_template"):
-        encoded = tokenizer.apply_chat_template(
-            messages, tokenize=True, add_generation_prompt=True, return_tensors="pt"
-        )
-        inputs = {"input_ids": encoded}
+        try:
+            encoded = tokenizer.apply_chat_template(
+                messages,
+                tokenize=True,
+                add_generation_prompt=True,
+                return_tensors="pt",
+                return_dict=True,
+            )
+        except TypeError:
+            encoded = tokenizer.apply_chat_template(
+                messages,
+                tokenize=True,
+                add_generation_prompt=True,
+                return_tensors="pt",
+            )
+        if isinstance(encoded, dict):
+            inputs = encoded
+        else:
+            inputs = {"input_ids": encoded}
     else:
         inputs = tokenizer(render_user_prompt(report, prompt=prompt), return_tensors="pt")
-    if torch.cuda.is_available():
-        inputs = {key: value.to(model.device) for key, value in inputs.items()}
+    model_device = getattr(model, "device", None)
+    if model_device is None:
+        try:
+            model_device = next(model.parameters()).device
+        except StopIteration:
+            model_device = None
+    if model_device is not None:
+        inputs = {
+            key: value.to(model_device) if hasattr(value, "to") else value
+            for key, value in inputs.items()
+        }
     pad_token_id = tokenizer.eos_token_id if tokenizer.pad_token_id is None else tokenizer.pad_token_id
+    do_sample = bool(decoding.get("do_sample") or False)
+    generate_kwargs: dict[str, Any] = {
+        "max_new_tokens": int(decoding.get("max_new_tokens") or 1024),
+        "do_sample": do_sample,
+        "pad_token_id": pad_token_id,
+    }
+    if do_sample:
+        generate_kwargs["temperature"] = float(decoding.get("temperature") or 0.0) or 1e-5
+        generate_kwargs["top_p"] = float(decoding.get("top_p") or 1.0)
     with torch.no_grad():
-        output_ids = model.generate(
-            **inputs,
-            max_new_tokens=int(decoding.get("max_new_tokens") or 1024),
-            do_sample=bool(decoding.get("do_sample") or False),
-            temperature=float(decoding.get("temperature") or 0.0) or None,
-            pad_token_id=pad_token_id,
-        )
+        output_ids = model.generate(**inputs, **generate_kwargs)
     prompt_len = inputs["input_ids"].shape[-1]
     generated = tokenizer.decode(output_ids[0][prompt_len:], skip_special_tokens=True)
     return generated

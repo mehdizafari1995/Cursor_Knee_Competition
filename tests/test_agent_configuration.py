@@ -190,6 +190,7 @@ class TestScaffolding:
             "docs/citation_and_figure_policy.md",
             "docs/clinical_ontology_schema.md",
             "reports/.gitkeep",
+            "reports/kaggle_data_inventory.md",
             "literature/.gitkeep",
             "tests/test_agent_configuration.py",
             "AGENTS.md",
@@ -372,6 +373,12 @@ class TestGitignorePolicy:
 
     def test_report_placeholder_stays_tracked(self, gitignore_patterns):
         assert "!reports/.gitkeep" in gitignore_patterns
+
+    def test_report_markdown_exception_stays_tracked(self, gitignore_patterns):
+        assert "!reports/*.md" in gitignore_patterns
+
+    def test_kaggle_inventory_exception_stays_tracked(self, gitignore_patterns):
+        assert "!reports/kaggle_data_inventory.md" in gitignore_patterns
 
 
 class TestProjectConfiguration:

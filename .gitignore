@@ -31,6 +31,8 @@ data/
 reports/*
 !reports/.gitkeep
 !reports/*.md
+# Explicit inventory path (also covered by !reports/*.md)
+!reports/kaggle_data_inventory.md
 
 # Pipeline artifacts (submission.csv, metrics.json, plots, model.pt)
 outputs/

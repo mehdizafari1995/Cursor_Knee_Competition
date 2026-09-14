@@ -50,7 +50,15 @@ from .kaggle_runtime import (
     preflight,
     scientific_evaluation_for,
 )
+from .coverage_metrics import (
+    BOOTSTRAP_METRIC_NAMES,
+    bootstrap_coverage_intervals,
+    coverage_confusion,
+    coverage_error_curve,
+    macro_mean,
+)
 from .labels import extract_label_matrix, prevalence
+from .report_error_taxonomy import classify_evaluation_error, diagnostic_class_for, taxonomy_payload
 from .report_language import (
     LanguageResult,
     aggregate_language_audit,
@@ -60,6 +68,7 @@ from .report_language import (
 from .report_negation import (
     Modifiers,
     classify_modifiers,
+    clause_containing,
     normalize_text,
     sentence_containing,
     split_sentences,
@@ -179,6 +188,7 @@ class TargetPrediction:
     evidence_category: str
     rule_id: str
     extractor_version: str
+    diagnostic_class: str = "insufficient_evidence"
 
 
 @dataclass
@@ -187,6 +197,9 @@ class StudyExtraction:
     language_uncertain: bool
     language_reason: str
     language_supported: bool
+    heuristic_language: str
+    ngram_language: str
+    detectors_agree: bool
     quality_flags: tuple[str, ...]
     extractor_version: str
     config_sha256: str
@@ -396,6 +409,12 @@ def _prediction(
         )
         if confidence_key == "unknown":
             conf = _confidence(config, "unknown")
+    diag = diagnostic_class_for(
+        target_key=target_key,
+        evidence_category=evidence_category,
+        rule_id=rule_id,
+        label=label,
+    )
     return TargetPrediction(
         target_key=target_key,
         official_column=TARGET_KEY_TO_OFFICIAL[target_key],
@@ -404,6 +423,7 @@ def _prediction(
         evidence_category=evidence_category,
         rule_id=f"{extractor_version_of(config)}:{target_key}:{rule_id}",
         extractor_version=extractor_version_of(config),
+        diagnostic_class=diag,
     )
 
 
@@ -490,21 +510,34 @@ def _decide_target(
         return _unknown(target_key, config, "insufficient_evidence", "technique_only")
 
     # Morphology such as "tear" or "cyst" is only usable next to an anatomy anchor.
-    anatomy_sentences = {
-        m.sentence_index
-        for m in current
-        if m.term.kind in {"synonym", "abbreviation"}
-    }
+    anatomy_clauses: set[tuple[int, str]] = set()
+    for m in current:
+        if m.term.kind in {"synonym", "abbreviation"}:
+            sentence = sentences[m.sentence_index]
+            local_start = m.start - sentence.start
+            local_end = m.end - sentence.start
+            anatomy_clauses.add((sentence.index, clause_containing(sentence, local_start, local_end)))
     if required_compartment:
         for sentence in sentences:
             comps = _compartment_of(sentence.text)
             if required_compartment in comps or comps >= {"medial", "lateral", "patellofemoral"}:
-                anatomy_sentences.add(sentence.index)
-    current = [
-        m for m in current
-        if m.term.kind in {"synonym", "abbreviation"}
-        or m.sentence_index in anatomy_sentences
-    ]
+                anatomy_clauses.add((sentence.index, sentence.text))
+    filtered: list[_Match] = []
+    for m in current:
+        if m.term.kind in {"synonym", "abbreviation"}:
+            filtered.append(m)
+            continue
+        sentence = sentences[m.sentence_index]
+        local_start = m.start - sentence.start
+        local_end = m.end - sentence.start
+        clause = clause_containing(sentence, local_start, local_end)
+        if (sentence.index, clause) in anatomy_clauses or any(
+            clause in existing or existing in clause
+            for idx, existing in anatomy_clauses
+            if idx == sentence.index
+        ):
+            filtered.append(m)
+    current = filtered
     if not current:
         if global_normal:
             return _prediction(
@@ -597,6 +630,32 @@ def _decide_target(
             category = "anatomy_unspecified" if unspecified else "wrong_compartment"
             return _unknown(target_key, config, category, category, "uncertain")
         usable = gated
+        # OA: compartment cue must share the clause with an OA term, not a meniscus laterality.
+        if required_compartment and target_key.endswith("_oa"):
+            oa_tokens = (
+                "osteoarthr", "oa", "artros", "arthrose", "artrose", "chondros",
+                "gonarthro", "kireçlenme", "артроз", "οστεοαρθρ", "αarthρίτιδα", "αρθρίτιδα",
+            )
+            clause_ok: list[_Match] = []
+            for match in usable:
+                sentence = sentences[match.sentence_index].text if match.sentence_index < len(sentences) else ""
+                dummy = sentence
+                parts = [p.strip() for p in re.split(r"\s*(?:,|/|;| - | – | — )\s*", dummy) if p and p.strip()]
+                found = False
+                for part in parts or [dummy]:
+                    low = part.lower()
+                    comps = _compartment_of(part)
+                    if required_compartment in comps or required_compartment in match.term.text.lower():
+                        if any(tok in low or tok in match.term.text.lower() for tok in oa_tokens):
+                            found = True
+                            break
+                if found:
+                    clause_ok.append(match)
+            if not clause_ok:
+                return _unknown(
+                    target_key, config, "anatomy_unspecified", "oa_compartment_not_in_clause", "uncertain"
+                )
+            usable = clause_ok
 
     # Meniscus grade 1-2 / degeneration without tear -> unknown.
     if target_key in {"medial_meniscus_injury", "lateral_meniscus_injury"}:
@@ -664,6 +723,38 @@ def _decide_target(
         if only_diff:
             return _unknown(target_key, config, "insufficient_evidence", "fracture_differential", "uncertain")
 
+    # Baker / popliteal: generic "cyst" is not enough.
+    if target_key == "baker_cyst":
+        anchors = (
+            "baker", "popliteal cyst", "poplitealzyste", "gastrocnemius-semimembranosus",
+            "quiste de baker", "quiste poplite", "kyste de baker", "bakerzyste",
+            "cisti di baker", "cisti poplitea", "baker kisti", "κύστη baker",
+            "ιγνυακή", "киста на бейкър", "киста бейкера", "torbiel bakera",
+            "popliteal",
+        )
+        generic_cyst = {
+            "cyst", "cystic", "quiste", "kyste", "zyste", "cisti", "cisto",
+            "kisti", "κύστη", "киста", "torbiel",
+        }
+        anchored: list[_Match] = []
+        for match in usable:
+            sentence = (
+                sentences[match.sentence_index].text.lower()
+                if match.sentence_index < len(sentences) else ""
+            )
+            term_l = match.term.text.lower()
+            has_anchor = any(a in sentence or a in term_l for a in anchors)
+            if match.term.kind == "morphology_positive" and term_l in generic_cyst and not has_anchor:
+                continue
+            if match.term.kind in {"synonym", "abbreviation"} or has_anchor:
+                anchored.append(match)
+        if not anchored:
+            return _unknown(
+                target_key, config, "insufficient_evidence",
+                "baker_without_popliteal_anchor", "uncertain",
+            )
+        usable = anchored
+
     # Postoperative without explicit current graft/native tear.
     postop = [m for m in usable if m.modifiers.postoperative]
     if postop and not any(
@@ -699,6 +790,7 @@ def _decide_target(
     ]
 
     if positives:
+        require_morph = bool(target_cfg.get("require_pathology_morphology"))
         has_named_finding = any(m.term.kind == "synonym" for m in positives)
         has_injury_morphology = any(
             m.term.kind == "morphology_positive" and not m.modifiers.negated for m in usable
@@ -709,10 +801,12 @@ def _decide_target(
                 "tear", "torn", "rupture", "rotura", "injury", "sprain",
                 "osteoarthr", "artros", "arthrose", "effusion", "synov",
                 "cyst", "contusion", "bruise", "fracture", "fraktur",
-                "derrame", "kyste", "quiste", "thickening",
+                "derrame", "kyste", "quiste", "thickening", "baker",
             )
         )
-        if not has_named_finding and not has_injury_morphology:
+        if require_morph and not has_injury_morphology:
+            positives = []
+        elif not has_named_finding and not has_injury_morphology:
             positives = []
         else:
             source = positives[0].term.source
@@ -799,6 +893,9 @@ def extract_labels_from_report(
         language_uncertain=lang.uncertain,
         language_reason=lang.reason,
         language_supported=lang.supported,
+        heuristic_language=str(lang.heuristic_language or lang.language),
+        ngram_language=str(lang.ngram_language or ""),
+        detectors_agree=bool(lang.detectors_agree),
         quality_flags=tuple(sorted(set(flags))),
         extractor_version=extractor_version_of(cfg),
         config_sha256=str(cfg.get("_sha256") or ""),
@@ -827,6 +924,9 @@ def extraction_to_row(study_id: str, extraction: StudyExtraction) -> dict[str, A
         "extractor_version": extraction.extractor_version,
         "language_code": extraction.language,
         "language_uncertain": extraction.language_uncertain,
+        "heuristic_language": extraction.heuristic_language,
+        "ngram_language": extraction.ngram_language,
+        "language_detectors_agree": extraction.detectors_agree,
         "quality_flags": "|".join(extraction.quality_flags),
     }
     for key in TARGET_KEYS:
@@ -836,6 +936,7 @@ def extraction_to_row(study_id: str, extraction: StudyExtraction) -> dict[str, A
         row[f"{key}_confidence"] = pred.confidence
         row[f"{key}_evidence"] = pred.evidence_category
         row[f"{key}_rule"] = pred.rule_id
+        row[f"{key}_diagnostic"] = pred.diagnostic_class
     return row
 
 
@@ -1004,16 +1105,49 @@ def evaluate_gold_predictions(
 
     per_target: dict[str, dict] = {}
     error_categories: dict[str, int] = {}
+    taxonomy_buckets: list[str] = []
+    is_v2 = str(eval_protocol_version_of(config)).startswith("gold-eval-v2")
     for i, key in enumerate(TARGET_KEYS):
         official = OFFICIAL_TARGET_COLUMNS[i]
-        stats = _confusion_for_target(gold_labels[:, i], pred_labels[:, i])
-        stats["ci"] = bootstrap_confidence_intervals(
+        stats = coverage_confusion(gold_labels[:, i], pred_labels[:, i])
+        v1_stats = _confusion_for_target(gold_labels[:, i], pred_labels[:, i])
+        stats["v1_conditional"] = {
+            "sensitivity": v1_stats["sensitivity"],
+            "specificity": v1_stats["specificity"],
+            "precision": v1_stats["precision"],
+            "recall": v1_stats["recall"],
+            "f1": v1_stats["f1"],
+            "balanced_accuracy": v1_stats["balanced_accuracy"],
+            "coverage": v1_stats["coverage"],
+        }
+        stats["ci"] = bootstrap_coverage_intervals(
+            gold_labels[:, i],
+            pred_labels[:, i],
+            n_resamples=n_resamples,
+            seed=seed + i,
+            ci_level=ci_level,
+            metric_names=BOOTSTRAP_METRIC_NAMES,
+        )
+        # Preserve v1 CI keys under v1_conditional for direct comparison.
+        stats["v1_conditional"]["ci"] = bootstrap_confidence_intervals(
             gold_labels[:, i],
             pred_labels[:, i],
             n_resamples=n_resamples,
             seed=seed + i,
             ci_level=ci_level,
         )
+        conf_col = f"{key}_confidence"
+        if conf_col in pred_frame.columns:
+            conf = pd.to_numeric(pred_frame[conf_col], errors="coerce").to_numpy(dtype=np.float64)
+            stats["coverage_error_curve_joint"] = coverage_error_curve(
+                gold_labels[:, i], pred_labels[:, i], conf, polarity="joint"
+            )
+            stats["coverage_error_curve_positive"] = coverage_error_curve(
+                gold_labels[:, i], pred_labels[:, i], conf, polarity="positive"
+            )
+            stats["coverage_error_curve_negative"] = coverage_error_curve(
+                gold_labels[:, i], pred_labels[:, i], conf, polarity="negative"
+            )
         stats["small_n_flag"] = key in small_n
         stats["target_key"] = key
         stats["official_column"] = official
@@ -1022,48 +1156,52 @@ def evaluate_gold_predictions(
         gold_col = gold_labels[:, i]
         pred_col = pred_labels[:, i]
         evidence_col = pred_frame.get(f"{key}_evidence")
+        rule_col = pred_frame.get(f"{key}_rule")
+        diag_col = pred_frame.get(f"{key}_diagnostic")
         for row_i in range(len(gold_col)):
             g, p = gold_col[row_i], pred_col[row_i]
             if not np.isfinite(g):
                 continue
-            category = None
-            if np.isfinite(p):
-                if g == 1 and p == 1:
-                    category = "tp"
-                elif g == 0 and p == 0:
-                    category = "tn"
-                elif g == 0 and p == 1:
-                    category = "fp"
-                elif g == 1 and p == 0:
-                    category = "fn"
-            else:
-                category = "abstain_on_positive" if g == 1 else "abstain_on_negative"
-            if evidence_col is not None and category in {"fp", "fn", "abstain_on_positive", "abstain_on_negative"}:
-                evidence = str(evidence_col.iloc[row_i])
-                bucket = f"{category}:{evidence}"
-            else:
-                bucket = category or "other"
-            error_categories[bucket] = error_categories.get(bucket, 0) + 1
+            evidence = str(evidence_col.iloc[row_i]) if evidence_col is not None else ""
+            rule = str(rule_col.iloc[row_i]) if rule_col is not None else ""
+            diag = str(diag_col.iloc[row_i]) if diag_col is not None else None
+            bucket = classify_evaluation_error(
+                target_key=key,
+                gold=float(g),
+                pred=float(p) if np.isfinite(p) else float("nan"),
+                evidence_category=evidence,
+                rule_id=rule,
+                diagnostic_class=diag,
+            )
+            if bucket:
+                error_categories[bucket] = error_categories.get(bucket, 0) + 1
+                taxonomy_buckets.append(bucket)
 
     def _macro(name: str) -> float:
         values = [per_target[col][name] for col in OFFICIAL_TARGET_COLUMNS]
         finite = [v for v in values if v == v]
         return float(np.mean(finite)) if finite else float("nan")
 
-    macro = {name: _macro(name) for name in (
-        "sensitivity", "specificity", "precision", "recall", "f1", "balanced_accuracy", "coverage"
-    )}
+    macro_names = (
+        "coverage", "precision", "npv", "positive_capture", "negative_capture",
+        "error_rate_all_gold", "selective_accuracy",
+        "conditional_sensitivity", "conditional_specificity",
+        "sensitivity", "specificity", "recall", "f1", "balanced_accuracy",
+    )
+    macro = {name: _macro(name) for name in macro_names}
     return {
         "extractor_version": extractor_version_of(config),
         "eval_protocol_version": eval_protocol_version_of(config),
         "config_sha256": config.get("_sha256"),
         "n_gold_studies": int(len(gold_frame)),
         "unknown_imputed_as_negative": False,
+        "conditional_sensitivity_is_not_full_set_sensitivity": True,
         "bootstrap": {
             "n_resamples": n_resamples,
             "ci_level": ci_level,
             "seed": seed,
             "unit": boot_cfg.get("unit") or "study",
+            "metrics": list(BOOTSTRAP_METRIC_NAMES),
         },
         "per_target": per_target,
         "macro": macro,
@@ -1073,9 +1211,14 @@ def evaluate_gold_predictions(
             if TARGET_KEY_TO_OFFICIAL[key] in per_target
         },
         "error_categories": error_categories,
+        "error_taxonomy": taxonomy_payload(error_categories),
+        "eval_protocol_is_v2": is_v2,
         "note": (
             "Unknown extractor outputs are abstentions and are excluded from "
-            "TP/TN/FP/FN. Unknown gold labels are never treated as negative."
+            "TP/TN/FP/FN. Unknown gold labels are never treated as negative. "
+            "conditional_sensitivity is TP/(TP+FN) among called cases only; "
+            "positive_capture is TP/all gold positives. Do not treat "
+            "conditional_sensitivity as recall on every gold-positive study."
         ),
     }
 
@@ -1223,7 +1366,7 @@ def _render_language_level_section(lang_level: dict) -> list[str]:
                 "",
                 f"#### Language `{lang}` (n={payload.get('n')})",
                 "",
-                "| Official column | TP | TN | FP | FN | coverage | sens | spec | prec | f1 | bal acc |",
+                "| Official column | TP | TN | FP | FN | coverage | cond_sens | cond_spec | prec | f1 | bal acc |",
                 "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
             ]
         )
@@ -1238,8 +1381,8 @@ def _render_language_level_section(lang_level: dict) -> list[str]:
                     fp=stats.get("fp", "n/a"),
                     fn=stats.get("fn", "n/a"),
                     cov=_fmt_metric(stats.get("coverage")),
-                    sens=_fmt_metric(stats.get("sensitivity")),
-                    spec=_fmt_metric(stats.get("specificity")),
+                    sens=_fmt_metric(stats.get("conditional_sensitivity") or stats.get("sensitivity")),
+                    spec=_fmt_metric(stats.get("conditional_specificity") or stats.get("specificity")),
                     prec=_fmt_metric(stats.get("precision")),
                     f1=_fmt_metric(stats.get("f1")),
                     bal=_fmt_metric(stats.get("balanced_accuracy")),
@@ -1354,29 +1497,63 @@ def render_sanitized_summary(
                 f"- n_gold_studies: {gold_eval.get('n_gold_studies')}",
                 f"- bootstrap resamples: {(gold_eval.get('bootstrap') or {}).get('n_resamples')}",
                 f"- CI level: {(gold_eval.get('bootstrap') or {}).get('ci_level')}",
+                f"- unknown_imputed_as_negative: `false`",
+                f"- conditional_sensitivity_is_not_full_set_sensitivity: `true`",
                 "",
-                "| Official column | TP | TN | FP | FN | coverage | sens | spec | prec | f1 | bal acc | sens CI | spec CI |",
-                "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- |",
+                "Conditional sensitivity/specificity are computed among called cases only.",
+                "positive_capture = TP / all gold positives. negative_capture = TN / all gold negatives.",
+                "Do not treat conditional_sensitivity as recall on every gold-positive study.",
+                "",
+                "| Official column | n_pos | n_neg | pos_calls | neg_calls | abstain | TP | TN | FP | FN | abst_pos | abst_neg | pos_capture | neg_capture | err_all | sel_acc | prec | NPV | coverage | cond_sens | cond_spec |",
+                "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
             ]
         )
         for official in OFFICIAL_TARGET_COLUMNS:
             stats = (gold_eval.get("per_target") or {}).get(official) or {}
             ci = stats.get("ci") or {}
             lines.append(
-                "| {col} | {tp} | {tn} | {fp} | {fn} | {cov} | {sens} | {spec} | {prec} | {f1} | {bal} | {sens_ci} | {spec_ci} |".format(
+                "| {col} | {npos} | {nneg} | {pc} | {nc} | {ab} | {tp} | {tn} | {fp} | {fn} | {ap} | {an} | {pcap} | {ncap} | {err} | {sel} | {prec} | {npv} | {cov} | {csens} | {cspec} |".format(
                     col=official,
+                    npos=stats.get("n_gold_positive", "n/a"),
+                    nneg=stats.get("n_gold_negative", "n/a"),
+                    pc=stats.get("n_positive_calls", "n/a"),
+                    nc=stats.get("n_negative_calls", "n/a"),
+                    ab=stats.get("n_abstentions", "n/a"),
                     tp=stats.get("tp", "n/a"),
                     tn=stats.get("tn", "n/a"),
                     fp=stats.get("fp", "n/a"),
                     fn=stats.get("fn", "n/a"),
-                    cov=_fmt_metric(stats.get("coverage")),
-                    sens=_fmt_metric(stats.get("sensitivity")),
-                    spec=_fmt_metric(stats.get("specificity")),
+                    ap=stats.get("n_abstained_positives", "n/a"),
+                    an=stats.get("n_abstained_negatives", "n/a"),
+                    pcap=_fmt_metric(stats.get("positive_capture")),
+                    ncap=_fmt_metric(stats.get("negative_capture")),
+                    err=_fmt_metric(stats.get("error_rate_all_gold")),
+                    sel=_fmt_metric(stats.get("selective_accuracy")),
                     prec=_fmt_metric(stats.get("precision")),
-                    f1=_fmt_metric(stats.get("f1")),
-                    bal=_fmt_metric(stats.get("balanced_accuracy")),
-                    sens_ci=_fmt_ci(ci, "sensitivity"),
-                    spec_ci=_fmt_ci(ci, "specificity"),
+                    npv=_fmt_metric(stats.get("npv")),
+                    cov=_fmt_metric(stats.get("coverage")),
+                    csens=_fmt_metric(stats.get("conditional_sensitivity")),
+                    cspec=_fmt_metric(stats.get("conditional_specificity")),
+                )
+            )
+        lines.extend(
+            [
+                "",
+                "| Official column | coverage CI | precision CI | NPV CI | pos_capture CI | neg_capture CI |",
+                "| --- | --- | --- | --- | --- | --- |",
+            ]
+        )
+        for official in OFFICIAL_TARGET_COLUMNS:
+            stats = (gold_eval.get("per_target") or {}).get(official) or {}
+            ci = stats.get("ci") or {}
+            lines.append(
+                "| {col} | {cov} | {prec} | {npv} | {pcap} | {ncap} |".format(
+                    col=official,
+                    cov=_fmt_ci(ci, "coverage"),
+                    prec=_fmt_ci(ci, "precision"),
+                    npv=_fmt_ci(ci, "npv"),
+                    pcap=_fmt_ci(ci, "positive_capture"),
+                    ncap=_fmt_ci(ci, "negative_capture"),
                 )
             )
         macro = gold_eval.get("macro") or {}
@@ -1387,21 +1564,89 @@ def render_sanitized_summary(
                 "",
             ]
         )
-        for name in ("sensitivity", "specificity", "precision", "recall", "f1", "balanced_accuracy", "coverage"):
+        for name in (
+            "coverage", "positive_capture", "negative_capture",
+            "error_rate_all_gold", "selective_accuracy",
+            "precision", "npv",
+            "conditional_sensitivity", "conditional_specificity",
+        ):
             lines.append(f"- {name}: {_fmt_metric(macro.get(name))}")
+        lines.extend(
+            [
+                "",
+                "v1-style conditional aliases (among called cases only, not full-set):",
+                "",
+            ]
+        )
+        for name in ("sensitivity", "specificity", "recall", "f1", "balanced_accuracy"):
+            lines.append(f"- v1_alias_{name}: {_fmt_metric(macro.get(name))}")
         lines.extend(["", "### Small-n targets (MCL, Lateral OA, Baker's)", ""])
         for official, stats in (gold_eval.get("small_n_targets") or {}).items():
             lines.append(
                 f"- **{official}**: gold positives={stats.get('n_gold_positive')}, "
                 f"coverage={_fmt_metric(stats.get('coverage'))}, "
-                f"sens={_fmt_metric(stats.get('sensitivity'))}, "
-                f"spec={_fmt_metric(stats.get('specificity'))}, "
-                f"F1={_fmt_metric(stats.get('f1'))}. "
+                f"conditional_sensitivity={_fmt_metric(stats.get('conditional_sensitivity'))} "
+                f"(not full-set), "
+                f"conditional_specificity={_fmt_metric(stats.get('conditional_specificity'))}, "
+                f"positive_capture={_fmt_metric(stats.get('positive_capture'))}, "
+                f"NPV={_fmt_metric(stats.get('npv'))}. "
                 "n is small; intervals are wide."
             )
         lines.extend(["", gold_eval.get("note") or "", ""])
         lines.extend(_render_language_level_section(gold_eval.get("language_level") or {}))
         lines.extend(_render_error_category_section(gold_eval.get("error_categories") or {}))
+        if gold_eval.get("error_taxonomy"):
+            lines.extend(
+                [
+                    "### Error taxonomy class counts",
+                    "",
+                    "Closed vocabulary. No quotations.",
+                    "",
+                    "| class | n |",
+                    "| --- | ---: |",
+                ]
+            )
+            for name, n in (gold_eval["error_taxonomy"].get("class_counts") or {}).items():
+                lines.append(f"| {name} | {n} |")
+            lines.append("")
+        if gold_eval.get("trainable_status"):
+            lines.extend(
+                [
+                    "### Per-target trainable status",
+                    "",
+                    "Statuses use precision, NPV, coverage, confidence intervals and",
+                    "prevalence plausibility. There is no single macro threshold.",
+                    "",
+                    "| Official column | status | precision | NPV | coverage | pos_capture | inflated |",
+                    "| --- | --- | ---: | ---: | ---: | ---: | --- |",
+                ]
+            )
+            for official in OFFICIAL_TARGET_COLUMNS:
+                row = (gold_eval.get("trainable_status") or {}).get(official) or {}
+                lines.append(
+                    "| {col} | {st} | {p} | {n} | {c} | {pc} | {inf} |".format(
+                        col=official,
+                        st=row.get("status", "n/a"),
+                        p=_fmt_metric(row.get("precision")),
+                        n=_fmt_metric(row.get("npv")),
+                        c=_fmt_metric(row.get("coverage")),
+                        pc=_fmt_metric(row.get("positive_capture")),
+                        inf=str(row.get("inflated_prevalence")).lower(),
+                    )
+                )
+            lines.append("")
+        if gold_eval.get("second_reader"):
+            sr = gold_eval["second_reader"]
+            lines.extend(
+                [
+                    "### Second reader",
+                    "",
+                    f"- enabled: `{sr.get('enabled')}`",
+                    f"- skipped_reason: `{sr.get('skipped_reason')}`",
+                    f"- weights_downloaded: `{sr.get('weights_downloaded')}`",
+                    "",
+                ]
+            )
 
     if weak_agg is None:
         lines.extend(["## Weak labels (report-only studies)", "", "Not generated.", ""])
@@ -1598,12 +1843,59 @@ def run_notebook_report_labeling(
 
     gold_eval = None
     gold_prev = None
+    operational_thresholds: dict[str, dict[str, float]] = {}
     if len(gold_frame) and len(gold_pred):
         gold_eval = evaluate_gold_predictions(gold_frame, gold_pred, config=config)
         gold_labels, _ = extract_label_matrix(gold_frame)
         gold_prev = prevalence(gold_labels)
         lang_perf = language_level_gold_performance(gold_frame, gold_pred, gold_eval)
         gold_eval["language_level"] = lang_perf
+        if str(eval_protocol_version_of(config)).startswith("gold-eval-v2"):
+            from .report_confidence import evaluate_oof_all_targets
+            from .report_acceptance import decide_all_targets
+
+            pred_labels, _ = extract_label_matrix(gold_pred, require_all=False)
+            conf_map = {}
+            for key in TARGET_KEYS:
+                col = f"{key}_confidence"
+                conf_map[key] = (
+                    pd.to_numeric(gold_pred[col], errors="coerce").to_numpy(dtype=np.float64)
+                    if col in gold_pred.columns
+                    else np.zeros(len(gold_pred), dtype=np.float64)
+                )
+            aligned_gold = gold_pred.set_index(gold_pred[STUDY_ID_COLUMN].astype(str))
+            ordered = aligned_gold.loc[list(gold_frame[STUDY_ID_COLUMN].astype(str))]
+            pred_labels, _ = extract_label_matrix(ordered.reset_index(drop=True), require_all=False)
+            for key in TARGET_KEYS:
+                col = f"{key}_confidence"
+                conf_map[key] = (
+                    pd.to_numeric(ordered[col], errors="coerce").to_numpy(dtype=np.float64)
+                    if col in ordered.columns
+                    else np.zeros(len(ordered), dtype=np.float64)
+                )
+            oof_sanitized, operational_thresholds = evaluate_oof_all_targets(
+                gold_labels,
+                pred_labels,
+                conf_map,
+                gold_frame[STUDY_ID_COLUMN].astype(str).tolist(),
+                config=config,
+            )
+            gold_eval["oof_confidence_policies"] = oof_sanitized
+            gold_eval["operational_thresholds_for_weak_labels_only"] = operational_thresholds
+            gold_eval["trainable_status"] = decide_all_targets(
+                gold_eval.get("per_target") or {},
+                weak_prev=(weak_label_aggregates(weak_pred).get("prevalence") if len(weak_pred) else None),
+            )
+            from .report_second_reader import run_second_reader
+
+            reader_probe = run_second_reader(
+                "", config=config, language_supported=True
+            )
+            gold_eval["second_reader"] = {
+                "enabled": reader_probe.enabled,
+                "skipped_reason": reader_probe.skipped_reason,
+                "weights_downloaded": False,
+            }
 
     weak_agg = weak_label_aggregates(weak_pred) if len(weak_pred) else None
 
@@ -1636,7 +1928,7 @@ def run_notebook_report_labeling(
     }
     if len(weak_pred):
         weak_out = weak_pred.drop(
-            columns=[c for c in weak_pred.columns if c.endswith("_evidence") or c.endswith("_rule")],
+            columns=[c for c in weak_pred.columns if c.endswith("_evidence") or c.endswith("_rule") or c.endswith("_diagnostic")],
             errors="ignore",
         )
         write_private_csv(weak_out, private_paths[PRIVATE_WEAK_FILENAME])
@@ -1647,11 +1939,30 @@ def run_notebook_report_labeling(
             STUDY_ID_COLUMN,
             "language_code",
             "language_uncertain",
+            "heuristic_language",
+            "ngram_language",
+            "language_detectors_agree",
             "quality_flags",
             "extractor_version",
         ]
         present = [col for col in lang_cols if col in all_pred.columns]
         write_private_csv(all_pred.loc[:, present], private_paths[PRIVATE_LANGUAGE_FILENAME])
+
+    if operational_thresholds:
+        from .report_masks import MASK_FILENAMES, build_trainable_masks, write_mask_csvs
+
+        pos_t = {k: v["positive_threshold"] for k, v in operational_thresholds.items()}
+        neg_t = {k: v["negative_threshold"] for k, v in operational_thresholds.items()}
+        mask_source = weak_pred if len(weak_pred) else all_pred
+        if len(mask_source):
+            masks = build_trainable_masks(
+                mask_source,
+                positive_thresholds=pos_t,
+                negative_thresholds=neg_t,
+            )
+            written = write_mask_csvs(masks, private_dir)
+            for name, path in written.items():
+                private_paths[name] = path
 
     hashes = hash_private_outputs(private_paths)
     eval_dir = new_evaluation_dir(eval_root, config)

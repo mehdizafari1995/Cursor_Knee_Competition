@@ -82,6 +82,11 @@ python scripts/generate_weak_labels.py      # 4349 report-only studies; gitignor
 # Coordinator gates: NOT_READY_FOR_HARD_WEAK_LABEL_TRAINING,
 # READY_FOR_SELECTIVE_LABEL_REFINEMENT
 # (reports/weak_label_training_readiness.md). Do not train on hard 0/1 weak labels.
+
+# Phase 4B: coverage-aware evaluation + report-labeler v2 (no image training)
+# Fixture tests in Cursor. Real gold/weak evaluation on Kaggle:
+# notebooks/03_kaggle_report_labeler_v2.ipynb (internet off). See
+# reports/report_labeler_v2_protocol.md
 ```
 
 Run the whole suite, not one file. `tests/test_pipeline.py` covers the modelling
@@ -97,4 +102,8 @@ intervals, weak-label generation for report-only studies, and privacy tests
 that fail if report text or identifiers enter sanitized artefacts. After the
 real gold evaluation the coordinator gates are
 `NOT_READY_FOR_HARD_WEAK_LABEL_TRAINING` and
-`READY_FOR_SELECTIVE_LABEL_REFINEMENT`.
+`READY_FOR_SELECTIVE_LABEL_REFINEMENT`. Phase 4B
+adds coverage-aware capture/abstention metrics, target-specific OOF confidence
+policies, an independent offline language detector, private trainable masks,
+and per-target TRAINABLE / NOT_TRAINABLE statuses. It does not train an image
+model.

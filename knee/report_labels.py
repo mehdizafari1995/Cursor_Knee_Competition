@@ -1728,6 +1728,8 @@ def _not_available_result(pre: PreflightResult) -> dict:
         "gold_eval": None,
         "weak_aggregates": None,
         "language_audit": None,
+        "second_reader_enabled": False,
+        "second_reader_weights_downloaded": False,
         "note": "DATA_NOT_AVAILABLE: competition files were not found.",
     }
 

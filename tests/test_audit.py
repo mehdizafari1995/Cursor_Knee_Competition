@@ -2,10 +2,22 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from knee.audit import STATUS_AUDITED, STATUS_DATA_NOT_AVAILABLE, run_audit
 from knee.config import DATA_ROOT_ENV, OFFICIAL_TARGET_COLUMNS, TARGET_KEYS
 from knee.paths import DataNotAvailable, candidate_data_roots, get_data_root
 from tests.competition_fixtures import make_mini_competition_root
+
+
+def test_committed_audit_report_has_explicit_status():
+    text = (Path(__file__).resolve().parents[1] / "reports" / "data_audit.md").read_text(
+        encoding="utf-8"
+    )
+    assert "**Status: DATA_NOT_AVAILABLE**" in text or "**Status: AUDITED**" in text
+    if "DATA_NOT_AVAILABLE" in text:
+        assert "statistics: null" in text
+        assert "No study counts" in text or "not computed" in text
 
 
 def test_data_root_env_not_hard_coded():

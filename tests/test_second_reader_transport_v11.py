@@ -27,6 +27,9 @@ V1_0_HASHES = {
 }
 
 
+def test_v1_0_prompt_schema_config_hashes_are_unchanged():
+    for rel, digest in V1_0_HASHES.items():
+        assert sha256_file(REPO_ROOT / rel) == digest
     assert sha256_file(REPO_ROOT / "configs" / "second_reader_pilot_v1_1.yaml") == (
         "1ab11bbda8c6c54cbad10298669ac8cba3971f060007b31eaa8106869994abb1"
     )

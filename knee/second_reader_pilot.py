@@ -509,7 +509,8 @@ def run_second_reader_gold_pilot(
     gold_ids = gold_frame[STUDY_ID_COLUMN].astype(str).tolist()
     reports = gold_frame[REPORT_COLUMN].tolist()
     det_indexed = det_pred.set_index(det_pred[STUDY_ID_COLUMN].astype(str))
-    for study_id, report in zip(gold_ids, reports):
+    n_gold_loop = len(gold_ids)
+    for index, (study_id, report) in enumerate(zip(gold_ids, reports), start=1):
         t0 = time.perf_counter()
         result = run_second_reader(
             report,
@@ -521,6 +522,12 @@ def run_second_reader_gold_pilot(
         )
         per_study_seconds.append(time.perf_counter() - t0)
         backend = result.inference_backend
+        if index == 1 or index % 5 == 0 or index == n_gold_loop:
+            print(
+                f"second_reader_progress={index}/{n_gold_loop} "
+                f"backend={backend} last_seconds={per_study_seconds[-1]:.1f}",
+                flush=True,
+            )
         row = _reader_row(study_id, result)
         reader_rows.append(row)
         malformed_flags.append(bool(result.malformed))

@@ -419,7 +419,6 @@ def _generate_with_transformers(
         "max_new_tokens": int(decoding.get("max_new_tokens") or 1024),
         "do_sample": do_sample,
         "pad_token_id": pad_token_id,
-        "use_cache": False,
     }
     if do_sample:
         generate_kwargs["temperature"] = float(decoding.get("temperature") or 0.0) or 1e-5

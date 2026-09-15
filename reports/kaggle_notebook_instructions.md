@@ -168,6 +168,7 @@ The Phase 4C.1 synthetic canary (kernel
 `CANARY_FAIL` (`malformed_output_rate=1.0`). That version is immutable.
 Phase 4C.2 uses protocol `second-reader-transport-v1.2` on the same canary
 notebook: three-example GPU smoke, then a 14-example repeatable canary if
-smoke passes. Do not launch another gold notebook version unless that
-v1.2 canary is `ok`. See `reports/second_reader_synthetic_canary.md` and
+smoke passes. Kernel version 2 is `SMOKE_FAIL` (`invalid_enum` 3/3 after
+JSON-aware stopping). Do not launch another gold notebook version from that
+result. See `reports/second_reader_synthetic_canary.md` and
 `reports/second_reader_synthetic_canary_v12.md`.

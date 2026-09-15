@@ -333,3 +333,21 @@ def test_v1_canary_fail_report_is_preserved():
     assert "second-reader-synthetic-canary-v1.1" in text
     assert "malformed_output_rate: 1.0" in text
     assert "n reaching max_new_tokens: 10" in text
+
+
+def test_v12_smoke_fail_report_stops_gold_and_full_canary():
+    text = (REPO_ROOT / "reports" / "second_reader_synthetic_canary_v12.md").read_text(
+        encoding="utf-8"
+    )
+    assert "SMOKE_FAIL" in text
+    assert "invalid_enum" in text
+    assert "n stopped on JSON close: 3" in text
+    assert "n reaching max_new_tokens: 0" in text
+    assert "n `targets_not_object`: 0" in text
+    assert "n_gold_studies_processed: 0" in text
+    assert "n_report_only_studies_processed: 0" in text
+    assert "The 14-example canary was not started" in text
+    assert "gold rerun was not launched" in text
+    assert "d6adcac36b91e9796d0da99f048248b2d727024658c0aa642658e43ce99bdce9" in text
+    assert "1ab11bbda8c6c54cbad10298669ac8cba3971f060007b31eaa8106869994abb1" in text
+    assert "82c257f2e8cf14cb5476e1a949ed9acbe0693308e9fdf2a8470a9ab58d5a42a5" in text

@@ -13,8 +13,10 @@ canary kernel before any new gold notebook version. That canary
 `CANARY_FAIL` (`malformed_output_rate=1.0`, 14 synthetic examples, 0 gold,
 0 report-only). That canary version is immutable. Phase 4C.2 protocol
 `second-reader-transport-v1.2` must pass a staged synthetic canary before
-any new gold notebook version. Do not rerun the 58-study gold pilot from
-the v1 canary. See `reports/second_reader_synthetic_canary.md` and
+any new gold notebook version. Kernel version 2 of that canary is
+`SMOKE_FAIL` (`invalid_enum` 3/3; JSON close 3/3; zero `max_new_tokens`).
+Do not rerun the 58-study gold pilot from the v1 canary or this smoke.
+See `reports/second_reader_synthetic_canary.md` and
 `reports/second_reader_synthetic_canary_v12.md`.
 
 | Field | Value |

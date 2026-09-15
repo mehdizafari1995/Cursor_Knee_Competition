@@ -165,6 +165,9 @@ is malformed, stop.
 
 The Phase 4C.1 synthetic canary (kernel
 `mahdimzafari/rsna-knee-second-reader-synthetic-canary` version 1) is
-`CANARY_FAIL` (`malformed_output_rate=1.0`). Do not launch another gold
-notebook version from that result. See
-`reports/second_reader_synthetic_canary.md`.
+`CANARY_FAIL` (`malformed_output_rate=1.0`). That version is immutable.
+Phase 4C.2 uses protocol `second-reader-transport-v1.2` on the same canary
+notebook: three-example GPU smoke, then a 14-example repeatable canary if
+smoke passes. Do not launch another gold notebook version unless that
+v1.2 canary is `ok`. See `reports/second_reader_synthetic_canary.md` and
+`reports/second_reader_synthetic_canary_v12.md`.

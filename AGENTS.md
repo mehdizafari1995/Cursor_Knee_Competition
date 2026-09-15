@@ -95,6 +95,9 @@ python scripts/generate_weak_labels.py      # 4349 report-only studies; gitignor
 # reports/second_reader_pilot_protocol.md
 # Phase 4C.1: diagnose v7 PILOT_EXECUTION_FAIL, v1.1 transport/parser,
 # notebooks/05_kaggle_second_reader_synthetic_canary.ipynb before any gold rerun.
+# Phase 4C.2: JSON-aware generation termination (second-reader-transport-v1.2).
+# Do not rerun gold until the v1.2 synthetic canary is ok. Kernel v7 and
+# synthetic canary v1 remain immutable failure records.
 ```
 
 Run the whole suite, not one file. `tests/test_pipeline.py` covers the modelling
@@ -119,5 +122,6 @@ on the 58 gold studies only, with a frozen prompt/schema, structured-output
 parser, strict-agreement consensus, and PILOT_PASS / PILOT_RESTRICTED /
 PILOT_FAIL statuses. Kernel version 7 is `PILOT_EXECUTION_FAIL` (all
 second-reader outputs malformed JSON). Protocol v1.1 repairs transport/parsing
-only. It does not process the 4,349 report-only studies and
+only. Protocol v1.2 adds JSON-aware generation stopping and the pinned Phi
+EOS / end-of-turn token IDs. It does not process the 4,349 report-only studies and
 does not train an image model.

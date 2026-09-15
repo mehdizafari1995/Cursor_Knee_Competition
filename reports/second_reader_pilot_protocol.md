@@ -118,9 +118,11 @@ Cursor runs **fixture** tests only (`generate_fn`, no weights). The real
 (internet off, GPU on). Retrieve sanitized aggregates and hashes only.
 
 Kernel version 7 is an immutable `PILOT_EXECUTION_FAIL` (all 58 second-reader
-outputs malformed). Protocol v1.1 (`second-reader-transport-v1.1`) must pass
-the synthetic canary `notebooks/05_kaggle_second_reader_synthetic_canary.ipynb`
-before any new gold notebook version. Do not process report-only studies.
+outputs malformed). Protocol v1.1 (`second-reader-transport-v1.1`) failed the
+synthetic canary (kernel version 1, `CANARY_FAIL`). Protocol v1.2
+(`second-reader-transport-v1.2`) adds JSON-aware generation stopping and must
+pass a three-example smoke and a 14-example repeatable canary before any new
+gold notebook version. Do not process report-only studies.
 
 ## 8. Out of scope
 

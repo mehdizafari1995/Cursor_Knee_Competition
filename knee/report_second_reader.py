@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import hashlib
 import inspect
+import json
 import os
 from pathlib import Path
 from typing import Any, Callable
@@ -19,6 +20,7 @@ from .second_reader_parser import (
     ParsedSecondReaderOutput,
     diagnostics_from_text,
     parse_second_reader_output,
+    transport_protocol_alias,
 )
 from .second_reader_schema import (
     CONFIDENCE_TO_FLOAT,
@@ -26,6 +28,12 @@ from .second_reader_schema import (
     FORBIDDEN_OUTPUT_KEYS,
     STATUS_TO_LABEL,
     compact_output_skeleton,
+)
+from .second_reader_json_stop import (
+    JsonObjectStoppingCriteria,
+    collect_eos_token_ids,
+    inspect_termination_from_snapshot,
+    stopping_cause,
 )
 
 LABEL_POSITIVE = "positive"
@@ -304,6 +312,7 @@ def locate_weights_directory(cfg: dict, weights_path: str | Path | None) -> Path
 
 
 _TRANSFORMERS_CACHE: dict[str, tuple[Any, Any]] = {}
+_TERMINATION_INSPECTED: set[str] = set()
 
 
 def _cuda_usable() -> bool:
@@ -429,6 +438,8 @@ def _generate_with_transformers(
         }
     pad_token_id = tokenizer.eos_token_id if tokenizer.pad_token_id is None else tokenizer.pad_token_id
     do_sample = bool(decoding.get("do_sample") or False)
+    protocol = transport_protocol_alias(cfg.get("transport_protocol_version"))
+    use_json_stop = protocol == "v1.2" or bool(decoding.get("json_object_stop"))
     generate_kwargs: dict[str, Any] = {
         "max_new_tokens": int(decoding.get("max_new_tokens") or 1024),
         "do_sample": do_sample,
@@ -437,29 +448,81 @@ def _generate_with_transformers(
     if do_sample:
         generate_kwargs["temperature"] = float(decoding.get("temperature") or 0.0) or 1e-5
         generate_kwargs["top_p"] = float(decoding.get("top_p") or 1.0)
-    generate_kwargs["eos_token_id"] = tokenizer.eos_token_id
+    eos_ids: list[int] = []
+    stopper: JsonObjectStoppingCriteria | None = None
+    stopping_names: list[str] = []
+    if use_json_stop:
+        eos_ids = collect_eos_token_ids(tokenizer, model)
+        if not eos_ids and tokenizer.eos_token_id is not None:
+            eos_ids = [int(tokenizer.eos_token_id)]
+        generate_kwargs["eos_token_id"] = eos_ids if len(eos_ids) != 1 else eos_ids[0]
+        prompt_length = int(inputs["input_ids"].shape[1])
+        stopper = JsonObjectStoppingCriteria(tokenizer, prompt_length=prompt_length)
+        try:
+            from transformers import StoppingCriteriaList
+        except Exception:
+            StoppingCriteriaList = list  # type: ignore[misc, assignment]
+        generate_kwargs["stopping_criteria"] = StoppingCriteriaList([stopper])
+        stopping_names = ["JsonObjectStoppingCriteria"]
+        try:
+            cache_key = str(Path(weights_dir).resolve())
+            if cache_key not in _TERMINATION_INSPECTED:
+                inspect_payload = inspect_termination_from_snapshot(
+                    weights_dir, tokenizer, model
+                )
+                inspect_payload["eos_token_ids_for_generate"] = eos_ids
+                inspect_payload["stopping_criteria"] = stopping_names
+                print(
+                    "termination_inspection="
+                    + json.dumps(inspect_payload, sort_keys=True, default=str)
+                )
+                _TERMINATION_INSPECTED.add(cache_key)
+        except Exception:
+            pass
+    else:
+        generate_kwargs["eos_token_id"] = tokenizer.eos_token_id
+        if tokenizer.eos_token_id is not None:
+            eos_ids = [int(tokenizer.eos_token_id)]
     with torch.no_grad():
         output_ids = model.generate(**inputs, **generate_kwargs)
     input_ids = inputs["input_ids"]
     generated_ids = output_ids[:, input_ids.shape[1]:]
     generated = tokenizer.decode(generated_ids[0], skip_special_tokens=True)
     n_new = int(generated_ids.shape[-1])
+    if stopper is not None and stopper.n_generated_tokens:
+        n_new = int(stopper.n_generated_tokens)
     max_new = int(generate_kwargs["max_new_tokens"])
     last_id = int(generated_ids[0, -1]) if n_new else None
-    eos_ids = {tokenizer.eos_token_id, pad_token_id}
-    try:
-        end_id = tokenizer.convert_tokens_to_ids("<|end|>")
-    except Exception:
-        end_id = None
-    if end_id is not None:
-        eos_ids.add(end_id)
-    ended_eos = last_id in eos_ids if last_id is not None else False
+    causes = stopping_cause(
+        stopped_on_json_close=bool(stopper and stopper.stopped_on_json_close),
+        last_token_id=last_id,
+        eos_token_ids=eos_ids,
+        n_generated_tokens=n_new,
+        max_new_tokens=max_new,
+    )
+    if not use_json_stop:
+        eos_ids_diag = set(eos_ids)
+        eos_ids_diag.add(pad_token_id)
+        try:
+            end_id = tokenizer.convert_tokens_to_ids("<|end|>")
+        except Exception:
+            end_id = None
+        if end_id is not None:
+            eos_ids_diag.add(end_id)
+        causes["ended_with_eos"] = last_id in eos_ids_diag if last_id is not None else False
+        causes["stopped_on_eos"] = bool(causes["ended_with_eos"]) and not causes["stopped_on_json_close"]
+        causes["reached_max_new_tokens"] = n_new >= max_new and not causes["stopped_on_json_close"] and not causes["stopped_on_eos"]
     diag = diagnostics_from_text(
         generated,
         max_new_tokens=max_new,
         n_generated_tokens=n_new,
-        reached_max_new_tokens=n_new >= max_new,
-        ended_with_eos=ended_eos,
+        reached_max_new_tokens=causes["reached_max_new_tokens"],
+        ended_with_eos=causes["ended_with_eos"],
+        stopped_on_json_close=causes["stopped_on_json_close"],
+        stopped_on_eos=causes["stopped_on_eos"],
+        protocol=protocol,
+        eos_token_ids=tuple(eos_ids),
+        stopping_criteria=tuple(stopping_names),
     )
     return generated, diag
 
@@ -488,6 +551,8 @@ def run_second_reader(
         cfg["selected_model"] = root_cfg.get("selected_model")
     if "decoding" in root_cfg:
         cfg["decoding"] = root_cfg.get("decoding")
+    if "transport_protocol_version" in root_cfg:
+        cfg["transport_protocol_version"] = root_cfg.get("transport_protocol_version")
     enabled = bool(cfg.get("enabled"))
     model_id = str((cfg.get("selected_model") or {}).get("id") or cfg.get("model_id") or "") or None
     prompt_bundle = prompt
@@ -531,14 +596,19 @@ def run_second_reader(
     parsed: ParsedSecondReaderOutput | None = None
     weights_digest = None
     backend = "fixture_generate_fn" if generate_fn is not None else "local_transformers"
+    protocol = transport_protocol_alias(
+        cfg.get("transport_protocol_version") or root_cfg.get("transport_protocol_version")
+    )
     if generate_fn is not None:
         text = generate_fn(report)
         decoding_cfg = cfg.get("decoding") or root_cfg.get("decoding") or {}
         parsed = parse_second_reader_output(
             text,
+            protocol=protocol,
             generation=diagnostics_from_text(
                 text,
                 max_new_tokens=int(decoding_cfg.get("max_new_tokens") or 0),
+                protocol=protocol,
             ),
         )
     else:
@@ -593,7 +663,7 @@ def run_second_reader(
                     schema_version=schema_version,
                 )
             raise
-        parsed = parse_second_reader_output(text, generation=gen_diag)
+        parsed = parse_second_reader_output(text, protocol=protocol, generation=gen_diag)
 
     assert parsed is not None
     return SecondReaderResult(

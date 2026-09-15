@@ -3,6 +3,9 @@
 Transport protocol v1.1 extracts one balanced JSON object after at most one
 outer Markdown JSON fence. v1.0 used a greedy ``{.*}`` match that could pick
 an inner object from truncated output and report ``targets_not_object``.
+v1.2 keeps the balanced extractor, requires whitespace only after the object,
+does not unwrap root-level target keys, and never converts a ``targets`` list
+into a dictionary.
 """
 
 from __future__ import annotations
@@ -24,6 +27,7 @@ from .second_reader_schema import (
     STATUS_TO_LABEL,
     TARGET_FIELD_KEYS,
     TRANSPORT_PROTOCOL_VERSION_V1_1,
+    TRANSPORT_PROTOCOL_VERSION_V1_2,
     UNCERTAINTY_OR_NEGATION_CATEGORIES,
 )
 
@@ -82,6 +86,8 @@ class GenerationDiagnostics:
     max_new_tokens: int = 0
     reached_max_new_tokens: bool = False
     ended_with_eos: bool = False
+    stopped_on_json_close: bool = False
+    stopped_on_eos: bool = False
     begins_with_brace: bool = False
     contains_balanced_json: bool = False
     markdown_json_fence_only: bool = False
@@ -89,6 +95,8 @@ class GenerationDiagnostics:
     decode_slice: str = "generated_ids[:, input_ids.shape[1]:]"
     raw_was_stored: bool = False
     prompt_included_in_decoded_output: bool = False
+    eos_token_ids: tuple[int, ...] = ()
+    stopping_criteria: tuple[str, ...] = ()
 
 
 @dataclass
@@ -101,7 +109,7 @@ class ParsedSecondReaderOutput:
     dropped_forbidden_fields: tuple[str, ...]
     targets: dict[str, ParsedTarget]
     raw_was_stored: bool = False
-    transport_protocol: str = TRANSPORT_PROTOCOL_VERSION_V1_1
+    transport_protocol: str = TRANSPORT_PROTOCOL_VERSION_V1_2
     generation: GenerationDiagnostics = field(default_factory=GenerationDiagnostics)
     used_root_level_targets: bool = False
 
@@ -217,6 +225,22 @@ def remainder_is_allowed_transport_wrapper(remainder: str, *, fence_stripped: bo
     return match is not None and not match.group(1).strip()
 
 
+def remainder_is_whitespace_only(remainder: str) -> bool:
+    return not (remainder or "").strip()
+
+
+def transport_protocol_alias(protocol: str | None) -> str:
+    """Map config / call-site version strings to v1.0 / v1.1 / v1.2."""
+    text = str(protocol or "v1.1")
+    if "v1.2" in text:
+        return "v1.2"
+    if "v1.0" in text and "v1.1" not in text and "v1.2" not in text:
+        return "v1.0"
+    if text in {"v1.0", "1.0"}:
+        return "v1.0"
+    return "v1.1"
+
+
 def diagnostics_from_text(
     text: str,
     *,
@@ -224,24 +248,43 @@ def diagnostics_from_text(
     n_generated_tokens: int = 0,
     reached_max_new_tokens: bool = False,
     ended_with_eos: bool = False,
+    stopped_on_json_close: bool = False,
+    stopped_on_eos: bool = False,
+    protocol: str = "v1.1",
+    eos_token_ids: tuple[int, ...] | list[int] = (),
+    stopping_criteria: tuple[str, ...] | list[str] = (),
 ) -> GenerationDiagnostics:
     stripped, fenced = strip_one_outer_markdown_json_fence(text)
     blob, remainder, reason = extract_balanced_json_object(stripped)
-    balanced = bool(blob) and reason == "" and remainder_is_allowed_transport_wrapper(
-        remainder, fence_stripped=fenced
-    )
+    alias = transport_protocol_alias(protocol)
+    lead = stripped.lstrip()
+    if alias == "v1.2":
+        if lead.startswith("["):
+            remainder_ok = False
+            blob = None
+        else:
+            remainder_ok = remainder_is_whitespace_only(remainder)
+    else:
+        remainder_ok = remainder_is_allowed_transport_wrapper(
+            remainder, fence_stripped=fenced
+        )
+    balanced = bool(blob) and reason == "" and remainder_ok
     fence_only = fenced and balanced and not (remainder or "").strip()
     return GenerationDiagnostics(
         n_generated_tokens=int(n_generated_tokens),
         max_new_tokens=int(max_new_tokens),
         reached_max_new_tokens=bool(reached_max_new_tokens),
         ended_with_eos=bool(ended_with_eos),
+        stopped_on_json_close=bool(stopped_on_json_close),
+        stopped_on_eos=bool(stopped_on_eos),
         begins_with_brace=(text or "").lstrip().startswith("{"),
         contains_balanced_json=balanced,
         markdown_json_fence_only=fence_only,
         completion_sha256=completion_sha256(text),
         prompt_included_in_decoded_output=text_has_prompt_leak(text),
         raw_was_stored=False,
+        eos_token_ids=tuple(int(x) for x in eos_token_ids),
+        stopping_criteria=tuple(str(x) for x in stopping_criteria),
     )
 
 
@@ -261,17 +304,28 @@ def extract_json_object_v1(text: str) -> str:
     return match.group(0)
 
 
-def extract_json_object(text: str) -> str:
-    """v1.1 balanced extractor. Raises ``MalformedSecondReaderOutput`` with a stage."""
+def extract_json_object(text: str, *, protocol: str = "v1.1") -> str:
+    """Balanced extractor. Raises ``MalformedSecondReaderOutput`` with a stage.
+
+    v1.2 requires the first non-whitespace character to be ``{`` and allows
+    only whitespace after the closed object. Trailing prose is never salvaged.
+    """
     stripped, fenced = strip_one_outer_markdown_json_fence(text)
     if not stripped:
         raise MalformedSecondReaderOutput("empty_generation")
+    alias = transport_protocol_alias(protocol)
+    lead = stripped.lstrip()
+    if alias == "v1.2" and lead.startswith("["):
+        raise MalformedSecondReaderOutput("missing_JSON_object")
     blob, remainder, reason = extract_balanced_json_object(stripped)
     if reason:
         if fenced and reason == "missing_JSON_object":
             raise MalformedSecondReaderOutput("Markdown_code_fence")
         raise MalformedSecondReaderOutput(reason)
-    if not remainder_is_allowed_transport_wrapper(remainder, fence_stripped=fenced):
+    if alias == "v1.2":
+        if not remainder_is_whitespace_only(remainder):
+            raise MalformedSecondReaderOutput("forbidden_extra_text")
+    elif not remainder_is_allowed_transport_wrapper(remainder, fence_stripped=fenced):
         raise MalformedSecondReaderOutput("forbidden_extra_text")
     assert blob is not None
     return blob
@@ -340,12 +394,22 @@ def _validate_target(key: str, record: Any) -> ParsedTarget:
     )
 
 
-def _coerce_targets_payload(payload: dict) -> tuple[Any, bool]:
-    """Accept root-level TARGET_KEYS as a mechanical layout unwrap. No fuzzy names."""
+def _coerce_targets_payload(payload: dict, *, protocol: str = "v1.1") -> tuple[Any, bool]:
+    """Return ``(targets, used_root_unwrap)``.
+
+    v1.1 may unwrap root-level TARGET_KEYS objects. A ``targets`` list is never
+    converted into a dictionary. v1.2 requires ``targets`` to already be an
+    object and does not unwrap root-level keys.
+    """
     targets_payload = payload.get("targets")
     if isinstance(targets_payload, dict):
         return targets_payload, False
-    if all(key in payload and isinstance(payload.get(key), dict) for key in TARGET_KEYS):
+    if isinstance(targets_payload, list):
+        return targets_payload, False
+    alias = transport_protocol_alias(protocol)
+    if alias != "v1.2" and all(
+        key in payload and isinstance(payload.get(key), dict) for key in TARGET_KEYS
+    ):
         return {key: payload[key] for key in TARGET_KEYS}, True
     return targets_payload, False
 
@@ -369,45 +433,63 @@ def parse_second_reader_output(
     generation: GenerationDiagnostics | None = None,
 ) -> ParsedSecondReaderOutput:
     """Parse model text into closed-vocabulary targets. Raw text is not retained."""
-    gen = generation or diagnostics_from_text(text)
+    alias = transport_protocol_alias(protocol)
+    gen = generation or diagnostics_from_text(text, protocol=alias)
+    transport = {
+        "v1.0": "second-reader-transport-v1.0",
+        "v1.1": TRANSPORT_PROTOCOL_VERSION_V1_1,
+        "v1.2": TRANSPORT_PROTOCOL_VERSION_V1_2,
+    }.get(alias, TRANSPORT_PROTOCOL_VERSION_V1_1)
     if gen.prompt_included_in_decoded_output:
-        return _malformed_result(
+        result = _malformed_result(
             "prompt_included_in_decoded_output",
             "prompt_included_in_decoded_output",
             generation=gen,
         )
+        result.transport_protocol = transport
+        return result
     if not (text or "").strip():
-        return _malformed_result("empty_generation", "empty_generation", generation=gen)
+        result = _malformed_result("empty_generation", "empty_generation", generation=gen)
+        result.transport_protocol = transport
+        return result
 
     forbidden: list[str] = []
     try:
-        if protocol == "v1.0":
+        if alias == "v1.0":
             blob = extract_json_object_v1(text)
         else:
-            blob = extract_json_object(text)
+            blob = extract_json_object(text, protocol=alias)
         payload = json.loads(blob)
     except MalformedSecondReaderOutput as exc:
         reason = str(exc) or "malformed"
-        return _malformed_result(reason, _stage_for_extract_error(reason), generation=gen)
+        result = _malformed_result(reason, _stage_for_extract_error(reason), generation=gen)
+        result.transport_protocol = transport
+        return result
     except (json.JSONDecodeError, TypeError):
-        return _malformed_result("json_decode_error", "JSON_decode_error", generation=gen)
+        result = _malformed_result("json_decode_error", "JSON_decode_error", generation=gen)
+        result.transport_protocol = transport
+        return result
 
     if not isinstance(payload, dict):
-        return _malformed_result("root_not_object", "schema_validation_error", generation=gen)
+        result = _malformed_result("root_not_object", "schema_validation_error", generation=gen)
+        result.transport_protocol = transport
+        return result
 
     _collect_forbidden(payload, forbidden)
     schema_version = payload.get("schema_version")
-    targets_payload, used_root = _coerce_targets_payload(payload)
+    targets_payload, used_root = _coerce_targets_payload(payload, protocol=alias)
     if schema_version != SCHEMA_VERSION:
         forbidden.append("schema_version_mismatch")
-    if not isinstance(targets_payload, dict):
-        return _malformed_result(
+    if isinstance(targets_payload, list) or not isinstance(targets_payload, dict):
+        result = _malformed_result(
             "targets_not_object",
             "schema_validation_error",
             generation=gen,
             schema_version=str(schema_version) if schema_version is not None else None,
             forbidden=tuple(dict.fromkeys(forbidden)),
         )
+        result.transport_protocol = transport
+        return result
 
     parsed_targets: dict[str, ParsedTarget] = {}
     any_malformed = schema_version != SCHEMA_VERSION
@@ -459,6 +541,7 @@ def parse_second_reader_output(
         dropped_forbidden_fields=tuple(dict.fromkeys(forbidden)),
         targets=parsed_targets,
         raw_was_stored=False,
+        transport_protocol=transport,
         generation=gen,
         used_root_level_targets=used_root,
     )

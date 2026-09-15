@@ -193,6 +193,8 @@ def _reader_row(study_id: str, result) -> dict[str, Any]:
     row["n_generated_tokens"] = gen.n_generated_tokens
     row["reached_max_new_tokens"] = gen.reached_max_new_tokens
     row["ended_with_eos"] = gen.ended_with_eos
+    row["stopped_on_json_close"] = gen.stopped_on_json_close
+    row["stopped_on_eos"] = gen.stopped_on_eos
     row["begins_with_brace"] = gen.begins_with_brace
     row["contains_balanced_json"] = gen.contains_balanced_json
     row["markdown_json_fence_only"] = gen.markdown_json_fence_only

@@ -11,8 +11,11 @@ That version must stay immutable. Protocol v1.1 uses a separate synthetic
 canary kernel before any new gold notebook version. That canary
 (`mahdimzafari/rsna-knee-second-reader-synthetic-canary` version 1) is
 `CANARY_FAIL` (`malformed_output_rate=1.0`, 14 synthetic examples, 0 gold,
-0 report-only). Do not rerun the 58-study gold pilot from this result.
-See `reports/second_reader_synthetic_canary.md`.
+0 report-only). That canary version is immutable. Phase 4C.2 protocol
+`second-reader-transport-v1.2` must pass a staged synthetic canary before
+any new gold notebook version. Do not rerun the 58-study gold pilot from
+the v1 canary. See `reports/second_reader_synthetic_canary.md` and
+`reports/second_reader_synthetic_canary_v12.md`.
 
 | Field | Value |
 | --- | --- |

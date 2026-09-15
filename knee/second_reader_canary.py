@@ -21,16 +21,19 @@ from .report_second_reader import (
 from .second_reader_parser import MALFORMED_STAGES
 from .second_reader_pilot import freeze_manifest, load_pilot_config
 from .second_reader_schema import (
-    DEFAULT_PILOT_CONFIG_PATH_V1_1,
+    DEFAULT_PILOT_CONFIG_PATH_V1_2,
     SCHEMA_VERSION,
     compact_output_skeleton,
 )
+from .second_reader_json_stop import PINNED_PHI35_TERMINATION
 
-CANARY_VERSION = "second-reader-synthetic-canary-v1.1"
+CANARY_VERSION = "second-reader-synthetic-canary-v1.2"
+CANARY_VERSION_V1_1 = "second-reader-synthetic-canary-v1.1"
 KAGGLE_CANARY_OUTPUT_DIRNAME = "rsna_second_reader_synthetic_canary"
 SANITIZED_SUMMARY_FILENAME = "second_reader_synthetic_canary_summary.md"
 SANITIZED_METRICS_FILENAME = "second_reader_synthetic_canary.json"
 SANITIZED_FREEZE_FILENAME = "freeze_manifest.json"
+SANITIZED_TERMINATION_FILENAME = "termination_inspection.json"
 
 # Hand-written synthetic reports. Not competition gold or report-only rows.
 SYNTHETIC_CANARY_EXAMPLES: tuple[dict[str, str], ...] = (
@@ -277,9 +280,15 @@ def _score_example(example: dict[str, str], *, config: dict, prompt: dict, gener
         "n_generated_tokens": gen.n_generated_tokens,
         "reached_max_new_tokens": gen.reached_max_new_tokens,
         "ended_with_eos": gen.ended_with_eos,
+        "stopped_on_json_close": gen.stopped_on_json_close,
+        "stopped_on_eos": gen.stopped_on_eos,
         "begins_with_brace": gen.begins_with_brace,
         "contains_balanced_json": gen.contains_balanced_json,
         "markdown_json_fence_only": gen.markdown_json_fence_only,
+        "targets_is_object": parsed_ok,
+        "targets_not_object": result.malformed_reason == "targets_not_object",
+        "forbidden_extra_text": result.malformed_stage == "forbidden_extra_text",
+        "prompt_included": result.malformed_stage == "prompt_included_in_decoded_output",
         "inference_backend": result.inference_backend,
         "raw_was_stored": False,
     }
@@ -307,6 +316,12 @@ def aggregate_generation_diagnostics(rows: list[dict[str, Any]], *, max_new_toke
         "n_beginning_with_brace": int(sum(bool(row.get("begins_with_brace")) for row in rows)),
         "n_containing_balanced_json": int(sum(bool(row.get("contains_balanced_json")) for row in rows)),
         "n_markdown_json_fence_only": int(sum(bool(row.get("markdown_json_fence_only")) for row in rows)),
+        "n_stopped_on_json_close": int(sum(bool(row.get("stopped_on_json_close")) for row in rows)),
+        "n_stopped_on_eos": int(sum(bool(row.get("stopped_on_eos")) for row in rows)),
+        "n_targets_not_object": int(sum(bool(row.get("targets_not_object")) for row in rows)),
+        "n_forbidden_extra_text": int(sum(bool(row.get("forbidden_extra_text")) for row in rows)),
+        "n_prompt_included": int(sum(bool(row.get("prompt_included")) for row in rows)),
+        "n_targets_is_object": int(sum(bool(row.get("targets_is_object") and row.get("ok")) for row in rows)),
         "malformed_stage_counts": stages,
         "completion_sha256_sorted": sorted(str(row.get("completion_sha256") or "") for row in rows),
         "raw_completions_stored": False,
@@ -348,6 +363,11 @@ def render_canary_summary(result: dict[str, Any]) -> str:
         f"- n beginning with `{{`: {diag.get('n_beginning_with_brace')}",
         f"- n containing a balanced JSON object: {diag.get('n_containing_balanced_json')}",
         f"- n wrapped only in a Markdown JSON fence: {diag.get('n_markdown_json_fence_only')}",
+        f"- n stopped on JSON close: {diag.get('n_stopped_on_json_close')}",
+        f"- n stopped on EOS: {diag.get('n_stopped_on_eos')}",
+        f"- n targets_not_object: {diag.get('n_targets_not_object')}",
+        f"- n forbidden_extra_text: {diag.get('n_forbidden_extra_text')}",
+        f"- n prompt included: {diag.get('n_prompt_included')}",
         f"- raw completions stored: `{str(diag.get('raw_completions_stored')).lower()}`",
         "",
         "## Malformed-stage counts",
@@ -375,23 +395,40 @@ def run_synthetic_canary(
     generate_fn: GenerateFn | None = None,
     weights_path: str | Path | None = None,
     n_repeats: int = 2,
+    smoke: bool = False,
+    examples: tuple[dict[str, str], ...] | None = None,
 ) -> dict[str, Any]:
     """Score synthetic reports only. Refuses competition gold and report-only rows."""
-    if n_repeats < 2:
-        raise ValueError("canary requires two runs for repeatability")
-    if len(SYNTHETIC_CANARY_EXAMPLES) < 12:
-        raise RuntimeError("canary requires at least 12 synthetic examples")
+    selected = examples or (
+        SYNTHETIC_CANARY_EXAMPLES[:3] if smoke else SYNTHETIC_CANARY_EXAMPLES
+    )
+    if smoke:
+        if n_repeats < 1:
+            raise ValueError("smoke canary requires at least one run")
+        if len(selected) != 3:
+            raise RuntimeError("smoke canary requires exactly three synthetic examples")
+    else:
+        if n_repeats < 2:
+            raise ValueError("canary requires two runs for repeatability")
+        if len(selected) < 12:
+            raise RuntimeError("canary requires at least 12 synthetic examples")
     out_dir = Path(output_dir or (PROJECT_ROOT / "outputs" / KAGGLE_CANARY_OUTPUT_DIRNAME))
     sanitized_dir = out_dir / "sanitized"
     sanitized_dir.mkdir(parents=True, exist_ok=True)
-    config = load_pilot_config(config_path or DEFAULT_PILOT_CONFIG_PATH_V1_1)
+    config = load_pilot_config(config_path or DEFAULT_PILOT_CONFIG_PATH_V1_2)
     prompt = load_prompt_bundle(config.get("prompt_path"))
     freeze = freeze_manifest(config, prompt=prompt)
     freeze["canary"] = True
+    freeze["smoke"] = bool(smoke)
     freeze["n_gold_studies_processed"] = 0
     freeze["n_report_only_studies_processed"] = 0
+    freeze["pinned_termination"] = dict(PINNED_PHI35_TERMINATION)
     (sanitized_dir / SANITIZED_FREEZE_FILENAME).write_text(
         json.dumps(freeze, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    (sanitized_dir / SANITIZED_TERMINATION_FILENAME).write_text(
+        json.dumps(PINNED_PHI35_TERMINATION, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
     )
     if generate_fn is None:
         directory = locate_weights_directory(config.get("second_reader") or {}, weights_path)
@@ -405,6 +442,7 @@ def run_synthetic_canary(
                 "n_report_only_studies_processed": 0,
                 "scientific_evaluation": False,
                 "stop_gold_rerun": True,
+                "smoke": bool(smoke),
             }
             (sanitized_dir / SANITIZED_METRICS_FILENAME).write_text(
                 json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
@@ -421,11 +459,12 @@ def run_synthetic_canary(
                 generate_fn=generate_fn,
                 weights_path=weights_path,
             )
-            for example in SYNTHETIC_CANARY_EXAMPLES
+            for example in selected
         ]
         run_rows.append(rows)
 
-    first, second = run_rows[0], run_rows[1]
+    first = run_rows[0]
+    second = run_rows[1] if len(run_rows) > 1 else first
     n_malformed = sum(1 for row in first if row["malformed"] or not row["ok"])
     malformed_rate = float(n_malformed) / float(len(first))
     hashes_match = [a["normalized_json_sha256"] for a in first] == [
@@ -444,27 +483,42 @@ def run_synthetic_canary(
     diagnostics = aggregate_generation_diagnostics(
         first, max_new_tokens=int(decoding.get("max_new_tokens") or 0)
     )
-    ok = all_parseable and hashes_match and malformed_rate == 0.0
+    n_ex = len(first)
+    transport_ok = (
+        diagnostics.get("n_beginning_with_brace") == n_ex
+        and diagnostics.get("n_containing_balanced_json") == n_ex
+        and diagnostics.get("n_reaching_max_new_tokens") == 0
+        and diagnostics.get("n_forbidden_extra_text") == 0
+        and diagnostics.get("n_prompt_included") == 0
+        and diagnostics.get("n_targets_not_object") == 0
+        and diagnostics.get("n_targets_is_object") == n_ex
+    )
+    repeatable_ok = hashes_match if (not smoke or n_repeats >= 2) else True
+    ok = all_parseable and repeatable_ok and malformed_rate == 0.0 and transport_ok
+    fail_status = "SMOKE_FAIL" if smoke else "CANARY_FAIL"
     result = {
-        "status": "ok" if ok else "CANARY_FAIL",
+        "status": "ok" if ok else fail_status,
         "ok": ok,
+        "smoke": bool(smoke),
         "canary_version": CANARY_VERSION,
         "transport_protocol_version": config.get("transport_protocol_version"),
         "prompt_version": prompt.get("prompt_version"),
         "schema_version": SCHEMA_VERSION,
-        "n_examples": len(first),
+        "n_examples": n_ex,
         "n_gold_studies_processed": 0,
         "n_report_only_studies_processed": 0,
         "malformed_output_rate": malformed_rate,
         "n_malformed": n_malformed,
         "all_parseable": all_parseable,
-        "repeatable": hashes_match,
+        "repeatable": hashes_match if n_repeats >= 2 else None,
+        "transport_ok": transport_ok,
         "scientific_evaluation": False,
         "claim_scientific_performance": False,
         "stop_gold_rerun": not ok,
         "inference_backend": first[0]["inference_backend"] if first else "skipped",
         "generation_diagnostics": diagnostics,
         "example_ids": [row["example_id"] for row in first],
+        "termination_inspection": dict(PINNED_PHI35_TERMINATION),
         "freeze": freeze,
         "created_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }

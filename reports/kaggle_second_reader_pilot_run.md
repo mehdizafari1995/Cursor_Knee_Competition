@@ -1,80 +1,66 @@
 # Kaggle gold-only second-reader pilot run
 
-Operator / preflight record. This file is not a scientific metrics report.
-Report text, StudyInstanceUID values, and PatientID values are not included.
+Operator record. Scientific metrics live in
+`reports/second_reader_gold_pilot_comparison.md`. Report text,
+StudyInstanceUID values, and PatientID values are not included.
 
-## Preflight result: STOP — no inference
+`KAGGLE_API_TOKEN_present: True`. Weights were not downloaded in Cursor.
+The private notebook ran with internet disabled and GPU enabled.
 
-`KAGGLE_API_TOKEN_present: True`. No weights were downloaded in Cursor.
-Internet was not enabled for Hugging Face weight retrieval. The real GPU
-notebook was not pushed. Coordinator gates were not changed.
-
-Required model (unchanged):
-
-| Field | Required frozen value |
+| Field | Value |
 | --- | --- |
-| Model | `microsoft/Phi-3.5-mini-instruct` |
-| Revision | `2fe192450127e6a83f7441aef6e3ca586c338b77` |
-| Licence | MIT (confirmed on that revision’s `LICENSE`) |
+| Notebook URL | https://www.kaggle.com/code/mahdimzafari/rsna-knee-second-reader-gold-pilot |
+| Kernel slug | `mahdimzafari/rsna-knee-second-reader-gold-pilot` |
+| Latest execution | version 7, `KernelWorkerStatus.COMPLETE` |
+| Visibility | private |
+| Internet | disabled |
+| Accelerator | `NvidiaTeslaT4` |
+| GPU observed | Tesla T4, CUDA 7.5 |
+| Competition source | `rsna-knee-abnormality-detection` |
+| Dataset source | `mahdimzafari/cursor-knee-source` |
+| Model source | `richolson/phi-3.5-mini-instruct/pyTorch/default/1` |
+| DATA_SOURCE | `real_kaggle_mount` |
+| scientific_evaluation | `true` |
+| inference_backend | `local_transformers` |
+| n_gold_studies | 58 |
+| n_report_only_studies_processed | 0 |
+| n_report_only_studies_refused | 4349 |
+| download_weights | `false` |
+| internet_used | `false` |
+| training_run / folds / leaderboard | `false` / `false` / `false` |
+| wall_seconds | 2739.7 |
+| mean_seconds_per_study | 47.2 |
+| gpu_memory_bytes | 6368627712 |
+| malformed_output_rate | 1.0 (58/58) |
 
-### Checksum comparison (metadata only; files not downloaded)
+Freeze hashes were written with `metrics_computed: false` before scoring.
+On-Kaggle SHA-256 values for both weight shards, `config.json`,
+`tokenizer_config.json`, and `tokenizer.model` matched the frozen table.
 
-Hugging Face tree API for revision `2fe192450127e6a83f7441aef6e3ca586c338b77`
-(2026-09-14). LFS oid is the SHA-256 of the blob.
+Earlier kernel versions did not produce scientific metrics:
 
-| File | Frozen recorded SHA-256 | Published LFS oid / note | Match |
-| --- | --- | --- | --- |
-| `model-00001-of-00002.safetensors` | `c5214cdb995ed3dd716add8d9efbfe016b76bb2f1c4c1c6a95497d7a8837` (60 hex) | `c5214cdb995ed3dd716add8d9efbfe016b76bb2f1c4c1e6c1c6a95497d7a8837` (64 hex) | **NO** |
-| `model-00002-of-00002.safetensors` | `41246eed2b75b66526339c5d32d6f7acdefe0bd24180f97c74303f4656877344` | `41246eed2b75b66526339c5d32d6f7acdefe0bd24180f97c74303f4656877344` | YES |
-| `tokenizer.model` | not recorded in the frozen pilot yaml | `9e556afd44213b6bd1be2b850ebbbd98f5481437a8021afaf58ee7fb1818d347` | n/a |
-| `config.json` | not recorded | git blob `62d1ca8d4b3c8ab21ac9a30775e1a224be66ef58`, size 3451 | n/a |
-| `tokenizer.json` | not recorded | git blob `e213d846868b09aefa5225e6026d91b41e19e7ff`, size 1844408 | n/a |
-| `tokenizer_config.json` | not recorded | git blob `7280c871b0d18a2a03000fb8d638983793aa33e1`, size 3984 | n/a |
+- version 1 aborted on `assert_hard_weak_label_training_forbidden`
+- version 3 failed to resolve relative prompt paths from `/kaggle/working`
+- version 4 hit P100 CUDA sm_60 incompatibility (later runs requested T4)
+- version 5 wrapped a tokenizer `BatchEncoding` as `input_ids`
+- version 6 mixed 2024 `modeling_phi3.py` with a newer cache API, then a
+  12-hour session with KV cache disabled was cancelled
 
-The frozen shard-1 digest is four hex characters short of SHA-256 and is not
-equal to the published LFS oid. `_verify_shards` compares full strings, so
-any authentic copy of this revision would be refused. Protocol: stop without
-inference; do not substitute another model or revision; do not download
-unverified weights.
+Version 7 used native Phi-3 weights, KV cache, and T4. Progress logs
+printed study counts only (`1/58` … `58/58`), not report text.
 
-### Kaggle snapshot search (no weight download)
+Private row-level CSVs were not downloaded into Cursor. Their SHA-256
+hashes are in the comparison report.
 
-`mahdimzafari` has **no** Kaggle Model for this snapshot. Existing private
-dataset `mahdimzafari/cursor-knee-source` is source ZIP only.
+Coordinator gates were not changed:
 
-Closest public Kaggle Model with matching **weight file sizes**:
-`richolson/phi-3.5-mini-instruct/pyTorch/default/1` (created 2024-09-21,
-MIT, files include both `model-0000{1,2}-of-00002.safetensors` at
-4972489328 and 2669692552 bytes). README.md is 48266 bytes vs 48686 bytes
-on revision `2fe19245`, so this instance is **not** proven to be that git
-revision. Shard SHA-256 values were **not** computed (weights not
-downloaded).
+- `NOT_READY_FOR_HARD_WEAK_LABEL_TRAINING`
+- `READY_FOR_SELECTIVE_LABEL_REFINEMENT`
+- `NOT_READY_TO_SCALE_SECOND_READER_TO_REPORT_ONLY`
 
-GGUF / other Phi-3.5 listings (`paultimothymooney/phi-3.5-mini-instruct`,
-`Microsoft/phi-3`) are the wrong format or the wrong model family.
-
-## What was not run
-
-- `n_gold_studies_processed`: 0 (required 58)
-- `n_report_only_studies_processed`: 0
-- `scientific_evaluation`: `false`
-- `internet_used`: `false`
-- `download_weights`: `false`
-- image training / image folds / competition submission: not run
-- freeze hashes were not recorded on Kaggle before metrics (no metrics)
-
-## Single manual action required
-
-Correct the frozen `model-00001-of-00002.safetensors` SHA-256 in
-`reports/second_reader_model_compliance.md` and
-`configs/second_reader_pilot.yaml` to the published 64-character LFS oid
-for the **same** model and revision:
-
-`c5214cdb995ed3dd716add8d9efbfe016b76bb2f1c4c1e6c1c6a95497d7a8837`
-
-Do not change the model id or revision. After that correction, re-run this
-gold-pilot task so a Kaggle snapshot can be attached and every
-weight/config/tokenizer checksum verified **before** inference.
+Do not process the 4,349 report-only studies. Model-only predictions are
+not training labels. All twelve strict-agreement targets are `PILOT_FAIL`
+because every second-reader output was malformed JSON.
 
 ## Cursor
 

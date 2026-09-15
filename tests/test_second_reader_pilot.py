@@ -338,7 +338,7 @@ def test_notebook_is_offline_gpu_and_gold_only():
     assert kaggle_meta.get("gpu") is True
 
 
-def test_committed_pilot_reports_are_sanitized_and_not_scientific():
+def test_committed_pilot_reports_are_sanitized():
     for relative in (
         "reports/second_reader_model_compliance.md",
         "reports/second_reader_pilot_protocol.md",
@@ -354,10 +354,13 @@ def test_committed_pilot_reports_are_sanitized_and_not_scientific():
             assert patient not in text
         assert "kaggle.json" not in text.lower()
     comparison = (REPO_ROOT / "reports" / "second_reader_gold_pilot_comparison.md").read_text()
-    assert "scientific_evaluation: `false`" in comparison.lower()
-    assert "SOFTWARE FIXTURE" in comparison
-    assert "4,349" in comparison or "4349" in comparison
+    assert "scientific_evaluation: `true`" in comparison.lower()
+    assert "PILOT_FAIL" in comparison
+    assert "malformed_output_rate: 1.0" in comparison
+    assert "n_gold_studies: 58" in comparison
     assert "n_report_only_studies_processed: 0" in comparison
+    assert "4,349" in comparison or "4349" in comparison
+    assert "Tesla T4" in comparison
     from knee.kaggle_bundle import sha256_file
     from knee.config import PROJECT_ROOT
     for rel, digest in (

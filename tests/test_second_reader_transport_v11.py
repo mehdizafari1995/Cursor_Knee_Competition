@@ -177,4 +177,3 @@ def test_committed_canary_report_stops_gold_rerun():
     assert "malformed_output_rate: 1.0" in text
     assert "Do not rerun the 58-study gold pilot" in text
     assert "PILOT_EXECUTION_FAIL" in text
-

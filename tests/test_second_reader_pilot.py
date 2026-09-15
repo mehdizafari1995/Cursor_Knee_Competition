@@ -328,6 +328,7 @@ def test_notebook_is_offline_gpu_and_gold_only():
     assert "run_second_reader_gold_pilot" in source
     assert "_walk_input_for_source" in source
     assert "literature/ontology.yaml" in source
+    assert "second_reader_pilot_v1_1.yaml" in source
     assert "HARD_WEAK_LABEL_TRAINING_ALLOWED" in source
     assert "SCALE_TO_REPORT_ONLY_SECOND_READER_ALLOWED" in source
     assert "assert_hard_weak_label_training_forbidden" not in source
@@ -344,6 +345,7 @@ def test_committed_pilot_reports_are_sanitized():
         "reports/second_reader_pilot_protocol.md",
         "reports/second_reader_gold_pilot_comparison.md",
         "reports/kaggle_second_reader_pilot_run.md",
+        "reports/second_reader_v7_execution_fail.md",
     ):
         text = (REPO_ROOT / relative).read_text(encoding="utf-8")
         assert REPORT_LABEL_LEAK_TOKEN not in text
@@ -354,8 +356,9 @@ def test_committed_pilot_reports_are_sanitized():
             assert patient not in text
         assert "kaggle.json" not in text.lower()
     comparison = (REPO_ROOT / "reports" / "second_reader_gold_pilot_comparison.md").read_text()
-    assert "scientific_evaluation: `true`" in comparison.lower()
-    assert "PILOT_FAIL" in comparison
+    assert "scientific_evaluation: `true`" in comparison.lower() or "real_data_execution: `true`" in comparison.lower()
+    assert "PILOT_EXECUTION_FAIL" in comparison
+    assert "scientific_performance_evaluable: `false`" in comparison.lower()
     assert "malformed_output_rate: 1.0" in comparison
     assert "n_gold_studies: 58" in comparison
     assert "n_report_only_studies_processed: 0" in comparison

@@ -1,0 +1,96 @@
+# Phase 4C.1 gold-only second-reader pilot, transport/parser protocol v1.1.
+# v1.0 config in configs/second_reader_pilot.yaml is frozen and unchanged.
+# Clinical schema, model revision, and weight hashes are unchanged.
+pilot_version: second-reader-pilot-v1.1.0
+eval_protocol_version: gold-pilot-v1.1.0
+transport_protocol_version: second-reader-transport-v1.1
+extractor_version: report-labeler-v2.0.0
+prompt_version: second-reader-prompt-v1.1.0
+schema_version: second-reader-schema-v1.0.0
+ontology_version: pilot-1.0
+ontology_path: literature/ontology.yaml
+prompt_path: configs/second_reader_prompt_v1_1.yaml
+schema_path: configs/second_reader_schema.json
+v1_0_config_path: configs/second_reader_pilot.yaml
+v1_0_prompt_path: configs/second_reader_prompt.yaml
+rules_documented_in: reports/second_reader_model_compliance.md
+
+gold_only: true
+process_report_only_studies: false
+n_gold_studies_expected: 58
+n_report_only_studies_forbidden: 4349
+unknown_policy: never_impute_as_negative
+gold_labels_in_reader: forbidden
+model_only_labels_are_not_training_labels: true
+internet_required: false
+download_weights: false
+gpu_required: true
+training_run: false
+folds_created: false
+preserve_v1_0_failed_run: true
+
+compliance:
+  passed: true
+  report: reports/second_reader_model_compliance.md
+  selected_model_id: microsoft/Phi-3.5-mini-instruct
+  note: >
+    Compliance passed for attaching checksummed local weights. This flag does
+    not authorize a Hugging Face or other network download. Model revision and
+    shard hashes are identical to the frozen v1.0 gold-pilot snapshot.
+
+bootstrap:
+  n_resamples: 1000
+  ci_level: 0.95
+  seed: 42
+  unit: study
+
+decoding:
+  max_new_tokens: 2048
+  temperature: 0.0
+  do_sample: false
+  top_p: 1.0
+  repetition_penalty: 1.0
+  decode_slice: "generated_ids[:, input_ids.shape[1]:]"
+  add_generation_prompt: true
+
+selected_model:
+  id: microsoft/Phi-3.5-mini-instruct
+  revision: 2fe192450127e6a83f7441aef6e3ca586c338b77
+  license: MIT
+  parameter_count: 3821079552
+  quantization: none
+  dtype: float16
+  expected_gpu_memory_gb: 8.0
+  source: https://huggingface.co/microsoft/Phi-3.5-mini-instruct
+  kaggle_attachment: Kaggle Model or private dataset of the same revision
+  local_files_only: true
+  trust_remote_code: true
+  weights_path: null
+  shard_sha256:
+    model-00001-of-00002.safetensors: c5214cdb995ed3dd716add8d9efbfe016b76bb2f1c4c1e6c1c6a95497d7a8837
+    model-00002-of-00002.safetensors: 41246eed2b75b66526339c5d32d6f7acdefe0bd24180f97c74303f4656877344
+  file_sha256:
+    config.json: 224de4f6a15b9d2a89695ec04b7f7ab2dd93a008a506979925e5a88cb5804974
+    tokenizer_config.json: 92a6e3f894075fda19f47d8755c6ce65b2a974716307d13ae5d79196011ebb44
+    tokenizer.model: 9e556afd44213b6bd1be2b850ebbbd98f5481437a8021afaf58ee7fb1818d347
+
+acceptance:
+  min_positive_precision: 0.85
+  min_npv: 0.85
+  min_precision_ci_low: 0.70
+  min_npv_ci_low: 0.70
+  max_malformed_rate: 0.05
+  small_n_cannot_pass: true
+  small_n_gold_positive_max: 11
+  coverage_is_not_a_pass_gate: true
+  do_not_hide_abstentions_in_sensitivity: true
+  prioritize:
+    - positive_precision
+    - npv
+  primary_system: strict_agreement
+
+second_reader:
+  enabled: true
+  download_weights: false
+  internet_required: false
+  combiner: strict_agreement

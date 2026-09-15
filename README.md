@@ -76,9 +76,11 @@ comparison. Do not treat weak labels as hard gold.
 
 Phase 4C adds `notebooks/04_kaggle_second_reader_gold_pilot.ipynb` for an
 offline GPU second-reader pilot on the 58 gold studies only (internet off).
-See `reports/second_reader_pilot_protocol.md`. Do not process the 4,349
-report-only studies. Coordinator gate:
-`NOT_READY_TO_SCALE_SECOND_READER_TO_REPORT_ONLY`.
+See `reports/second_reader_pilot_protocol.md`. Kernel version 7 is
+`PILOT_EXECUTION_FAIL` (malformed JSON, not a clinical conclusion).
+Protocol v1.1 requires `notebooks/05_kaggle_second_reader_synthetic_canary.ipynb`
+before any new gold run. Do not process the 4,349 report-only studies.
+Coordinator gate: `NOT_READY_TO_SCALE_SECOND_READER_TO_REPORT_ONLY`.
 
 Outputs are written to `outputs/`:
 

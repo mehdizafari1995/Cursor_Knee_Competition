@@ -55,7 +55,8 @@ from .report_second_reader import (
     run_second_reader,
     verify_attached_snapshot,
 )
-from .second_reader_acceptance import decide_all_pilot_targets
+from .second_reader_acceptance import decide_all_pilot_targets, decide_execution_status
+from .second_reader_parser import MALFORMED_STAGES
 from .second_reader_consensus import strict_agreement
 from .second_reader_eval import evaluate_system_against_gold
 from .second_reader_schema import (
@@ -78,6 +79,7 @@ SANITIZED_METRICS_FILENAME = "second_reader_gold_metrics.json"
 SANITIZED_FREEZE_FILENAME = "freeze_manifest.json"
 SANITIZED_RUNTIME_FILENAME = "runtime_metrics.json"
 SANITIZED_ACCEPTANCE_FILENAME = "pilot_acceptance.json"
+SANITIZED_DIAGNOSTICS_FILENAME = "generation_diagnostics.json"
 
 
 class ReportOnlyScaleError(RuntimeError):
@@ -155,6 +157,9 @@ def freeze_manifest(config: dict, *, prompt: dict) -> dict:
         "process_report_only_studies": False,
         "download_weights": False,
         "internet_required": False,
+        "transport_protocol_version": config.get("transport_protocol_version"),
+        "decode_slice": (decoding.get("decode_slice") or "generated_ids[:, input_ids.shape[1]:]"),
+        "add_generation_prompt": bool(decoding.get("add_generation_prompt", True)),
     }
 
 
@@ -181,8 +186,18 @@ def _reader_row(study_id: str, result) -> dict[str, Any]:
     )
     row["malformed"] = bool(result.malformed)
     row["malformed_reason"] = result.malformed_reason
+    row["malformed_stage"] = result.malformed_stage or ("ok" if not result.malformed else "other")
     row["inference_backend"] = result.inference_backend
     row["skipped_reason"] = result.skipped_reason
+    gen = result.generation
+    row["n_generated_tokens"] = gen.n_generated_tokens
+    row["reached_max_new_tokens"] = gen.reached_max_new_tokens
+    row["ended_with_eos"] = gen.ended_with_eos
+    row["begins_with_brace"] = gen.begins_with_brace
+    row["contains_balanced_json"] = gen.contains_balanced_json
+    row["markdown_json_fence_only"] = gen.markdown_json_fence_only
+    row["completion_sha256"] = gen.completion_sha256
+    row["raw_was_stored"] = False
     for key, pred in result.predictions.items():
         official = TARGET_KEY_TO_OFFICIAL[key]
         row[official] = label_to_float(pred.label)
@@ -271,6 +286,7 @@ def render_pilot_summary(
     hashes: dict,
     n_gold: int,
     n_report_only_refused: int,
+    execution: dict | None = None,
 ) -> str:
     lines = [
         "# Second-reader gold-pilot comparison",
@@ -299,8 +315,24 @@ def render_pilot_summary(
         f"- training_run: `false`",
         f"- folds_created: `false`",
         f"- freeze_before_metrics: `{str(not freeze.get('metrics_computed', True)).lower()}`",
+        f"- transport_protocol_version: `{freeze.get('transport_protocol_version') or 'second-reader-transport-v1.0'}`",
         "",
     ]
+    if execution:
+        lines.extend(
+            [
+                "## Execution status",
+                "",
+                f"- status: `{execution.get('status')}`",
+                f"- real_data_execution: `{str(execution.get('real_data_execution')).lower()}`",
+                f"- scientific_performance_evaluable: `{str(execution.get('scientific_performance_evaluable')).lower()}`",
+                f"- reason: {execution.get('reason') or 'none'}",
+                f"- n_gold_studies_processed: {execution.get('n_gold_studies_processed')}",
+                f"- n_valid_second_reader_outputs: {execution.get('n_valid_second_reader_outputs')}",
+                f"- n_report_only_studies_processed: {execution.get('n_report_only_studies_processed')}",
+                "",
+            ]
+        )
     if not scientific_evaluation:
         lines.extend(
             [
@@ -583,6 +615,18 @@ def run_second_reader_gold_pilot(
         config=config,
     )
     gpu_info = _gpu_runtime_info()
+    n_malformed = int(sum(malformed_flags))
+    n_valid = int(len(gold_ids) - n_malformed)
+    malformed_rate = float(np.mean(malformed_flags) if malformed_flags else 0.0)
+    execution = decide_execution_status(
+        n_gold_studies_processed=len(gold_ids),
+        n_valid_second_reader_outputs=n_valid,
+        n_report_only_studies_processed=0,
+        malformed_output_rate=malformed_rate,
+        real_data_execution=bool(scientific),
+    )
+    if not execution.get("scientific_performance_evaluable"):
+        scientific = False
     runtime = {
         "n_studies_scored": len(gold_ids),
         "wall_seconds": wall,
@@ -592,13 +636,59 @@ def run_second_reader_gold_pilot(
         "cuda_capability": gpu_info.get("cuda_capability"),
         "cuda_kernels_usable": gpu_info.get("cuda_kernels_usable"),
         "inference_backend": backend,
-        "malformed_output_rate": float(np.mean(malformed_flags) if malformed_flags else 0.0),
-        "n_malformed_studies": int(sum(malformed_flags)),
+        "malformed_output_rate": malformed_rate,
+        "n_malformed_studies": n_malformed,
+        "n_valid_second_reader_outputs": n_valid,
+        "execution_status": execution.get("status"),
+        "scientific_performance_evaluable": execution.get("scientific_performance_evaluable"),
+    }
+    token_counts = [int(row.get("n_generated_tokens") or 0) for row in reader_rows]
+    stage_counts = {stage: 0 for stage in MALFORMED_STAGES}
+    for row in reader_rows:
+        if not row.get("malformed"):
+            continue
+        stage = row.get("malformed_stage") or "other"
+        if stage in stage_counts:
+            stage_counts[stage] += 1
+        else:
+            stage_counts["other"] += 1
+    diagnostics = {
+        "n_gold_studies_processed": len(gold_ids),
+        "n_valid_second_reader_outputs": n_valid,
+        "n_report_only_studies_processed": 0,
+        "n_generated_tokens_min": int(min(token_counts) if token_counts else 0),
+        "n_generated_tokens_median": float(np.median(token_counts) if token_counts else 0.0),
+        "n_generated_tokens_max": int(max(token_counts) if token_counts else 0),
+        "configured_max_new_tokens": int((config.get("decoding") or {}).get("max_new_tokens") or 0),
+        "n_reaching_max_new_tokens": int(sum(bool(row.get("reached_max_new_tokens")) for row in reader_rows)),
+        "n_ending_with_eos": int(sum(bool(row.get("ended_with_eos")) for row in reader_rows)),
+        "n_beginning_with_brace": int(sum(bool(row.get("begins_with_brace")) for row in reader_rows)),
+        "n_containing_balanced_json": int(sum(bool(row.get("contains_balanced_json")) for row in reader_rows)),
+        "n_markdown_json_fence_only": int(sum(bool(row.get("markdown_json_fence_only")) for row in reader_rows)),
+        "malformed_stage_counts": stage_counts,
+        "completion_sha256_sorted": sorted(str(row.get("completion_sha256") or "") for row in reader_rows),
+        "raw_completions_stored": False,
+        "decode_slice": "generated_ids[:, input_ids.shape[1]:]",
     }
     write_private_csv(det_pred, private_dir / PRIVATE_DET_FILENAME)
     write_private_csv(reader_frame, private_dir / PRIVATE_READER_FILENAME)
     write_private_csv(consensus_frame, private_dir / PRIVATE_CONSENSUS_FILENAME)
-    status_cols = [STUDY_ID_COLUMN, "malformed", "malformed_reason", "inference_backend", "skipped_reason"]
+    status_cols = [
+        STUDY_ID_COLUMN,
+        "malformed",
+        "malformed_reason",
+        "malformed_stage",
+        "inference_backend",
+        "skipped_reason",
+        "n_generated_tokens",
+        "reached_max_new_tokens",
+        "ended_with_eos",
+        "begins_with_brace",
+        "contains_balanced_json",
+        "markdown_json_fence_only",
+        "completion_sha256",
+        "raw_was_stored",
+    ]
     write_private_csv(reader_frame.loc[:, [c for c in status_cols if c in reader_frame.columns]], private_dir / PRIVATE_STATUS_FILENAME)
 
     hashes = {}
@@ -618,6 +708,10 @@ def run_second_reader_gold_pilot(
     ]
     if not scientific:
         warnings.append("scientific_evaluation=false; do not quote as 58-study performance.")
+    if execution.get("status") == "PILOT_EXECUTION_FAIL":
+        warnings.append(
+            "PILOT_EXECUTION_FAIL: output-format failure, not a clinical-performance conclusion."
+        )
     summary = render_pilot_summary(
         freeze=freeze,
         comparisons=comparisons,
@@ -629,6 +723,7 @@ def run_second_reader_gold_pilot(
         hashes=hashes,
         n_gold=len(gold_ids),
         n_report_only_refused=n_report_only,
+        execution=execution,
     )
     summary_path = sanitized_dir / SANITIZED_SUMMARY_FILENAME
     metrics_path = sanitized_dir / SANITIZED_METRICS_FILENAME
@@ -636,12 +731,14 @@ def run_second_reader_gold_pilot(
     runtime_path = sanitized_dir / SANITIZED_RUNTIME_FILENAME
     hashes_path = sanitized_dir / SANITIZED_HASHES_FILENAME
     freeze_path = sanitized_dir / SANITIZED_FREEZE_FILENAME
+    diagnostics_path = sanitized_dir / SANITIZED_DIAGNOSTICS_FILENAME
     summary_path.write_text(summary, encoding="utf-8")
     metrics_path.write_text(json.dumps(jsonable(comparisons), indent=2, sort_keys=True) + "\n")
     acceptance_path.write_text(json.dumps(jsonable(acceptance), indent=2, sort_keys=True) + "\n")
     runtime_path.write_text(json.dumps(jsonable(runtime), indent=2, sort_keys=True) + "\n")
     hashes_path.write_text(json.dumps(hashes, indent=2, sort_keys=True) + "\n")
     freeze_path.write_text(json.dumps(freeze_after, indent=2, sort_keys=True) + "\n")
+    diagnostics_path.write_text(json.dumps(jsonable(diagnostics), indent=2, sort_keys=True) + "\n")
 
     sanitized_files = [
         summary_path,
@@ -650,6 +747,7 @@ def run_second_reader_gold_pilot(
         runtime_path,
         hashes_path,
         freeze_path,
+        diagnostics_path,
     ]
     assert_no_report_text(sanitized_files, snippets)
     try:
@@ -660,7 +758,11 @@ def run_second_reader_gold_pilot(
     return {
         "status": "ok",
         "scientific_evaluation": scientific,
-        "claim_scientific_performance": scientific,
+        "claim_scientific_performance": scientific and bool(execution.get("scientific_performance_evaluable")),
+        "scientific_performance_evaluable": bool(execution.get("scientific_performance_evaluable")),
+        "real_data_execution": bool(execution.get("real_data_execution")),
+        "execution_status": execution.get("status"),
+        "n_valid_second_reader_outputs": n_valid,
         "data_source": source,
         "output_dir": str(out_dir),
         "n_gold_studies": len(gold_ids),

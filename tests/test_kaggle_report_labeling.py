@@ -206,6 +206,7 @@ def test_committed_phase4_reports_have_no_identifiers_or_report_tokens():
         "reports/second_reader_pilot_protocol.md",
         "reports/second_reader_gold_pilot_comparison.md",
         "reports/kaggle_second_reader_pilot_run.md",
+        "reports/second_reader_v7_execution_fail.md",
     ):
         text = (REPO_ROOT / relative).read_text(encoding="utf-8")
         assert REPORT_LABEL_LEAK_TOKEN not in text

@@ -117,6 +117,11 @@ Cursor runs **fixture** tests only (`generate_fn`, no weights). The real
 58-study GPU run is `notebooks/04_kaggle_second_reader_gold_pilot.ipynb`
 (internet off, GPU on). Retrieve sanitized aggregates and hashes only.
 
+Kernel version 7 is an immutable `PILOT_EXECUTION_FAIL` (all 58 second-reader
+outputs malformed). Protocol v1.1 (`second-reader-transport-v1.1`) must pass
+the synthetic canary `notebooks/05_kaggle_second_reader_synthetic_canary.ipynb`
+before any new gold notebook version. Do not process report-only studies.
+
 ## 8. Out of scope
 
 - image-model training

@@ -14,12 +14,19 @@ from .config import PROJECT_ROOT, TARGET_KEYS, TARGET_NAMES, TARGET_KEY_TO_OFFIC
 
 SCHEMA_VERSION = "second-reader-schema-v1.0.0"
 PROMPT_VERSION = "second-reader-prompt-v1.0.0"
+PROMPT_VERSION_V1_1 = "second-reader-prompt-v1.1.0"
 PILOT_VERSION = "second-reader-pilot-v1.0.0"
+PILOT_VERSION_V1_1 = "second-reader-pilot-v1.1.0"
 EVAL_PROTOCOL_VERSION = "gold-pilot-v1.0.0"
+EVAL_PROTOCOL_VERSION_V1_1 = "gold-pilot-v1.1.0"
+TRANSPORT_PROTOCOL_VERSION_V1 = "second-reader-transport-v1.0"
+TRANSPORT_PROTOCOL_VERSION_V1_1 = "second-reader-transport-v1.1"
 ONTOLOGY_VERSION = "pilot-1.0"
 DEFAULT_SCHEMA_PATH = PROJECT_ROOT / "configs" / "second_reader_schema.json"
 DEFAULT_PROMPT_PATH = PROJECT_ROOT / "configs" / "second_reader_prompt.yaml"
+DEFAULT_PROMPT_PATH_V1_1 = PROJECT_ROOT / "configs" / "second_reader_prompt_v1_1.yaml"
 DEFAULT_PILOT_CONFIG_PATH = PROJECT_ROOT / "configs" / "second_reader_pilot.yaml"
+DEFAULT_PILOT_CONFIG_PATH_V1_1 = PROJECT_ROOT / "configs" / "second_reader_pilot_v1_1.yaml"
 
 STATUSES = ("positive", "negative", "uncertain", "not_mentioned")
 CONFIDENCE_CATEGORIES = ("high", "medium", "low")
@@ -146,6 +153,25 @@ def json_schema() -> dict:
             },
         },
     }
+
+
+def compact_target_record() -> dict[str, str]:
+    """Format-only skeleton. Not a clinical default and not a negative label."""
+    return {
+        "status": "not_mentioned",
+        "confidence": "low",
+        "evidence_category": "not_mentioned",
+        "uncertainty_or_negation_category": "not_mentioned",
+    }
+
+
+def compact_output_skeleton() -> str:
+    """One-line JSON showing the required keys. Values are format placeholders."""
+    payload = {
+        "schema_version": SCHEMA_VERSION,
+        "targets": {key: compact_target_record() for key in TARGET_KEYS},
+    }
+    return json.dumps(payload, separators=(",", ":"), ensure_ascii=True)
 
 
 def dump_schema(path: Path | None = None) -> dict:

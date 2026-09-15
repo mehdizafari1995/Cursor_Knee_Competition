@@ -3,6 +3,28 @@
 Sanitized aggregates only. Report text, StudyInstanceUID values, and
 PatientID values are not included. Chain-of-thought is not stored.
 
+## Kernel version 7 (immutable) — `PILOT_EXECUTION_FAIL`
+
+This is an output-format failure, not a clinical-performance conclusion.
+Do not overwrite or remove kernel version 7.
+
+- status: `PILOT_EXECUTION_FAIL`
+- real_data_execution: `true`
+- scientific_performance_evaluable: `false`
+- reason: all second-reader outputs malformed
+- n_gold_studies_processed: 58
+- n_valid_second_reader_outputs: 0
+- n_report_only_studies_processed: 0
+- malformed stage: `schema_validation_error` (`targets_not_object`) for 58/58
+- raw completions stored: `false`
+- transport_protocol: `second-reader-transport-v1.0`
+
+Details: `reports/second_reader_v7_execution_fail.md`.
+
+The tables below are the original version-7 sanitized metrics. Second-reader
+and strict-agreement coverage are zero because every model output was
+malformed JSON. They are not a clinical ranking of the twelve targets.
+
 - pilot_version: `second-reader-pilot-v1.0.0`
 - eval_protocol_version: `gold-pilot-v1.0.0`
 - extractor_version: `report-labeler-v2.0.0`

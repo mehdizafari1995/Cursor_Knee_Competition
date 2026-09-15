@@ -5,13 +5,22 @@ Operator record. Scientific metrics live in
 StudyInstanceUID values, and PatientID values are not included.
 
 `KAGGLE_API_TOKEN_present: True`. Weights were not downloaded in Cursor.
-The private notebook ran with internet disabled and GPU enabled.
+Latest scientific gold execution remains version 7,
+`KernelWorkerStatus.COMPLETE`, recorded as `PILOT_EXECUTION_FAIL`.
+That version must stay immutable. Protocol v1.1 uses a separate synthetic
+canary kernel before any new gold notebook version.
 
 | Field | Value |
 | --- | --- |
 | Notebook URL | https://www.kaggle.com/code/mahdimzafari/rsna-knee-second-reader-gold-pilot |
 | Kernel slug | `mahdimzafari/rsna-knee-second-reader-gold-pilot` |
-| Latest execution | version 7, `KernelWorkerStatus.COMPLETE` |
+| Latest gold execution | version 7, `KernelWorkerStatus.COMPLETE`, `PILOT_EXECUTION_FAIL` |
+| real_data_execution | `true` |
+| scientific_performance_evaluable | `false` |
+| reason | all second-reader outputs malformed |
+| n_gold_studies_processed | 58 |
+| n_valid_second_reader_outputs | 0 |
+| n_report_only_studies_processed | 0 |
 | Visibility | private |
 | Internet | disabled |
 | Accelerator | `NvidiaTeslaT4` |
@@ -59,8 +68,10 @@ Coordinator gates were not changed:
 - `NOT_READY_TO_SCALE_SECOND_READER_TO_REPORT_ONLY`
 
 Do not process the 4,349 report-only studies. Model-only predictions are
-not training labels. All twelve strict-agreement targets are `PILOT_FAIL`
-because every second-reader output was malformed JSON.
+not training labels. Kernel version 7 is `PILOT_EXECUTION_FAIL` because
+every second-reader output was malformed JSON (`targets_not_object`). That
+is an output-format failure, not a clinical-performance conclusion.
+See `reports/second_reader_v7_execution_fail.md`.
 
 ## Cursor
 

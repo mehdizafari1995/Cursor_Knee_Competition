@@ -14,12 +14,18 @@ from pathlib import Path
 from typing import Any, Callable
 
 from .config import PROJECT_ROOT, TARGET_KEYS
-from .second_reader_parser import ParsedSecondReaderOutput, parse_second_reader_output
+from .second_reader_parser import (
+    GenerationDiagnostics,
+    ParsedSecondReaderOutput,
+    diagnostics_from_text,
+    parse_second_reader_output,
+)
 from .second_reader_schema import (
     CONFIDENCE_TO_FLOAT,
     DEFAULT_PROMPT_PATH,
     FORBIDDEN_OUTPUT_KEYS,
     STATUS_TO_LABEL,
+    compact_output_skeleton,
 )
 
 LABEL_POSITIVE = "positive"
@@ -114,6 +120,8 @@ class SecondReaderResult:
     inference_backend: str = "skipped"
     prompt_version: str | None = None
     schema_version: str | None = None
+    generation: GenerationDiagnostics = field(default_factory=GenerationDiagnostics)
+    malformed_stage: str = ""
 
 
 GenerateFn = Callable[[str], str]
@@ -240,7 +248,8 @@ def load_prompt_bundle(path: str | Path | None = None) -> dict:
 def render_user_prompt(report: str, *, prompt: dict | None = None) -> str:
     bundle = prompt if prompt is not None else load_prompt_bundle()
     template = str(bundle.get("user_template") or "")
-    return template.replace("{report}", report or "")
+    filled = template.replace("{compact_json_skeleton}", compact_output_skeleton())
+    return filled.replace("{report}", report or "")
 
 
 def _predictions_from_parsed(
@@ -402,6 +411,11 @@ def _generate_with_transformers(
                 inputs[key] = encoded[key]
     if "input_ids" not in inputs:
         inputs = {"input_ids": encoded}
+    if hasattr(inputs["input_ids"], "dim") and inputs["input_ids"].dim() == 1:
+        inputs["input_ids"] = inputs["input_ids"].unsqueeze(0)
+        if "attention_mask" in inputs and hasattr(inputs["attention_mask"], "dim"):
+            if inputs["attention_mask"].dim() == 1:
+                inputs["attention_mask"] = inputs["attention_mask"].unsqueeze(0)
     model_device = getattr(model, "device", None)
     if model_device is None:
         try:
@@ -423,11 +437,31 @@ def _generate_with_transformers(
     if do_sample:
         generate_kwargs["temperature"] = float(decoding.get("temperature") or 0.0) or 1e-5
         generate_kwargs["top_p"] = float(decoding.get("top_p") or 1.0)
+    generate_kwargs["eos_token_id"] = tokenizer.eos_token_id
     with torch.no_grad():
         output_ids = model.generate(**inputs, **generate_kwargs)
-    prompt_len = inputs["input_ids"].shape[-1]
-    generated = tokenizer.decode(output_ids[0][prompt_len:], skip_special_tokens=True)
-    return generated
+    input_ids = inputs["input_ids"]
+    generated_ids = output_ids[:, input_ids.shape[1]:]
+    generated = tokenizer.decode(generated_ids[0], skip_special_tokens=True)
+    n_new = int(generated_ids.shape[-1])
+    max_new = int(generate_kwargs["max_new_tokens"])
+    last_id = int(generated_ids[0, -1]) if n_new else None
+    eos_ids = {tokenizer.eos_token_id, pad_token_id}
+    try:
+        end_id = tokenizer.convert_tokens_to_ids("<|end|>")
+    except Exception:
+        end_id = None
+    if end_id is not None:
+        eos_ids.add(end_id)
+    ended_eos = last_id in eos_ids if last_id is not None else False
+    diag = diagnostics_from_text(
+        generated,
+        max_new_tokens=max_new,
+        n_generated_tokens=n_new,
+        reached_max_new_tokens=n_new >= max_new,
+        ended_with_eos=ended_eos,
+    )
+    return generated, diag
 
 
 def run_second_reader(
@@ -499,7 +533,14 @@ def run_second_reader(
     backend = "fixture_generate_fn" if generate_fn is not None else "local_transformers"
     if generate_fn is not None:
         text = generate_fn(report)
-        parsed = parse_second_reader_output(text)
+        decoding_cfg = cfg.get("decoding") or root_cfg.get("decoding") or {}
+        parsed = parse_second_reader_output(
+            text,
+            generation=diagnostics_from_text(
+                text,
+                max_new_tokens=int(decoding_cfg.get("max_new_tokens") or 0),
+            ),
+        )
     else:
         assert_compliance_allows_load(root_cfg if root_cfg.get("compliance") else {"compliance": cfg.get("compliance"), **cfg})
         directory = locate_weights_directory(cfg, weights_path)
@@ -530,7 +571,7 @@ def run_second_reader(
         if prompt_bundle is None:
             raise RuntimeError("frozen prompt is required before loading weights")
         try:
-            text = _generate_with_transformers(
+            text, gen_diag = _generate_with_transformers(
                 report, weights_dir=directory, cfg=root_cfg if "decoding" in root_cfg else cfg, prompt=prompt_bundle
             )
         except RuntimeError as exc:
@@ -546,12 +587,13 @@ def run_second_reader(
                     weights_sha256=weights_digest,
                     malformed=True,
                     malformed_reason="transformers_unavailable",
+                    malformed_stage="other",
                     inference_backend="skipped",
                     prompt_version=prompt_version,
                     schema_version=schema_version,
                 )
             raise
-        parsed = parse_second_reader_output(text)
+        parsed = parse_second_reader_output(text, generation=gen_diag)
 
     assert parsed is not None
     return SecondReaderResult(
@@ -567,6 +609,8 @@ def run_second_reader(
         inference_backend=backend,
         prompt_version=prompt_version,
         schema_version=schema_version,
+        generation=parsed.generation,
+        malformed_stage="" if parsed.ok else parsed.malformed_stage,
     )
 
 

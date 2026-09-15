@@ -156,3 +156,9 @@ Settings: **Internet off**, **GPU on**. Process the **58 gold studies only**.
 Do **not** process the 4,349 report-only studies. Do **not** train an image
 model or write image folds. Retrieve sanitized aggregates and private-file
 hashes only. See `reports/second_reader_pilot_protocol.md`.
+
+Kernel version 7 is `PILOT_EXECUTION_FAIL` and must remain immutable. Before
+another gold run, execute
+`notebooks/05_kaggle_second_reader_synthetic_canary.ipynb` (internet off,
+GPU on, synthetic reports only, no competition rows). If any canary output
+is malformed, stop.

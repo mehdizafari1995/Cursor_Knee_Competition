@@ -9,6 +9,42 @@ from .config import OFFICIAL_TARGET_COLUMNS
 STATUS_PASS = "PILOT_PASS"
 STATUS_RESTRICTED = "PILOT_RESTRICTED"
 STATUS_FAIL = "PILOT_FAIL"
+STATUS_EXECUTION_FAIL = "PILOT_EXECUTION_FAIL"
+
+
+def decide_execution_status(
+    *,
+    n_gold_studies_processed: int,
+    n_valid_second_reader_outputs: int,
+    n_report_only_studies_processed: int,
+    malformed_output_rate: float,
+    real_data_execution: bool,
+) -> dict[str, Any]:
+    """Run-level technical status. Not a clinical-performance conclusion."""
+    all_malformed = (
+        int(n_gold_studies_processed) > 0
+        and int(n_valid_second_reader_outputs) == 0
+        and float(malformed_output_rate) >= 1.0
+    )
+    if all_malformed:
+        return {
+            "status": STATUS_EXECUTION_FAIL,
+            "real_data_execution": bool(real_data_execution),
+            "scientific_performance_evaluable": False,
+            "reason": "all second-reader outputs malformed",
+            "n_gold_studies_processed": int(n_gold_studies_processed),
+            "n_valid_second_reader_outputs": int(n_valid_second_reader_outputs),
+            "n_report_only_studies_processed": int(n_report_only_studies_processed),
+        }
+    return {
+        "status": "PILOT_EXECUTED",
+        "real_data_execution": bool(real_data_execution),
+        "scientific_performance_evaluable": bool(real_data_execution),
+        "reason": "",
+        "n_gold_studies_processed": int(n_gold_studies_processed),
+        "n_valid_second_reader_outputs": int(n_valid_second_reader_outputs),
+        "n_report_only_studies_processed": int(n_report_only_studies_processed),
+    }
 
 SMALL_N_OFFICIAL = {"MCL", "Lateral OA", "Baker's"}
 

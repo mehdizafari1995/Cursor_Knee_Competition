@@ -93,6 +93,8 @@ python scripts/generate_weak_labels.py      # 4349 report-only studies; gitignor
 # notebooks/04_kaggle_second_reader_gold_pilot.ipynb
 # Do not process the 4,349 report-only studies. See
 # reports/second_reader_pilot_protocol.md
+# Phase 4C.1: diagnose v7 PILOT_EXECUTION_FAIL, v1.1 transport/parser,
+# notebooks/05_kaggle_second_reader_synthetic_canary.ipynb before any gold rerun.
 ```
 
 Run the whole suite, not one file. `tests/test_pipeline.py` covers the modelling
@@ -115,5 +117,7 @@ and per-target TRAINABLE / NOT_TRAINABLE statuses. It does not train an image
 model. Phase 4C adds an offline multilingual instruction-model second reader
 on the 58 gold studies only, with a frozen prompt/schema, structured-output
 parser, strict-agreement consensus, and PILOT_PASS / PILOT_RESTRICTED /
-PILOT_FAIL statuses. It does not process the 4,349 report-only studies and
+PILOT_FAIL statuses. Kernel version 7 is `PILOT_EXECUTION_FAIL` (all
+second-reader outputs malformed JSON). Protocol v1.1 repairs transport/parsing
+only. It does not process the 4,349 report-only studies and
 does not train an image model.

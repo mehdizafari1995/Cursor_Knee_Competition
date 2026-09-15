@@ -233,6 +233,7 @@ class TestScaffolding:
             "reports/second_reader_gold_pilot_comparison.md",
             "reports/kaggle_second_reader_pilot_run.md",
             "reports/second_reader_v7_execution_fail.md",
+            "reports/second_reader_synthetic_canary.md",
             "scripts/run_second_reader_pilot.py",
             "scripts/run_second_reader_canary.py",
             "reports/real_data_audit_summary.md",

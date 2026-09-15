@@ -166,3 +166,15 @@ def test_canary_notebook_is_offline_gpu_and_synthetic_only():
     kaggle_meta = meta.get("kaggle") or {}
     assert kaggle_meta.get("isInternetEnabled") is False
     assert kaggle_meta.get("gpu") is True
+
+
+def test_committed_canary_report_stops_gold_rerun():
+    text = (REPO_ROOT / "reports" / "second_reader_synthetic_canary.md").read_text(encoding="utf-8")
+    assert "CANARY_FAIL" in text
+    assert "stop_gold_rerun: `true`" in text
+    assert "n_gold_studies_processed: 0" in text
+    assert "n_report_only_studies_processed: 0" in text
+    assert "malformed_output_rate: 1.0" in text
+    assert "Do not rerun the 58-study gold pilot" in text
+    assert "PILOT_EXECUTION_FAIL" in text
+

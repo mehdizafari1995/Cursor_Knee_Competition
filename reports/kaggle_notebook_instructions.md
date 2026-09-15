@@ -162,3 +162,9 @@ another gold run, execute
 `notebooks/05_kaggle_second_reader_synthetic_canary.ipynb` (internet off,
 GPU on, synthetic reports only, no competition rows). If any canary output
 is malformed, stop.
+
+The Phase 4C.1 synthetic canary (kernel
+`mahdimzafari/rsna-knee-second-reader-synthetic-canary` version 1) is
+`CANARY_FAIL` (`malformed_output_rate=1.0`). Do not launch another gold
+notebook version from that result. See
+`reports/second_reader_synthetic_canary.md`.

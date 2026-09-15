@@ -8,7 +8,11 @@ StudyInstanceUID values, and PatientID values are not included.
 Latest scientific gold execution remains version 7,
 `KernelWorkerStatus.COMPLETE`, recorded as `PILOT_EXECUTION_FAIL`.
 That version must stay immutable. Protocol v1.1 uses a separate synthetic
-canary kernel before any new gold notebook version.
+canary kernel before any new gold notebook version. That canary
+(`mahdimzafari/rsna-knee-second-reader-synthetic-canary` version 1) is
+`CANARY_FAIL` (`malformed_output_rate=1.0`, 14 synthetic examples, 0 gold,
+0 report-only). Do not rerun the 58-study gold pilot from this result.
+See `reports/second_reader_synthetic_canary.md`.
 
 | Field | Value |
 | --- | --- |

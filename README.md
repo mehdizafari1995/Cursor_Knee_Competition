@@ -80,8 +80,9 @@ See `reports/second_reader_pilot_protocol.md`. Kernel version 7 is
 `PILOT_EXECUTION_FAIL` (malformed JSON, not a clinical conclusion).
 Protocol v1.1 requires `notebooks/05_kaggle_second_reader_synthetic_canary.ipynb`
 before any new gold run. Protocol v1.2 (`second-reader-transport-v1.2`) adds
-JSON-aware stopping; do not rerun gold until that canary is ok. Do not process
-the 4,349 report-only studies.
+JSON-aware stopping. Protocol v1.3 (`second-reader-prompt-v1.2.0`) is a
+prompt-only closed-enum correction; do not rerun gold until that canary is ok.
+Do not process the 4,349 report-only studies.
 Coordinator gate: `NOT_READY_TO_SCALE_SECOND_READER_TO_REPORT_ONLY`.
 
 Outputs are written to `outputs/`:

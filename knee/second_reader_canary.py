@@ -18,22 +18,30 @@ from .report_second_reader import (
     locate_weights_directory,
     run_second_reader,
 )
-from .second_reader_parser import MALFORMED_STAGES
+from .second_reader_parser import (
+    MALFORMED_STAGES,
+    aggregate_enum_violation_table,
+    container_conservation_holds,
+)
 from .second_reader_pilot import freeze_manifest, load_pilot_config
 from .second_reader_schema import (
-    DEFAULT_PILOT_CONFIG_PATH_V1_2,
+    DEFAULT_PILOT_CONFIG_PATH_V1_3,
     SCHEMA_VERSION,
+    allowed_enum_values,
     compact_output_skeleton,
 )
 from .second_reader_json_stop import PINNED_PHI35_TERMINATION
 
-CANARY_VERSION = "second-reader-synthetic-canary-v1.2"
+CANARY_VERSION = "second-reader-synthetic-canary-v1.3"
 CANARY_VERSION_V1_1 = "second-reader-synthetic-canary-v1.1"
+CANARY_VERSION_V1_2 = "second-reader-synthetic-canary-v1.2"
 KAGGLE_CANARY_OUTPUT_DIRNAME = "rsna_second_reader_synthetic_canary"
 SANITIZED_SUMMARY_FILENAME = "second_reader_synthetic_canary_summary.md"
 SANITIZED_METRICS_FILENAME = "second_reader_synthetic_canary.json"
 SANITIZED_FREEZE_FILENAME = "freeze_manifest.json"
 SANITIZED_TERMINATION_FILENAME = "termination_inspection.json"
+SANITIZED_ENUM_TABLE_FILENAME = "enum_error_table.json"
+SANITIZED_ENUM_COVERAGE_FILENAME = "enum_coverage.json"
 
 # Hand-written synthetic reports. Not competition gold or report-only rows.
 SYNTHETIC_CANARY_EXAMPLES: tuple[dict[str, str], ...] = (
@@ -72,7 +80,8 @@ SYNTHETIC_CANARY_EXAMPLES: tuple[dict[str, str], ...] = (
         "coverage": "not_mentioned",
         "report": (
             "CANARY_SYNTHETIC_04. TECHNIQUE: Routine knee MRI. "
-            "FINDINGS: Skin marker at the lateral joint line. No other description."
+            "FINDINGS: Skin marker at the lateral joint line. Menisci poorly seen. "
+            "No other description."
         ),
     },
     {
@@ -108,7 +117,8 @@ SYNTHETIC_CANARY_EXAMPLES: tuple[dict[str, str], ...] = (
         "coverage": "uncertain",
         "report": (
             "CANARY_SYNTHETIC_08. REPERTO: Possibile condropatia femoro-rotulea, "
-            "non confermata. Comparti mediale e laterale non descritti."
+            "diagnosi differenziale non confermata. Comparti mediale e laterale "
+            "non descritti."
         ),
     },
     {
@@ -145,7 +155,8 @@ SYNTHETIC_CANARY_EXAMPLES: tuple[dict[str, str], ...] = (
         "coverage": "positive",
         "report": (
             "CANARY_SYNTHETIC_12. FINDINGS: Confirmed medial femoral condyle "
-            "fracture. Synovitis with synovial thickening. No joint effusion. "
+            "fracture. Traumatic bone contusion of the medial femoral condyle. "
+            "Synovitis with synovial thickening. No joint effusion. "
             "Ligaments and menisci not mentioned."
         ),
     },
@@ -154,9 +165,12 @@ SYNTHETIC_CANARY_EXAMPLES: tuple[dict[str, str], ...] = (
         "language": "en",
         "coverage": "uncertain",
         "report": (
-            "CANARY_SYNTHETIC_13. FINDINGS: Intact ACL graft after reconstruction, "
-            "no new tear. Medial meniscus degeneration without tear. "
-            "Unspecified-compartment osteoarthritis mentioned only as degeneration."
+            "CANARY_SYNTHETIC_13. FINDINGS: History of remote MCL sprain only. "
+            "Intact ACL graft after reconstruction, no new tear. Medial meniscus "
+            "degeneration without tear. Unspecified-compartment osteoarthritis "
+            "mentioned only as degeneration. Mild generic cartilage wear without "
+            "named osteoarthritis. Possible occult lateral tibial plateau fracture, "
+            "not confirmed. Popliteal ganglion, not a Baker cyst."
         ),
     },
     {
@@ -165,7 +179,8 @@ SYNTHETIC_CANARY_EXAMPLES: tuple[dict[str, str], ...] = (
         "coverage": "positive",
         "report": (
             "CANARY_SYNTHETIC_14. OPIS: Zerwanie wiezadla pobocznego przysrodkowego. "
-            "Chondropatia przedzialu przysrodkowego. Pozostale struktury nieopisane."
+            "Chondropatia przedzialu przysrodkowego. Rekonstrukcja ACL bez ostrego "
+            "zerwania. Pozostale struktury nieopisane."
         ),
     },
 )
@@ -193,6 +208,9 @@ def fixture_canary_generate_fn(report: str) -> str:
         targets["fracture"]["evidence_category"] = "fracture_excluded"
     elif "CANARY_SYNTHETIC_03" in text:
         targets["acl_injury"] = _record("uncertain", "uncertain_finding", "uncertain_hedged", "low")
+    elif "CANARY_SYNTHETIC_04" in text:
+        for key in ("medial_meniscus_injury", "lateral_meniscus_injury"):
+            targets[key] = _record("uncertain", "insufficient_evidence", "not_mentioned", "low")
     elif "CANARY_SYNTHETIC_06" in text:
         for key in ("medial_meniscus_injury", "lateral_meniscus_injury"):
             targets[key] = _record("negative", "explicit_negative", "negated", "high")
@@ -200,7 +218,9 @@ def fixture_canary_generate_fn(report: str) -> str:
         targets["joint_effusion"] = _record("positive", "effusion_not_synovitis", "none", "high")
         targets["synovitis"] = _record("negative", "explicit_negative", "negated", "medium")
     elif "CANARY_SYNTHETIC_08" in text:
-        targets["patellofemoral_oa"] = _record("uncertain", "uncertain_finding", "uncertain_hedged", "low")
+        targets["patellofemoral_oa"] = _record(
+            "uncertain", "uncertain_finding", "differential_diagnosis", "low"
+        )
     elif "CANARY_SYNTHETIC_09" in text:
         targets["baker_cyst"] = _record("positive", "baker_cyst", "none", "high")
         targets["joint_effusion"] = _record("negative", "explicit_negative", "negated", "medium")
@@ -213,21 +233,37 @@ def fixture_canary_generate_fn(report: str) -> str:
         targets["bone_contusion"] = _record("negative", "explicit_negative", "negated", "high")
     elif "CANARY_SYNTHETIC_12" in text:
         targets["fracture"] = _record("positive", "confirmed_fracture", "none", "high")
+        targets["bone_contusion"] = _record("positive", "bone_contusion", "none", "high")
         targets["synovitis"] = _record("positive", "synovitis_not_effusion", "none", "high")
         targets["joint_effusion"] = _record("negative", "explicit_negative", "negated", "medium")
     elif "CANARY_SYNTHETIC_13" in text:
         targets["acl_injury"] = _record(
             "uncertain", "postoperative_or_reconstructed", "postoperative", "medium"
         )
+        targets["mcl_injury"] = _record("uncertain", "historical_finding", "history_only", "low")
         targets["medial_meniscus_injury"] = _record(
             "uncertain", "degeneration_not_meniscal_injury", "none", "medium"
         )
-        for key in ("medial_compartment_oa", "lateral_compartment_oa", "patellofemoral_oa"):
-            targets[key] = _record("uncertain", "compartment_unspecified_oa", "none", "low")
+        targets["medial_compartment_oa"] = _record(
+            "uncertain", "compartment_unspecified_oa", "none", "low"
+        )
+        targets["lateral_compartment_oa"] = _record(
+            "uncertain", "compartment_unspecified_oa", "none", "low"
+        )
+        targets["patellofemoral_oa"] = _record(
+            "uncertain", "generic_degeneration_not_oa", "none", "low"
+        )
+        targets["fracture"] = _record(
+            "uncertain", "suspected_fracture", "suspected_not_confirmed", "low"
+        )
+        targets["baker_cyst"] = _record("uncertain", "other_popliteal_finding", "none", "low")
     elif "CANARY_SYNTHETIC_14" in text:
         targets["mcl_injury"] = _record("positive", "explicit_positive", "none", "high")
         targets["medial_compartment_oa"] = _record(
             "positive", "compartment_specific_oa", "none", "medium"
+        )
+        targets["acl_injury"] = _record(
+            "uncertain", "reconstruction_not_acute", "postoperative", "medium"
         )
     return json.dumps(payload, separators=(",", ":"), ensure_ascii=True)
 
@@ -285,8 +321,26 @@ def _score_example(example: dict[str, str], *, config: dict, prompt: dict, gener
         "begins_with_brace": gen.begins_with_brace,
         "contains_balanced_json": gen.contains_balanced_json,
         "markdown_json_fence_only": gen.markdown_json_fence_only,
-        "targets_is_object": parsed_ok,
-        "targets_not_object": result.malformed_reason == "targets_not_object",
+        "targets_is_object": bool(result.targets_is_object),
+        "targets_not_object": bool(result.targets_not_object),
+        "parsed_root_object": bool(result.parsed_root_object),
+        "targets_field_present": bool(result.targets_field_present),
+        "schema_valid": parsed_ok,
+        "enum_violations": [dict(item) for item in result.enum_violations],
+        "n_enum_violations": len(result.enum_violations),
+        "extra_properties": list(result.extra_properties),
+        "emitted_enums": {
+            "status": sorted({pred.status for pred in result.predictions.values()}),
+            "confidence": sorted({pred.confidence_category for pred in result.predictions.values()}),
+            "evidence_category": sorted(
+                {pred.evidence_category for pred in result.predictions.values()}
+            ),
+            "uncertainty_or_negation_category": sorted(
+                {pred.uncertainty_or_negation_category for pred in result.predictions.values()}
+            ),
+        }
+        if parsed_ok
+        else {},
         "forbidden_extra_text": result.malformed_stage == "forbidden_extra_text",
         "prompt_included": result.malformed_stage == "prompt_included_in_decoded_output",
         "inference_backend": result.inference_backend,
@@ -318,10 +372,15 @@ def aggregate_generation_diagnostics(rows: list[dict[str, Any]], *, max_new_toke
         "n_markdown_json_fence_only": int(sum(bool(row.get("markdown_json_fence_only")) for row in rows)),
         "n_stopped_on_json_close": int(sum(bool(row.get("stopped_on_json_close")) for row in rows)),
         "n_stopped_on_eos": int(sum(bool(row.get("stopped_on_eos")) for row in rows)),
+        "n_parsed_root_object": int(sum(bool(row.get("parsed_root_object")) for row in rows)),
+        "n_targets_field_present": int(sum(bool(row.get("targets_field_present")) for row in rows)),
+        "n_targets_is_object": int(sum(bool(row.get("targets_is_object")) for row in rows)),
         "n_targets_not_object": int(sum(bool(row.get("targets_not_object")) for row in rows)),
+        "n_schema_valid": int(sum(bool(row.get("schema_valid") or row.get("ok")) for row in rows)),
+        "n_enum_violations": int(sum(int(row.get("n_enum_violations") or 0) for row in rows)),
+        "n_extra_properties": int(sum(1 for row in rows if row.get("extra_properties"))),
         "n_forbidden_extra_text": int(sum(bool(row.get("forbidden_extra_text")) for row in rows)),
         "n_prompt_included": int(sum(bool(row.get("prompt_included")) for row in rows)),
-        "n_targets_is_object": int(sum(bool(row.get("targets_is_object") and row.get("ok")) for row in rows)),
         "malformed_stage_counts": stages,
         "completion_sha256_sorted": sorted(str(row.get("completion_sha256") or "") for row in rows),
         "raw_completions_stored": False,
@@ -365,9 +424,16 @@ def render_canary_summary(result: dict[str, Any]) -> str:
         f"- n wrapped only in a Markdown JSON fence: {diag.get('n_markdown_json_fence_only')}",
         f"- n stopped on JSON close: {diag.get('n_stopped_on_json_close')}",
         f"- n stopped on EOS: {diag.get('n_stopped_on_eos')}",
-        f"- n targets_not_object: {diag.get('n_targets_not_object')}",
-        f"- n forbidden_extra_text: {diag.get('n_forbidden_extra_text')}",
+        f"- n parsed root object: {diag.get('n_parsed_root_object')}",
+        f"- n targets field present: {diag.get('n_targets_field_present')}",
+        f"- n targets object: {diag.get('n_targets_is_object')}",
+        f"- n targets non-object: {diag.get('n_targets_not_object')}",
+        f"- n schema-valid: {diag.get('n_schema_valid')}",
+        f"- n enum violations (fields): {diag.get('n_enum_violations')}",
+        f"- n extra properties: {diag.get('n_extra_properties')}",
+        f"- n forbidden extra text: {diag.get('n_forbidden_extra_text')}",
         f"- n prompt included: {diag.get('n_prompt_included')}",
+        f"- container conservation ok: `{str(result.get('container_conservation_ok')).lower()}`",
         f"- raw completions stored: `{str(diag.get('raw_completions_stored')).lower()}`",
         "",
         "## Malformed-stage counts",
@@ -386,6 +452,60 @@ def render_canary_summary(result: dict[str, Any]) -> str:
         ]
     )
     return "\n".join(lines) + "\n"
+
+
+def fixture_expected_enum_coverage() -> dict[str, list[str]]:
+    """Enums the fixture generate_fn emits for the 14 synthetic examples."""
+    allowed = allowed_enum_values()
+    seen = {field: set() for field in allowed}
+    for example in SYNTHETIC_CANARY_EXAMPLES:
+        payload = json.loads(fixture_canary_generate_fn(example["report"]))
+        targets = payload.get("targets") or {}
+        if not isinstance(targets, dict):
+            continue
+        for record in targets.values():
+            if not isinstance(record, dict):
+                continue
+            for field, allowed_values in allowed.items():
+                value = record.get(field)
+                if value in allowed_values:
+                    seen[field].add(str(value))
+    return {field: sorted(seen[field]) for field in allowed}
+
+
+def _enum_coverage_payload(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    allowed = allowed_enum_values()
+    expected = fixture_expected_enum_coverage()
+    emitted_valid = {field: set() for field in allowed}
+    emitted_invalid = {field: set() for field in allowed}
+    for row in rows:
+        for item in row.get("enum_violations") or ():
+            field = str(item.get("field") or "")
+            if field in emitted_invalid:
+                emitted_invalid[field].add(str(item.get("emitted")))
+        if not row.get("ok"):
+            continue
+        for field, values in (row.get("emitted_enums") or {}).items():
+            if field in emitted_valid:
+                emitted_valid[field].update(str(v) for v in values)
+    fields = {}
+    for field, allowed_values in allowed.items():
+        allowed_list = list(allowed_values)
+        exp = expected.get(field) or []
+        got = sorted(emitted_valid[field])
+        fields[field] = {
+            "allowed": allowed_list,
+            "expected_from_fixture": exp,
+            "emitted_valid": got,
+            "emitted_invalid": sorted(emitted_invalid[field]),
+            "allowed_missing_from_fixture": sorted(set(allowed_list) - set(exp)),
+            "allowed_missing_from_emitted": sorted(set(allowed_list) - emitted_valid[field]),
+        }
+    return {
+        "fields": fields,
+        "raw_completions_stored": False,
+        "scientific_evaluation": False,
+    }
 
 
 def run_synthetic_canary(
@@ -415,7 +535,7 @@ def run_synthetic_canary(
     out_dir = Path(output_dir or (PROJECT_ROOT / "outputs" / KAGGLE_CANARY_OUTPUT_DIRNAME))
     sanitized_dir = out_dir / "sanitized"
     sanitized_dir.mkdir(parents=True, exist_ok=True)
-    config = load_pilot_config(config_path or DEFAULT_PILOT_CONFIG_PATH_V1_2)
+    config = load_pilot_config(config_path or DEFAULT_PILOT_CONFIG_PATH_V1_3)
     prompt = load_prompt_bundle(config.get("prompt_path"))
     freeze = freeze_manifest(config, prompt=prompt)
     freeze["canary"] = True
@@ -484,6 +604,36 @@ def run_synthetic_canary(
         first, max_new_tokens=int(decoding.get("max_new_tokens") or 0)
     )
     n_ex = len(first)
+    n_root_and_targets = int(
+        sum(bool(row.get("parsed_root_object") and row.get("targets_field_present")) for row in first)
+    )
+    conservation_ok = container_conservation_holds(
+        n_targets_is_object=int(diagnostics.get("n_targets_is_object") or 0),
+        n_targets_not_object=int(diagnostics.get("n_targets_not_object") or 0),
+        n_responses_with_parsed_root_object_and_targets_field=n_root_and_targets,
+    ) and all(
+        not (row.get("targets_is_object") and row.get("targets_not_object")) for row in first
+    )
+    enum_table = aggregate_enum_violation_table(
+        [tuple(row.get("enum_violations") or ()) for row in first]
+    )
+    (sanitized_dir / SANITIZED_ENUM_TABLE_FILENAME).write_text(
+        json.dumps(
+            {
+                "n_examples": n_ex,
+                "rows": enum_table,
+                "raw_completions_stored": False,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    coverage = _enum_coverage_payload(first)
+    (sanitized_dir / SANITIZED_ENUM_COVERAGE_FILENAME).write_text(
+        json.dumps(coverage, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     transport_ok = (
         diagnostics.get("n_beginning_with_brace") == n_ex
         and diagnostics.get("n_containing_balanced_json") == n_ex
@@ -492,6 +642,10 @@ def run_synthetic_canary(
         and diagnostics.get("n_prompt_included") == 0
         and diagnostics.get("n_targets_not_object") == 0
         and diagnostics.get("n_targets_is_object") == n_ex
+        and diagnostics.get("n_schema_valid") == n_ex
+        and diagnostics.get("n_enum_violations") == 0
+        and diagnostics.get("n_extra_properties") == 0
+        and conservation_ok
     )
     repeatable_ok = hashes_match if (not smoke or n_repeats >= 2) else True
     ok = all_parseable and repeatable_ok and malformed_rate == 0.0 and transport_ok
@@ -512,6 +666,15 @@ def run_synthetic_canary(
         "all_parseable": all_parseable,
         "repeatable": hashes_match if n_repeats >= 2 else None,
         "transport_ok": transport_ok,
+        "container_conservation_ok": conservation_ok,
+        "n_parsed_root_object": diagnostics.get("n_parsed_root_object"),
+        "n_targets_field_present": diagnostics.get("n_targets_field_present"),
+        "n_targets_is_object": diagnostics.get("n_targets_is_object"),
+        "n_targets_not_object": diagnostics.get("n_targets_not_object"),
+        "n_schema_valid": diagnostics.get("n_schema_valid"),
+        "n_responses_with_parsed_root_object_and_targets_field": n_root_and_targets,
+        "enum_error_table": enum_table,
+        "enum_coverage": coverage,
         "scientific_evaluation": False,
         "claim_scientific_performance": False,
         "stop_gold_rerun": not ok,

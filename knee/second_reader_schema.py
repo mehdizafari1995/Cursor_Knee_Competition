@@ -15,12 +15,15 @@ from .config import PROJECT_ROOT, TARGET_KEYS, TARGET_NAMES, TARGET_KEY_TO_OFFIC
 SCHEMA_VERSION = "second-reader-schema-v1.0.0"
 PROMPT_VERSION = "second-reader-prompt-v1.0.0"
 PROMPT_VERSION_V1_1 = "second-reader-prompt-v1.1.0"
+PROMPT_VERSION_V1_2 = "second-reader-prompt-v1.2.0"
 PILOT_VERSION = "second-reader-pilot-v1.0.0"
 PILOT_VERSION_V1_1 = "second-reader-pilot-v1.1.0"
 PILOT_VERSION_V1_2 = "second-reader-pilot-v1.2.0"
+PILOT_VERSION_V1_3 = "second-reader-pilot-v1.3.0"
 EVAL_PROTOCOL_VERSION = "gold-pilot-v1.0.0"
 EVAL_PROTOCOL_VERSION_V1_1 = "gold-pilot-v1.1.0"
 EVAL_PROTOCOL_VERSION_V1_2 = "gold-pilot-v1.2.0"
+EVAL_PROTOCOL_VERSION_V1_3 = "gold-pilot-v1.3.0"
 TRANSPORT_PROTOCOL_VERSION_V1 = "second-reader-transport-v1.0"
 TRANSPORT_PROTOCOL_VERSION_V1_1 = "second-reader-transport-v1.1"
 TRANSPORT_PROTOCOL_VERSION_V1_2 = "second-reader-transport-v1.2"
@@ -28,9 +31,11 @@ ONTOLOGY_VERSION = "pilot-1.0"
 DEFAULT_SCHEMA_PATH = PROJECT_ROOT / "configs" / "second_reader_schema.json"
 DEFAULT_PROMPT_PATH = PROJECT_ROOT / "configs" / "second_reader_prompt.yaml"
 DEFAULT_PROMPT_PATH_V1_1 = PROJECT_ROOT / "configs" / "second_reader_prompt_v1_1.yaml"
+DEFAULT_PROMPT_PATH_V1_2 = PROJECT_ROOT / "configs" / "second_reader_prompt_v1_2.yaml"
 DEFAULT_PILOT_CONFIG_PATH = PROJECT_ROOT / "configs" / "second_reader_pilot.yaml"
 DEFAULT_PILOT_CONFIG_PATH_V1_1 = PROJECT_ROOT / "configs" / "second_reader_pilot_v1_1.yaml"
 DEFAULT_PILOT_CONFIG_PATH_V1_2 = PROJECT_ROOT / "configs" / "second_reader_pilot_v1_2.yaml"
+DEFAULT_PILOT_CONFIG_PATH_V1_3 = PROJECT_ROOT / "configs" / "second_reader_pilot_v1_3.yaml"
 
 STATUSES = ("positive", "negative", "uncertain", "not_mentioned")
 CONFIDENCE_CATEGORIES = ("high", "medium", "low")
@@ -118,6 +123,16 @@ CLINICAL_DISTINCTIONS = (
     "marrow_signal_versus_bone_contusion",
     "suspected_versus_confirmed_fracture",
 )
+
+
+def allowed_enum_values() -> dict[str, tuple[str, ...]]:
+    """Closed vocabularies for the four enum-bearing target fields."""
+    return {
+        "status": STATUSES,
+        "confidence": CONFIDENCE_CATEGORIES,
+        "evidence_category": EVIDENCE_CATEGORIES,
+        "uncertainty_or_negation_category": UNCERTAINTY_OR_NEGATION_CATEGORIES,
+    }
 
 
 def target_record_schema() -> dict:

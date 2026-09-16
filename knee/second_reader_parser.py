@@ -29,6 +29,7 @@ from .second_reader_schema import (
     TRANSPORT_PROTOCOL_VERSION_V1_1,
     TRANSPORT_PROTOCOL_VERSION_V1_2,
     UNCERTAINTY_OR_NEGATION_CATEGORIES,
+    allowed_enum_values,
 )
 
 MALFORMED_STAGES = (
@@ -112,6 +113,12 @@ class ParsedSecondReaderOutput:
     transport_protocol: str = TRANSPORT_PROTOCOL_VERSION_V1_2
     generation: GenerationDiagnostics = field(default_factory=GenerationDiagnostics)
     used_root_level_targets: bool = False
+    parsed_root_object: bool = False
+    targets_field_present: bool = False
+    targets_is_object: bool = False
+    targets_not_object: bool = False
+    enum_violations: tuple[dict[str, Any], ...] = ()
+    extra_properties: tuple[str, ...] = ()
 
 
 def _unknown_target(key: str, *reasons: str) -> ParsedTarget:
@@ -136,6 +143,12 @@ def _malformed_result(
     schema_version: str | None = None,
     forbidden: tuple[str, ...] = (),
     used_root_level_targets: bool = False,
+    parsed_root_object: bool = False,
+    targets_field_present: bool = False,
+    targets_is_object: bool = False,
+    targets_not_object: bool = False,
+    enum_violations: tuple[dict[str, Any], ...] = (),
+    extra_properties: tuple[str, ...] = (),
 ) -> ParsedSecondReaderOutput:
     gen = generation or GenerationDiagnostics()
     if gen.prompt_included_in_decoded_output and stage not in {
@@ -161,6 +174,12 @@ def _malformed_result(
         raw_was_stored=False,
         generation=gen,
         used_root_level_targets=used_root_level_targets,
+        parsed_root_object=parsed_root_object,
+        targets_field_present=targets_field_present,
+        targets_is_object=targets_is_object,
+        targets_not_object=targets_not_object,
+        enum_violations=enum_violations,
+        extra_properties=extra_properties,
     )
 
 
@@ -227,6 +246,127 @@ def remainder_is_allowed_transport_wrapper(remainder: str, *, fence_stripped: bo
 
 def remainder_is_whitespace_only(remainder: str) -> bool:
     return not (remainder or "").strip()
+
+
+_MAX_SANITIZED_EMITTED = 64
+
+
+def sanitize_emitted_enum(value: Any) -> str:
+    """Record an emitted enum candidate without storing report text."""
+    if value is None:
+        return "<null>"
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, (int, float)):
+        return str(value)
+    if isinstance(value, (list, dict, tuple)):
+        return f"<{type(value).__name__}>"
+    text = str(value)
+    if "\n" in text or len(text) > _MAX_SANITIZED_EMITTED:
+        return f"<non_enum_len_{len(text)}>"
+    return text
+
+
+def target_container_flags(payload: Any) -> dict[str, bool]:
+    """Flags for conservation: object + non-object == root-with-targets-field."""
+    if not isinstance(payload, dict):
+        return {
+            "parsed_root_object": False,
+            "targets_field_present": False,
+            "targets_is_object": False,
+            "targets_not_object": False,
+        }
+    present = "targets" in payload
+    is_obj = isinstance(payload.get("targets"), dict)
+    return {
+        "parsed_root_object": True,
+        "targets_field_present": present,
+        "targets_is_object": bool(present and is_obj),
+        "targets_not_object": bool(present and not is_obj),
+    }
+
+
+def container_conservation_holds(
+    *,
+    n_targets_is_object: int,
+    n_targets_not_object: int,
+    n_responses_with_parsed_root_object_and_targets_field: int,
+) -> bool:
+    """Invariant: object + non-object == parsed roots that contain ``targets``."""
+    return (
+        int(n_targets_is_object) + int(n_targets_not_object)
+        == int(n_responses_with_parsed_root_object_and_targets_field)
+    )
+
+
+def collect_enum_violations(targets_payload: Any) -> tuple[dict[str, Any], ...]:
+    """Every invalid enum field, not only the first parser error.
+
+    Does not fuzzy-match, lowercase, translate, or repair values.
+    """
+    if not isinstance(targets_payload, dict):
+        return ()
+    allowed = allowed_enum_values()
+    found: list[dict[str, Any]] = []
+    keys = list(dict.fromkeys([*TARGET_KEYS, *targets_payload.keys()]))
+    for key in keys:
+        record = targets_payload.get(key)
+        if not isinstance(record, dict):
+            continue
+        for field_name, allowed_values in allowed.items():
+            if field_name not in record:
+                continue
+            emitted = record.get(field_name)
+            if emitted in allowed_values:
+                continue
+            found.append(
+                {
+                    "json_path": f"targets.{key}.{field_name}",
+                    "field": field_name,
+                    "emitted": sanitize_emitted_enum(emitted),
+                    "allowed": list(allowed_values),
+                }
+            )
+    return tuple(found)
+
+
+def aggregate_enum_violation_table(
+    violation_lists: list[tuple[dict[str, Any], ...] | list[dict[str, Any]]],
+) -> list[dict[str, Any]]:
+    """Collapse per-response violations into path/field/emitted counts."""
+    counts: dict[tuple[str, str, str], dict[str, Any]] = {}
+    for violations in violation_lists:
+        for item in violations or ():
+            key = (str(item.get("json_path")), str(item.get("field")), str(item.get("emitted")))
+            if key not in counts:
+                counts[key] = {
+                    "json_path": key[0],
+                    "field": key[1],
+                    "emitted": key[2],
+                    "allowed": list(item.get("allowed") or []),
+                    "count": 0,
+                }
+            counts[key]["count"] += 1
+    return [counts[key] for key in sorted(counts)]
+
+
+def collect_emitted_enums(targets_payload: Any) -> dict[str, list[str]]:
+    """Unique emitted values per enum field from a targets object."""
+    out = {field: [] for field in allowed_enum_values()}
+    if not isinstance(targets_payload, dict):
+        return {key: [] for key in out}
+    seen = {field: set() for field in out}
+    for record in targets_payload.values():
+        if not isinstance(record, dict):
+            continue
+        for field in out:
+            if field not in record:
+                continue
+            emitted = sanitize_emitted_enum(record.get(field))
+            if emitted not in seen[field]:
+                seen[field].add(emitted)
+                out[field].append(emitted)
+    return out
 
 
 def transport_protocol_alias(protocol: str | None) -> str:
@@ -475,11 +615,15 @@ def parse_second_reader_output(
         result.transport_protocol = transport
         return result
 
+    flags = target_container_flags(payload)
     _collect_forbidden(payload, forbidden)
     schema_version = payload.get("schema_version")
     targets_payload, used_root = _coerce_targets_payload(payload, protocol=alias)
     if schema_version != SCHEMA_VERSION:
         forbidden.append("schema_version_mismatch")
+    extra_properties = tuple(
+        sorted(str(key) for key in payload if key not in {"schema_version", "targets"})
+    )
     if isinstance(targets_payload, list) or not isinstance(targets_payload, dict):
         result = _malformed_result(
             "targets_not_object",
@@ -487,9 +631,20 @@ def parse_second_reader_output(
             generation=gen,
             schema_version=str(schema_version) if schema_version is not None else None,
             forbidden=tuple(dict.fromkeys(forbidden)),
+            extra_properties=extra_properties,
+            **flags,
         )
         result.transport_protocol = transport
         return result
+
+    enum_violations = collect_enum_violations(targets_payload)
+    extra_target_fields: list[str] = []
+    for key in TARGET_KEYS:
+        record = targets_payload.get(key)
+        if isinstance(record, dict):
+            extras = sorted(set(record) - set(TARGET_FIELD_KEYS))
+            extra_target_fields.extend(f"targets.{key}.{name}" for name in extras)
+    extra_properties = tuple(dict.fromkeys((*extra_properties, *extra_target_fields)))
 
     parsed_targets: dict[str, ParsedTarget] = {}
     any_malformed = schema_version != SCHEMA_VERSION
@@ -515,9 +670,16 @@ def parse_second_reader_output(
             if any(item.startswith("invalid_") for item in drop) and stage == "ok":
                 stage = "invalid_enum"
                 reason = "invalid_enum"
+            elif extra_properties and stage == "ok":
+                stage = "schema_validation_error"
+                reason = "unexpected_fields"
             elif stage == "ok":
                 stage = "schema_validation_error"
                 reason = "schema_or_target_invalid"
+    if enum_violations and stage == "ok":
+        any_malformed = True
+        stage = "invalid_enum"
+        reason = "invalid_enum"
     if any(name.startswith("quotation:") for name in forbidden):
         any_malformed = True
         if stage == "ok":
@@ -527,6 +689,10 @@ def parse_second_reader_output(
         any_malformed = True
         stage = "schema_validation_error"
         reason = "schema_or_target_invalid"
+    if extra_properties and stage == "ok":
+        any_malformed = True
+        stage = "schema_validation_error"
+        reason = "unexpected_fields"
     if any_malformed and stage == "ok":
         stage = "schema_validation_error"
         reason = "schema_or_target_invalid"
@@ -544,6 +710,9 @@ def parse_second_reader_output(
         transport_protocol=transport,
         generation=gen,
         used_root_level_targets=used_root,
+        enum_violations=enum_violations,
+        extra_properties=extra_properties,
+        **flags,
     )
 
 

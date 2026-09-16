@@ -122,7 +122,10 @@ outputs malformed). Protocol v1.1 (`second-reader-transport-v1.1`) failed the
 synthetic canary (kernel version 1, `CANARY_FAIL`). Protocol v1.2
 (`second-reader-transport-v1.2`) adds JSON-aware generation stopping and must
 pass a three-example smoke and a 14-example repeatable canary before any new
-gold notebook version. Do not process report-only studies.
+gold notebook version. Kernel version 2 is `SMOKE_FAIL` (`invalid_enum` 3/3).
+Protocol v1.3 keeps transport v1.2 and adds prompt
+`second-reader-prompt-v1.2.0` (verbatim closed enums, no parser aliases).
+Do not process report-only studies.
 
 ## 8. Out of scope
 

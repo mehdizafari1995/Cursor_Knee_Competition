@@ -16,8 +16,11 @@ canary kernel before any new gold notebook version. That canary
 any new gold notebook version. Kernel version 2 of that canary is
 `SMOKE_FAIL` (`invalid_enum` 3/3; JSON close 3/3; zero `max_new_tokens`).
 Do not rerun the 58-study gold pilot from the v1 canary or this smoke.
-See `reports/second_reader_synthetic_canary.md` and
-`reports/second_reader_synthetic_canary_v12.md`.
+Phase 4C.3 keeps those versions immutable and uses prompt
+`second-reader-prompt-v1.2.0` on a new canary version. See
+`reports/second_reader_synthetic_canary.md`,
+`reports/second_reader_synthetic_canary_v12.md`, and
+`reports/second_reader_synthetic_canary_v13.md`.
 
 | Field | Value |
 | --- | --- |

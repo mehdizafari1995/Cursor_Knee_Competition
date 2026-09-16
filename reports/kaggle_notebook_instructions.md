@@ -169,6 +169,10 @@ The Phase 4C.1 synthetic canary (kernel
 Phase 4C.2 uses protocol `second-reader-transport-v1.2` on the same canary
 notebook: three-example GPU smoke, then a 14-example repeatable canary if
 smoke passes. Kernel version 2 is `SMOKE_FAIL` (`invalid_enum` 3/3 after
-JSON-aware stopping). Do not launch another gold notebook version from that
-result. See `reports/second_reader_synthetic_canary.md` and
-`reports/second_reader_synthetic_canary_v12.md`.
+JSON-aware stopping). Phase 4C.3 reruns the same three synthetic examples with
+prompt `second-reader-prompt-v1.2.0` after a sanitized enum diagnosis of the
+frozen v1.2 stack. Do not add parser aliases. Do not launch another gold
+notebook version until the v1.3 canary is `ok`. See
+`reports/second_reader_synthetic_canary.md`,
+`reports/second_reader_synthetic_canary_v12.md`, and
+`reports/second_reader_synthetic_canary_v13.md`.

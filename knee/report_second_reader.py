@@ -130,6 +130,12 @@ class SecondReaderResult:
     schema_version: str | None = None
     generation: GenerationDiagnostics = field(default_factory=GenerationDiagnostics)
     malformed_stage: str = ""
+    parsed_root_object: bool = False
+    targets_field_present: bool = False
+    targets_is_object: bool = False
+    targets_not_object: bool = False
+    enum_violations: tuple[dict[str, Any], ...] = ()
+    extra_properties: tuple[str, ...] = ()
 
 
 GenerateFn = Callable[[str], str]
@@ -681,6 +687,12 @@ def run_second_reader(
         schema_version=schema_version,
         generation=parsed.generation,
         malformed_stage="" if parsed.ok else parsed.malformed_stage,
+        parsed_root_object=bool(parsed.parsed_root_object),
+        targets_field_present=bool(parsed.targets_field_present),
+        targets_is_object=bool(parsed.targets_is_object),
+        targets_not_object=bool(parsed.targets_not_object),
+        enum_violations=tuple(parsed.enum_violations),
+        extra_properties=tuple(parsed.extra_properties),
     )
 
 

@@ -621,8 +621,11 @@ def parse_second_reader_output(
     targets_payload, used_root = _coerce_targets_payload(payload, protocol=alias)
     if schema_version != SCHEMA_VERSION:
         forbidden.append("schema_version_mismatch")
+    allowed_root = {"schema_version", "targets"}
+    if used_root:
+        allowed_root.update(TARGET_KEYS)
     extra_properties = tuple(
-        sorted(str(key) for key in payload if key not in {"schema_version", "targets"})
+        sorted(str(key) for key in payload if key not in allowed_root)
     )
     if isinstance(targets_payload, list) or not isinstance(targets_payload, dict):
         result = _malformed_result(

@@ -20,7 +20,12 @@ Phase 4C.3 keeps those versions immutable and uses prompt
 `second-reader-prompt-v1.2.0` on a new canary version. See
 `reports/second_reader_synthetic_canary.md`,
 `reports/second_reader_synthetic_canary_v12.md`, and
-`reports/second_reader_synthetic_canary_v13.md`.
+`reports/second_reader_synthetic_canary_v13.md`. Kernel version 3 is
+`CANARY_FAIL` after a passing three-example prompt-v1.2.0 smoke (3/3
+schema-valid, zero invalid enums) and a 14-example canary with
+`malformed_output_rate=0.214` (11/14 schema-valid; one invalid enum
+`suspected_not_confirmed` on `evidence_category`). Do not launch another
+gold notebook version.
 
 | Field | Value |
 | --- | --- |

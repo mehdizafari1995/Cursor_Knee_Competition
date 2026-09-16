@@ -175,4 +175,6 @@ frozen v1.2 stack. Do not add parser aliases. Do not launch another gold
 notebook version until the v1.3 canary is `ok`. See
 `reports/second_reader_synthetic_canary.md`,
 `reports/second_reader_synthetic_canary_v12.md`, and
-`reports/second_reader_synthetic_canary_v13.md`.
+`reports/second_reader_synthetic_canary_v13.md`. Kernel version 3 is
+`CANARY_FAIL` (14-example canary; three-example smoke with prompt v1.2.0
+was `ok`). Do not launch another gold notebook version.

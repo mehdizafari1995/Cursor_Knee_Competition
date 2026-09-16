@@ -260,6 +260,20 @@ def test_canary_notebook_runs_v13_smoke_after_v12_diagnosis():
     assert (meta.get("kaggle") or {}).get("gpu") is True
 
 
+def test_v13_canary_fail_report_is_recorded():
+    text = (REPO_ROOT / "reports" / "second_reader_synthetic_canary_v13.md").read_text(
+        encoding="utf-8"
+    )
+    assert "CANARY_FAIL" in text
+    assert "suspected_not_confirmed" in text
+    assert "possible" in text
+    assert "cannot_exclude" in text
+    assert "ffb67e4e7ad7ae84cf30660084e19c4c5982ef8a39a3f031cb2622f2fd1851e3" in text
+    assert "5f7842b00137d0a84ea75ece5503ef31a0101255eb9ab6fcd117f9efb6723289" in text
+    assert "n_gold_studies_processed: 0" in text
+    assert "gold_rerun_launched: false" in text
+
+
 def test_v12_smoke_fail_report_is_preserved():
     text = (REPO_ROOT / "reports" / "second_reader_synthetic_canary_v12.md").read_text(
         encoding="utf-8"

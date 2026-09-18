@@ -499,16 +499,17 @@ def _generate_with_transformers(
             prompt_length=prompt_length,
             force_json_field_order=bool(decoding.get("force_json_field_order")),
         )
-        generate_kwargs["prefix_allowed_tokens_fn"] = attached["prefix_allowed_tokens_fn"]
         generate_kwargs["eos_token_id"] = list(PHI_EOS_IDS)
         eos_ids = list(PHI_EOS_IDS)
         try:
             from transformers import LogitsProcessorList
         except Exception:
             LogitsProcessorList = list  # type: ignore[misc, assignment]
+        # Mask inside the recorder so unconstrained top-1 is observed on the
+        # unmasked scores. Do not also pass prefix_allowed_tokens_fn.
         generate_kwargs["logits_processor"] = LogitsProcessorList([attached["logits_processor"]])
         recorder = attached["recorder"]
-        stopping_names = list(stopping_names) + ["prefix_allowed_tokens_fn"]
+        stopping_names = list(stopping_names) + ["schema_constraint_logits_processor"]
     with torch.no_grad():
         output_ids = model.generate(**inputs, **generate_kwargs)
     input_ids = inputs["input_ids"]

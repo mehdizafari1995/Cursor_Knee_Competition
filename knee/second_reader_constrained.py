@@ -728,7 +728,7 @@ class ConstraintInterventionRecorder:
                 "field": _field_from_path(path),
             }
         )
-        return scores
+        return mask_scores_to_allowed(scores, allowed_set)
 
     def summarize(self, generated_ids: list[int] | None = None) -> dict[str, Any]:
         events = list(self.events)
@@ -787,6 +787,29 @@ class ConstraintInterventionRecorder:
         }
 
 
+def mask_scores_to_allowed(scores: Any, allowed_ids: Any) -> Any:
+    """Mask logits after unconstrained top-1 was observed. Full logits are not kept."""
+    try:
+        import torch
+    except Exception:
+        return scores
+    if scores is None:
+        return scores
+    allowed = {int(tid) for tid in allowed_ids}
+    masked = scores.clone() if hasattr(scores, "clone") else scores
+    vocab = int(masked.shape[-1])
+    allow = torch.zeros(vocab, dtype=torch.bool, device=masked.device)
+    for tid in allowed:
+        if 0 <= tid < vocab:
+            allow[tid] = True
+    if not bool(allow.any()):
+        return masked
+    fill = torch.finfo(masked.dtype).min
+    if masked.dim() == 1:
+        return masked.masked_fill(~allow, fill)
+    return masked.masked_fill(~allow.unsqueeze(0), fill)
+
+
 def _field_from_path(path: str) -> str:
     parts = [part for part in (path or "").split(".") if part]
     for part in reversed(parts):
@@ -835,7 +858,12 @@ def attach_schema_constraints(
     prompt_length: int,
     force_json_field_order: bool = False,
 ) -> dict[str, Any]:
-    """Build prefix_allowed_tokens_fn + intervention recorder for model.generate."""
+    """Build a masking logits processor that records unconstrained top-1 first.
+
+    Do not also pass ``prefix_allowed_tokens_fn`` into ``model.generate``.
+    Transformers wraps that callback as ``PrefixConstrainedLogitsProcessor``,
+    which can run before a recorder and make intervention_rate look like 0.
+    """
     ensure_lmfe_transformers_compat()
     from lmformatenforcer.characterlevelparser import CharacterLevelParserConfig
     from lmformatenforcer.integrations.transformers import (
@@ -964,7 +992,8 @@ def evaluate_semantic_gates(
         material_degrade = True
     status = "ok"
     if not code_ok or material_degrade:
-        status = "CONSTRAINED_CANARY_SEMANTIC_FAIL"
+        status = "CANARY_SEMANTIC_FAIL"
+    semantic_gate_status = "NOT_PREDECLARED"
     sanitized_intervention = {
         "source": intervention.get("source"),
         "note": intervention.get("note"),
@@ -986,6 +1015,7 @@ def evaluate_semantic_gates(
     return {
         "status": status,
         "ok": status == "ok",
+        "semantic_gate_status": semantic_gate_status,
         "code_never_coerces_unknown_to_negative": code_ok,
         "unknown_uncertain_not_mentioned_coerced_to_negative_by_code": False,
         "n_unconstrained_schema_valid": len(unconstrained_valid_ids),
@@ -1102,16 +1132,33 @@ def run_constrained_canary(
         )
         result["semantic"] = semantic
         result["intervention"] = semantic["intervention"]
-        if not format_ok:
-            result["status"] = "CONSTRAINED_CANARY_FORMAT_FAIL"
+        result["semantic_gate_status"] = semantic.get("semantic_gate_status")
+        n_unconstrained_valid = int(semantic.get("n_unconstrained_schema_valid") or 0)
+        n_unconstrained = len(unconstrained_rows or [])
+        intervention_rate_model = semantic["intervention"].get("intervention_rate")
+        model_intervention = not bool(semantic["intervention"].get("fixture_not_a_model_result"))
+        diagnostic_fail = (
+            model_intervention
+            and n_unconstrained > 0
+            and n_unconstrained_valid < n_unconstrained
+            and format_ok
+            and (intervention_rate_model == 0.0 or intervention_rate_model is None)
+        )
+        if diagnostic_fail:
+            result["status"] = "INTERVENTION_DIAGNOSTIC_FAIL"
+            result["ok"] = False
+            result["stop_gold_rerun"] = True
+            result["gold_rerun_authorized"] = False
+        elif not format_ok:
+            result["status"] = "CANARY_FORMAT_FAIL"
             result["ok"] = False
             result["stop_gold_rerun"] = True
         elif not semantic.get("ok"):
             result["ok"] = False
-            result["status"] = "CONSTRAINED_CANARY_SEMANTIC_FAIL"
+            result["status"] = "CANARY_SEMANTIC_FAIL"
             result["stop_gold_rerun"] = True
         else:
-            result["status"] = "CONSTRAINED_CANARY_PASS"
+            result["status"] = "CONSTRAINED_FORMAT_PASS_SEMANTIC_GATE_NOT_ESTABLISHED"
             result["ok"] = True
             result["stop_gold_rerun"] = True
             result["gold_rerun_authorized"] = False

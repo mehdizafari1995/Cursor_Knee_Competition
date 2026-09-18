@@ -223,7 +223,8 @@ def test_fixture_constrained_smoke_and_canary(tmp_path):
         n_repeats=2,
     )
     assert full["ok"] is True
-    assert full["status"] == "CONSTRAINED_CANARY_PASS"
+    assert full["status"] == "CONSTRAINED_FORMAT_PASS_SEMANTIC_GATE_NOT_ESTABLISHED"
+    assert full["semantic_gate_status"] == "NOT_PREDECLARED"
     assert full["n_examples"] == 14
     assert full["n_schema_valid"] == 14
     assert full["malformed_output_rate"] == 0.0
@@ -294,6 +295,9 @@ def test_constrained_notebook_is_offline_synthetic_and_local_wheels():
     assert "run_second_reader_gold_pilot" not in source
     assert "process_report_only=false" in lowered
     assert "second_reader_pilot_v1_4.yaml" in source
+    assert "schema_constraint_logits_processor" in (
+        REPO_ROOT / "knee" / "report_second_reader.py"
+    ).read_text(encoding="utf-8")
     assert "prefix_allowed_tokens_fn" in source
     assert "JsonSchemaParser" in source or "audit_schema_against_lmfe" in source
     meta = payload.get("metadata") or {}
@@ -309,6 +313,7 @@ def test_gold_constrained_notebook_is_prepared_not_auto_gold():
     assert "kaggle.json" not in lowered
     assert "!pip" not in lowered
     assert "pypi.org" not in lowered
+    assert "CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS" in source
     assert "CONSTRAINED_CANARY_PASS" in source
     assert "do not execute" in lowered or "do_not_execute" in lowered or "not execute" in lowered
     assert "process_report_only=false" in lowered

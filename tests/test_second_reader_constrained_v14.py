@@ -240,6 +240,20 @@ def test_fixture_constrained_smoke_and_canary(tmp_path):
     assert full["intervention"]["intervention_rate"] is None
 
 
+def test_lmfe_transformers_compat_shim_exists():
+    text = (REPO_ROOT / "knee" / "second_reader_constrained.py").read_text(encoding="utf-8")
+    assert "def ensure_lmfe_transformers_compat" in text
+    assert "tokenization_utils_base" in text
+    assert "patched_pretrained_tokenizer_base" in text
+    nb = json.loads(
+        (REPO_ROOT / "notebooks" / "06_kaggle_second_reader_constrained_canary.ipynb").read_text(
+            encoding="utf-8"
+        )
+    )
+    source = "\n".join("".join(cell.get("source") or []) for cell in nb["cells"])
+    assert "ensure_lmfe_transformers_compat" in source
+
+
 def test_constrained_notebook_is_offline_synthetic_and_local_wheels():
     nb_path = REPO_ROOT / "notebooks" / "06_kaggle_second_reader_constrained_canary.ipynb"
     payload = json.loads(nb_path.read_text(encoding="utf-8"))

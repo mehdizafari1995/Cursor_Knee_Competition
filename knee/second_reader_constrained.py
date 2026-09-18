@@ -799,6 +799,36 @@ def _field_from_path(path: str) -> str:
     return "structure"
 
 
+def ensure_lmfe_transformers_compat() -> dict[str, Any]:
+    """Make LM Format Enforcer 0.11.3 importable on Transformers 5.x.
+
+    LMFE imports ``PreTrainedTokenizerBase`` from
+    ``transformers.tokenization_utils``. Transformers 5 moved that symbol.
+    This restores the attribute in-process. It does not change schema
+    enforcement, download packages, or alias clinical enums.
+    """
+    import transformers
+    import transformers.tokenization_utils as tokenization_utils
+
+    patched = False
+    if not hasattr(tokenization_utils, "PreTrainedTokenizerBase"):
+        cls = getattr(transformers, "PreTrainedTokenizerBase", None)
+        if cls is None:
+            try:
+                from transformers.tokenization_utils_base import PreTrainedTokenizerBase as cls
+            except Exception as exc:  # pragma: no cover - environment-specific
+                raise ImportError(
+                    "PreTrainedTokenizerBase is unavailable for LM Format Enforcer 0.11.3"
+                ) from exc
+        tokenization_utils.PreTrainedTokenizerBase = cls
+        patched = True
+    return {
+        "transformers_version": str(getattr(transformers, "__version__", "unknown")),
+        "patched_pretrained_tokenizer_base": patched,
+        "internet_used": False,
+    }
+
+
 def attach_schema_constraints(
     tokenizer: Any,
     *,
@@ -806,6 +836,7 @@ def attach_schema_constraints(
     force_json_field_order: bool = False,
 ) -> dict[str, Any]:
     """Build prefix_allowed_tokens_fn + intervention recorder for model.generate."""
+    ensure_lmfe_transformers_compat()
     from lmformatenforcer.characterlevelparser import CharacterLevelParserConfig
     from lmformatenforcer.integrations.transformers import (
         build_token_enforcer_tokenizer_data,

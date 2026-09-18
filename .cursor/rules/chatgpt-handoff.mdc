@@ -1,0 +1,49 @@
+---
+description: Persistent ChatGPT–Cursor handoff. Read docs/CHATGPT_CURSOR_HANDOFF.md before continuing phased work on this repository.
+alwaysApply: true
+---
+
+# ChatGPT–Cursor handoff
+
+This rule applies to this repository.
+
+## Before continuing phased work
+
+1. Read `docs/CHATGPT_CURSOR_HANDOFF.md`.
+2. Treat its frozen evidence, authorization boundaries, Current blockers and
+   Next authorized task as binding.
+3. Stay on the recorded branch and existing draft PR unless the current task
+   explicitly names a different branch and PR.
+
+## Authorization boundaries
+
+- Never overwrite immutable experiment evidence listed in the handoff
+  (kernel versions, frozen config/prompt/schema hashes, prior fail records).
+- Never run gold studies or execute
+  `notebooks/07_kaggle_second_reader_gold_constrained.ipynb` unless the
+  current task explicitly authorizes gold (`gold_rerun_authorized=true` in
+  that task).
+- Never process the 4,349 report-only studies unless the current task
+  explicitly authorizes it.
+- Never merge the recorded PR or open a replacement PR unless the current
+  task explicitly asks for that.
+- Never modify recorded scientific results to make a gate pass.
+
+## End of every task
+
+1. Update `docs/CHATGPT_CURSOR_HANDOFF.md` using the Cursor completion
+   protocol in that file (UTC timestamp, phase, starting and ending SHAs,
+   files changed, commands/tests, sanitized results, unresolved failures,
+   gold/report-only access, recommended next decision).
+2. Post or update one sanitized summary on the existing PR. Begin new
+   handoff comments with `[CHATGPT_HANDOFF_READY]`. Do not spam duplicate
+   comments; update the existing handoff comment when one exists.
+3. Finish the user-facing response with: repository full name, PR URL,
+   branch, HEAD SHA, PR-comment URL, and `CHATGPT_HANDOFF_READY`.
+
+## Privacy
+
+Never put credentials, tokens, cookies, private data, report text,
+completions, logits, patient identifiers or competition-record rows in Git
+or PR comments. Do not commit `.whl` files, model weights, DICOM, or
+private datasets.

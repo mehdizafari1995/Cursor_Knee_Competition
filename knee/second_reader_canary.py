@@ -320,7 +320,7 @@ def _score_example(
     parsed_ok = bool(result.enabled and not result.malformed)
     target_keys = list(result.predictions)
     gen = result.generation
-    return {
+    payload = {
         "example_id": example["example_id"],
         "language": example["language"],
         "coverage": example["coverage"],

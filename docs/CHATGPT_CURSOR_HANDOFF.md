@@ -301,7 +301,7 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 
 - starting commit SHA: `aa9a54241f183ed0f5cb7047c7d929aae3bab77c`
 - implementation commit SHA: `fd4ed3b4db30e1d41e14d1753637c269a7c96505`
-- ending commit SHA: `fd4ed3b4db30e1d41e14d1753637c269a7c96505`
+- ending commit SHA: `7e4f06fdac05143c3c724161b11af0b60a7dda5f`
 - files changed: `knee/second_reader_phase46.py`,
   `knee/report_second_reader.py`, `knee/second_reader_constrained.py`,
   `scripts/run_second_reader_phase46.py`,

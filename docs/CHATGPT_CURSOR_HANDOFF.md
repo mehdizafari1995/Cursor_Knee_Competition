@@ -208,7 +208,7 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 ### 2026-09-18T12:05:11Z — ChatGPT–Cursor handoff setup
 
 - starting commit SHA: `cf8278edcf3888eb061a6417db7246fb591bc05b`
-- ending commit SHA: pending (filled after the handoff commit)
+- ending commit SHA: `95ab4002b2173446856604db36c1436d1fe207df`
 - files changed: `docs/CHATGPT_CURSOR_HANDOFF.md`,
   `.cursor/rules/chatgpt-handoff.mdc`
 - commands and tests run:

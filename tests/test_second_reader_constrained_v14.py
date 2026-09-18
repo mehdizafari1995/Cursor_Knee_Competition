@@ -240,6 +240,22 @@ def test_fixture_constrained_smoke_and_canary(tmp_path):
     assert full["intervention"]["intervention_rate"] is None
 
 
+def test_unconstrained_capture_allows_single_repeat(tmp_path):
+    from knee.second_reader_canary import run_synthetic_canary
+
+    capture = run_synthetic_canary(
+        output_dir=tmp_path / "capture",
+        generate_fn=fixture_canary_generate_fn,
+        n_repeats=1,
+        repeatability_required=False,
+        include_clinical_fields=True,
+        include_synthetic_truth=True,
+    )
+    assert capture["n_examples"] == 14
+    assert capture["n_repeats"] == 1
+    assert capture["n_gold_studies_processed"] == 0
+
+
 def test_lmfe_transformers_compat_shim_exists():
     text = (REPO_ROOT / "knee" / "second_reader_constrained.py").read_text(encoding="utf-8")
     assert "def ensure_lmfe_transformers_compat" in text
@@ -273,6 +289,7 @@ def test_constrained_notebook_is_offline_synthetic_and_local_wheels():
     assert "generation_schema_canonical_json_sha256" in source
     assert "reset_constraint_stats" in source
     assert "LAST_CONSTRAINT_STATS" not in source
+    assert "repeatability_required=False" in source or "repeatability_required = False" in source
     assert "gold_rerun_authorized=false" in lowered
     assert "run_second_reader_gold_pilot" not in source
     assert "process_report_only=false" in lowered

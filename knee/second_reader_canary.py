@@ -557,19 +557,24 @@ def run_synthetic_canary(
     examples: tuple[dict[str, str], ...] | None = None,
     include_clinical_fields: bool = False,
     include_synthetic_truth: bool = False,
+    repeatability_required: bool | None = None,
 ) -> dict[str, Any]:
     """Score synthetic reports only. Refuses competition gold and report-only rows."""
     selected = examples or (
         SYNTHETIC_CANARY_EXAMPLES[:3] if smoke else SYNTHETIC_CANARY_EXAMPLES
     )
+    if repeatability_required is None:
+        repeatability_required = not bool(smoke)
     if smoke:
         if n_repeats < 1:
             raise ValueError("smoke canary requires at least one run")
         if len(selected) != 3:
             raise RuntimeError("smoke canary requires exactly three synthetic examples")
     else:
-        if n_repeats < 2:
+        if repeatability_required and n_repeats < 2:
             raise ValueError("canary requires two runs for repeatability")
+        if n_repeats < 1:
+            raise ValueError("canary requires at least one run")
         if len(selected) < 12:
             raise RuntimeError("canary requires at least 12 synthetic examples")
     out_dir = Path(output_dir or (PROJECT_ROOT / "outputs" / KAGGLE_CANARY_OUTPUT_DIRNAME))

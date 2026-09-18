@@ -66,27 +66,78 @@ def reset_constraint_stats() -> None:
     LAST_CONSTRAINT_STATS = None
 
 
+def empty_intervention_payload(*, source: str, note: str) -> dict[str, Any]:
+    return {
+        "source": source,
+        "note": note,
+        "n_calls": 0,
+        "n_generated_tokens": 0,
+        "n_top1_allowed": 0,
+        "n_top1_rejected": 0,
+        "intervention_rate": 0.0,
+        "n_structural_interventions": 0,
+        "n_clinical_enum_interventions": 0,
+        "interventions_by_field": {},
+        "unconstrained_to_constrained_enum": {},
+        "n_rank_measurable": 0,
+        "mean_selected_rank": None,
+        "mean_prob_gap": None,
+        "raw_completions_stored": False,
+        "logits_retained": False,
+        "fixture_not_a_model_result": source != "transformers_logits_processor",
+    }
+
+
 def aggregate_constraint_stats(rows: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     items = rows if rows is not None else list(CONSTRAINT_STAT_LOG)
+    if not items:
+        return empty_intervention_payload(
+            source="no_model_logits",
+            note="No transformers logits were observed. Do not report intervention_rate=0 as a model result.",
+        )
     n_tokens = sum(int(item.get("n_generated_tokens") or 0) for item in items)
     n_allowed = sum(int(item.get("n_top1_allowed") or 0) for item in items)
     n_rejected = sum(int(item.get("n_top1_rejected") or 0) for item in items)
+    n_structural = sum(int(item.get("n_structural_interventions") or 0) for item in items)
+    n_clinical = sum(int(item.get("n_clinical_enum_interventions") or 0) for item in items)
     by_field: dict[str, int] = {}
     enum_pairs: dict[str, int] = {}
+    rank_sum = 0.0
+    n_rank = 0
+    gap_sum = 0.0
+    n_gap = 0
     for item in items:
         for key, count in (item.get("interventions_by_field") or {}).items():
             by_field[key] = by_field.get(key, 0) + int(count)
         for key, count in (item.get("unconstrained_to_constrained_enum") or {}).items():
             enum_pairs[key] = enum_pairs.get(key, 0) + int(count)
+        n_item_rank = int(item.get("n_rank_measurable") or 0)
+        if n_item_rank and item.get("mean_selected_rank") is not None:
+            rank_sum += float(item["mean_selected_rank"]) * n_item_rank
+            n_rank += n_item_rank
+        n_item_gap = int(item.get("n_prob_gap_measurable") or n_item_rank)
+        if n_item_gap and item.get("mean_prob_gap") is not None:
+            gap_sum += float(item["mean_prob_gap"]) * n_item_gap
+            n_gap += n_item_gap
     return {
+        "source": "transformers_logits_processor",
+        "note": "Aggregated immediately from per-token top-1 vs allowed-set comparisons. Full-vocabulary logits are not retained.",
         "n_calls": len(items),
         "n_generated_tokens": n_tokens,
         "n_top1_allowed": n_allowed,
         "n_top1_rejected": n_rejected,
         "intervention_rate": (float(n_rejected) / float(n_tokens)) if n_tokens else 0.0,
+        "n_structural_interventions": n_structural,
+        "n_clinical_enum_interventions": n_clinical,
         "interventions_by_field": dict(sorted(by_field.items())),
         "unconstrained_to_constrained_enum": dict(sorted(enum_pairs.items())),
+        "n_rank_measurable": n_rank,
+        "mean_selected_rank": (rank_sum / n_rank) if n_rank else None,
+        "n_prob_gap_measurable": n_gap,
+        "mean_prob_gap": (gap_sum / n_gap) if n_gap else None,
         "raw_completions_stored": False,
+        "logits_retained": False,
+        "fixture_not_a_model_result": False,
     }
 
 LMFE_SUPPORTED_FEATURES = {
@@ -109,9 +160,73 @@ class SchemaCompatibilityError(RuntimeError):
     """The pinned LM Format Enforcer cannot enforce the existing schema exactly."""
 
 
+# Pretty-printed on-disk file (indent=2, trailing newline).
+FROZEN_SCHEMA_RAW_BYTES_SHA256 = (
+    "639c41cc4f9ba1621cc1dd45404ca82ab0a6595c3e7494dca2ef2be1888f9b20"
+)
+# Same parsed object, serialized with sort_keys and compact separators.
+FROZEN_SCHEMA_CANONICAL_JSON_SHA256 = (
+    "c39e6236e509c466850e501969e7e8525bd40a189ab05ed3d591e99bd30d3b05"
+)
+
+
 def hash_schema_payload(schema: dict[str, Any]) -> str:
     blob = json.dumps(schema, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()
+
+
+def schema_raw_bytes_sha256(path: str | Path | None = None) -> str:
+    return sha256_file(Path(path or DEFAULT_SCHEMA_PATH))
+
+
+def schema_canonical_json_sha256(schema: dict[str, Any] | None = None) -> str:
+    payload = schema if schema is not None else validation_schema()
+    return hash_schema_payload(payload)
+
+
+def schema_hash_provenance(path: str | Path | None = None) -> dict[str, Any]:
+    """Reconcile raw-file vs canonical JSON hashes for validation and generation.
+
+    There is no separate generation schema file. ``generation_schema()`` returns
+    ``validation_schema()``, which reads ``configs/second_reader_schema.json``.
+    The two SHA-256 values differ only because the on-disk file is pretty-printed
+    while decoder hashes use canonical ``sort_keys`` compact JSON.
+    """
+    schema_path = Path(path or DEFAULT_SCHEMA_PATH)
+    raw = sha256_file(schema_path)
+    parsed = json.loads(schema_path.read_text(encoding="utf-8"))
+    val = validation_schema()
+    gen = generation_schema()
+    canonical = hash_schema_payload(parsed)
+    val_canonical = hash_schema_payload(val)
+    gen_canonical = hash_schema_payload(gen)
+    same_parsed = parsed == val == gen
+    if not same_parsed:
+        raise SchemaCompatibilityError(
+            "validation and generation schemas differ semantically"
+        )
+    if canonical != val_canonical or canonical != gen_canonical:
+        raise SchemaCompatibilityError("canonical schema hashes drifted")
+    return {
+        "schema_raw_bytes_sha256": raw,
+        "schema_canonical_json_sha256": canonical,
+        "generation_schema_raw_bytes_sha256": raw,
+        "generation_schema_canonical_json_sha256": gen_canonical,
+        "same_parsed_object": True,
+        "raw_differs_from_canonical_due_to_serialization": raw != canonical,
+        "generation_schema_is_validation_schema": True,
+        "generation_schema_file": "configs/second_reader_schema.json",
+        "frozen_schema_raw_bytes_sha256": FROZEN_SCHEMA_RAW_BYTES_SHA256,
+        "frozen_schema_canonical_json_sha256": FROZEN_SCHEMA_CANONICAL_JSON_SHA256,
+        "matches_frozen_raw": raw == FROZEN_SCHEMA_RAW_BYTES_SHA256,
+        "matches_frozen_canonical": canonical == FROZEN_SCHEMA_CANONICAL_JSON_SHA256,
+        "note": (
+            "The on-disk schema is pretty-printed JSON (indent=2, trailing newline). "
+            "Validation and generation hashes used by the constrained decoder are "
+            "SHA-256 of the same parsed object serialized with sort_keys and compact "
+            "separators. Contents are identical; only serialization differs."
+        ),
+    }
 
 
 def validation_schema() -> dict[str, Any]:
@@ -625,12 +740,21 @@ class ConstraintInterventionRecorder:
         n_rejected = sum(1 for item in events if not item.get("top1_allowed"))
         by_field: dict[str, int] = {}
         enum_pairs: dict[str, int] = {}
+        n_structural = 0
+        n_clinical = 0
+        ranks: list[float] = []
+        gaps: list[float] = []
         for item in events:
+            if item.get("selected_rank") is not None:
+                ranks.append(float(item["selected_rank"]))
+            if item.get("prob_gap") is not None:
+                gaps.append(float(item["prob_gap"]))
             if item.get("top1_allowed"):
                 continue
             field = str(item.get("field") or "other")
             by_field[field] = by_field.get(field, 0) + 1
             if field in TARGET_FIELD_KEYS:
+                n_clinical += 1
                 proposed = str(item.get("unconstrained_piece") or "").strip().strip('"')
                 selected = ""
                 convert = getattr(self.tokenizer, "decode", None)
@@ -643,14 +767,23 @@ class ConstraintInterventionRecorder:
                 if proposed and selected and proposed != selected:
                     key = f"{field}:{proposed}->{selected}"
                     enum_pairs[key] = enum_pairs.get(key, 0) + 1
+            else:
+                n_structural += 1
         return {
             "n_generated_tokens": n_total,
             "n_top1_allowed": n_total - n_rejected,
             "n_top1_rejected": n_rejected,
             "intervention_rate": (float(n_rejected) / float(n_total)) if n_total else 0.0,
+            "n_structural_interventions": n_structural,
+            "n_clinical_enum_interventions": n_clinical,
             "interventions_by_field": dict(sorted(by_field.items())),
             "unconstrained_to_constrained_enum": dict(sorted(enum_pairs.items())),
+            "n_rank_measurable": len(ranks),
+            "mean_selected_rank": (sum(ranks) / len(ranks)) if ranks else None,
+            "n_prob_gap_measurable": len(gaps),
+            "mean_prob_gap": (sum(gaps) / len(gaps)) if gaps else None,
             "raw_completions_stored": False,
+            "logits_retained": False,
         }
 
 
@@ -751,40 +884,74 @@ def evaluate_semantic_gates(
     ]
     field_mismatches = []
     n_changed = 0
+    n_target_any_changed = 0
+    n_target_status_changed = 0
+    agreement = {
+        field: {"n_compared": 0, "n_agree": 0, "rate": 0.0} for field in TARGET_FIELD_KEYS
+    }
     if unconstrained_rows:
         unconstrained_by_id = {row["example_id"]: row for row in unconstrained_rows}
         constrained_by_id = {row["example_id"]: row for row in constrained_rows}
         for example_id in unconstrained_valid_ids:
-            diffs = compare_clinical_fields(
-                unconstrained_by_id[example_id].get("clinical_fields") or {},
-                constrained_by_id[example_id].get("clinical_fields") or {},
-            )
+            left = unconstrained_by_id[example_id].get("clinical_fields") or {}
+            right = (constrained_by_id.get(example_id) or {}).get("clinical_fields") or {}
+            diffs = compare_clinical_fields(left, right)
             if diffs:
                 n_changed += 1
                 field_mismatches.extend({"example_id": example_id, **item} for item in diffs)
-    unknown_coerced = False
-    for row in constrained_rows:
-        truth = row.get("synthetic_truth") or {}
-        got = row.get("clinical_fields") or {}
-        for key in TARGET_KEYS:
-            t_status = str((truth.get(key) or {}).get("status") or "")
-            g_status = str((got.get(key) or {}).get("status") or "")
-            if t_status in {"uncertain", "not_mentioned", "unknown"} and g_status == "negative":
-                # Model may still choose negative; code-level coercion is tested separately.
-                pass
+            for key in TARGET_KEYS:
+                left_rec = left.get(key) or {}
+                right_rec = right.get(key) or {}
+                target_changed = False
+                for field in TARGET_FIELD_KEYS:
+                    a = str(left_rec.get(field) or "")
+                    b = str(right_rec.get(field) or "")
+                    if not a:
+                        continue
+                    agreement[field]["n_compared"] += 1
+                    if a == b:
+                        agreement[field]["n_agree"] += 1
+                    else:
+                        target_changed = True
+                        if field == "status":
+                            n_target_status_changed += 1
+                if target_changed:
+                    n_target_any_changed += 1
+        for field, payload in agreement.items():
+            n_cmp = payload["n_compared"]
+            payload["rate"] = (float(payload["n_agree"]) / float(n_cmp)) if n_cmp else None
     code_ok = never_coerces_unknown_to_negative()
     accuracy = float(confusion["overall_status_accuracy"])
+    model_intervention = not bool(intervention.get("fixture_not_a_model_result"))
     intervention_rate = float(intervention.get("intervention_rate") or 0.0)
     material_degrade = False
     if accuracy < 0.50:
         material_degrade = True
-    if intervention_rate > 0.25 and accuracy < 0.70:
+    if model_intervention and intervention_rate > 0.25 and accuracy < 0.70:
         material_degrade = True
     if n_changed >= 6 and accuracy < 0.70:
         material_degrade = True
     status = "ok"
     if not code_ok or material_degrade:
-        status = "CANARY_SEMANTIC_FAIL"
+        status = "CONSTRAINED_CANARY_SEMANTIC_FAIL"
+    sanitized_intervention = {
+        "source": intervention.get("source"),
+        "note": intervention.get("note"),
+        "fixture_not_a_model_result": bool(intervention.get("fixture_not_a_model_result")),
+        "n_generated_tokens": intervention.get("n_generated_tokens"),
+        "n_top1_allowed": intervention.get("n_top1_allowed"),
+        "n_top1_rejected": intervention.get("n_top1_rejected"),
+        "intervention_rate": intervention_rate if model_intervention else None,
+        "n_structural_interventions": intervention.get("n_structural_interventions"),
+        "n_clinical_enum_interventions": intervention.get("n_clinical_enum_interventions"),
+        "interventions_by_field": intervention.get("interventions_by_field") or {},
+        "unconstrained_to_constrained_enum": intervention.get("unconstrained_to_constrained_enum") or {},
+        "n_rank_measurable": intervention.get("n_rank_measurable"),
+        "mean_selected_rank": intervention.get("mean_selected_rank"),
+        "mean_prob_gap": intervention.get("mean_prob_gap"),
+        "raw_completions_stored": False,
+        "logits_retained": False,
+    }
     return {
         "status": status,
         "ok": status == "ok",
@@ -792,17 +959,13 @@ def evaluate_semantic_gates(
         "unknown_uncertain_not_mentioned_coerced_to_negative_by_code": False,
         "n_unconstrained_schema_valid": len(unconstrained_valid_ids),
         "n_outputs_clinical_fields_changed": n_changed,
+        "n_target_level_clinical_decisions_changed": n_target_status_changed,
+        "n_target_any_field_changed": n_target_any_changed,
+        "field_agreement": agreement,
         "field_mismatches_n": len(field_mismatches),
         "field_mismatches": field_mismatches[:80],
         "synthetic_status": confusion,
-        "intervention": {
-            "n_generated_tokens": intervention.get("n_generated_tokens"),
-            "n_top1_allowed": intervention.get("n_top1_allowed"),
-            "n_top1_rejected": intervention.get("n_top1_rejected"),
-            "intervention_rate": intervention_rate,
-            "interventions_by_field": intervention.get("interventions_by_field") or {},
-            "unconstrained_to_constrained_enum": intervention.get("unconstrained_to_constrained_enum") or {},
-        },
+        "intervention": sanitized_intervention,
         "raw_completions_stored": False,
         "report_text_stored": False,
     }
@@ -824,8 +987,14 @@ def freeze_v14_payload(config: dict, prompt: dict, *, extra: dict[str, Any] | No
     freeze["tokenizer_sha256"] = dict(PINNED_TOKENIZER_SHA256)
     freeze["model_revision"] = (config.get("selected_model") or {}).get("revision")
     freeze["phi_eos_ids"] = list(PHI_EOS_IDS)
-    freeze["schema_sha256"] = hash_schema_payload(validation_schema())
-    freeze["generation_schema_sha256"] = hash_schema_payload(generation_schema())
+    provenance = schema_hash_provenance()
+    freeze["schema_sha256"] = provenance["schema_canonical_json_sha256"]
+    freeze["generation_schema_sha256"] = provenance["generation_schema_canonical_json_sha256"]
+    freeze["schema_raw_bytes_sha256"] = provenance["schema_raw_bytes_sha256"]
+    freeze["schema_canonical_json_sha256"] = provenance["schema_canonical_json_sha256"]
+    freeze["generation_schema_raw_bytes_sha256"] = provenance["generation_schema_raw_bytes_sha256"]
+    freeze["generation_schema_canonical_json_sha256"] = provenance["generation_schema_canonical_json_sha256"]
+    freeze["schema_hash_note"] = provenance["note"]
     freeze["n_gold_studies_processed"] = 0
     freeze["n_report_only_studies_processed"] = 0
     if extra:
@@ -862,24 +1031,38 @@ def run_constrained_canary(
     result["canary_version"] = CANARY_VERSION_V1_4
     result["constrained"] = True
     result["lm_format_enforcer_version"] = LMFE_VERSION
+    result["gold_rerun_authorized"] = False
+    result["gold_rerun_executed"] = False
+    n_repeats_effective = int(n_repeats)
+    n_examples = int(result.get("n_examples") or 0)
+    n_schema_valid = int(result.get("n_schema_valid") or 0)
+    n_schema_valid_all = int(result.get("n_schema_valid_all_repeats") or 0)
+    if n_schema_valid_all <= 0:
+        if result.get("repeatable") or n_repeats_effective == 1:
+            n_schema_valid_all = n_schema_valid * n_repeats_effective
+        else:
+            n_schema_valid_all = n_schema_valid
+    result["n_repeats"] = n_repeats_effective
+    result["n_completions"] = n_examples * n_repeats_effective
+    result["n_schema_valid_all_repeats"] = n_schema_valid_all
     if intervention is not None:
-        intervention_payload = intervention
+        intervention_payload = dict(intervention)
+        if "source" not in intervention_payload:
+            intervention_payload["source"] = "caller"
+            intervention_payload["fixture_not_a_model_result"] = True
     elif CONSTRAINT_STAT_LOG:
         intervention_payload = aggregate_constraint_stats()
     else:
-        intervention_payload = {
-            "n_generated_tokens": 0,
-            "n_top1_allowed": 0,
-            "n_top1_rejected": 0,
-            "intervention_rate": 0.0,
-            "interventions_by_field": {},
-            "unconstrained_to_constrained_enum": {},
-        }
+        intervention_payload = empty_intervention_payload(
+            source="no_model_logits",
+            note="Fixture generate_fn or missing logits processor. Do not report intervention_rate=0 as a model result.",
+        )
     first_rows = result.get("example_rows") or []
     if not first_rows:
-        # Reconstruct minimal rows from example ids for fixture runs.
         first_rows = []
     semantic = None
+    expected_valid = n_examples * n_repeats_effective
+    format_ok = bool(result.get("ok")) and n_schema_valid_all == expected_valid
     if not smoke:
         semantic = evaluate_semantic_gates(
             constrained_rows=result.get("scored_rows") or first_rows,
@@ -888,17 +1071,28 @@ def run_constrained_canary(
         )
         result["semantic"] = semantic
         result["intervention"] = semantic["intervention"]
-        if result.get("ok") and not semantic.get("ok"):
+        if not format_ok:
+            result["status"] = "CONSTRAINED_CANARY_FORMAT_FAIL"
             result["ok"] = False
-            result["status"] = "CANARY_SEMANTIC_FAIL"
             result["stop_gold_rerun"] = True
-        elif result.get("ok"):
+        elif not semantic.get("ok"):
+            result["ok"] = False
+            result["status"] = "CONSTRAINED_CANARY_SEMANTIC_FAIL"
+            result["stop_gold_rerun"] = True
+        else:
             result["status"] = "CONSTRAINED_CANARY_PASS"
-            result["stop_gold_rerun"] = False
+            result["ok"] = True
+            result["stop_gold_rerun"] = True
+            result["gold_rerun_authorized"] = False
     else:
         result["intervention"] = intervention_payload
-        if result.get("ok"):
+        if format_ok:
             result["status"] = "CONSTRAINED_SMOKE_PASS"
+            result["ok"] = True
+        else:
+            result["status"] = "CONSTRAINED_SMOKE_FAIL"
+            result["ok"] = False
+            result["stop_gold_rerun"] = True
     result["n_gold_studies_processed"] = 0
     result["n_report_only_studies_processed"] = 0
     sanitized_dir = Path(result.get("output_dir") or out_dir) / "sanitized"

@@ -159,6 +159,12 @@ def install_from_local_wheels(
                 f"{spec['filename']}: {proc.stdout[-2000:]}\n{proc.stderr[-2000:]}"
             )
         installed.append(spec["filename"])
+    imported = imported_package_versions()
+    if str(imported.get("lm_format_enforcer") or "").startswith("import_failed"):
+        raise WheelInstallError(f"lm_format_enforcer import failed: {imported['lm_format_enforcer']}")
+    if str(imported.get("interegular") or "").startswith("import_failed"):
+        raise WheelInstallError(f"interegular import failed: {imported['interegular']}")
+    check = pip_check(python_executable=python)
     return {
         "ok": True,
         "internet_used": False,
@@ -169,7 +175,72 @@ def install_from_local_wheels(
         "upstream_tag": LMFE_TAG,
         "upstream_commit_sha": LMFE_COMMIT,
         "wheels": verified,
+        "imported_versions": imported,
+        "runtime_versions": runtime_dependency_versions(),
+        "pip_check": check,
     }
+
+
+def pip_check(python_executable: str | None = None) -> dict[str, Any]:
+    """Run ``pip check`` after the hashed local install. Never contacts PyPI."""
+    python = python_executable or sys.executable
+    proc = subprocess.run(
+        [python, "-m", "pip", "check", "--disable-pip-version-check"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    return {
+        "ok": proc.returncode == 0,
+        "returncode": proc.returncode,
+        "stdout": (proc.stdout or "")[-4000:],
+        "stderr": (proc.stderr or "")[-2000:],
+    }
+
+
+def imported_package_versions() -> dict[str, str]:
+    versions: dict[str, str] = {}
+    try:
+        import lmformatenforcer
+
+        versions["lm_format_enforcer"] = str(
+            getattr(lmformatenforcer, "__version__", LMFE_VERSION)
+        )
+    except Exception as exc:  # pragma: no cover - environment-specific
+        versions["lm_format_enforcer"] = f"import_failed:{exc}"
+    try:
+        import interegular
+
+        versions["interegular"] = str(getattr(interegular, "__version__", "unknown"))
+    except Exception as exc:  # pragma: no cover - environment-specific
+        versions["interegular"] = f"import_failed:{exc}"
+    return versions
+
+
+def runtime_dependency_versions() -> dict[str, str]:
+    """Python and Kaggle-preinstalled stack versions used with the local wheels."""
+    versions = {
+        "python": sys.version.split()[0],
+        "python_full": sys.version.replace("\n", " "),
+    }
+    modules = (
+        ("torch", "torch"),
+        ("transformers", "transformers"),
+        ("tokenizers", "tokenizers"),
+        ("pydantic", "pydantic"),
+        ("packaging", "packaging"),
+        ("pyyaml", "yaml"),
+        ("lm_format_enforcer", "lmformatenforcer"),
+        ("interegular", "interegular"),
+    )
+    for label, import_name in modules:
+        try:
+            mod = __import__(import_name)
+            versions[label] = str(getattr(mod, "__version__", "unknown"))
+        except Exception as exc:  # pragma: no cover - optional on CPU CI
+            versions[label] = f"unavailable:{type(exc).__name__}"
+    versions.update(imported_package_versions())
+    return versions
 
 
 def scan_python_sources_for_network(paths: list[Path]) -> list[dict[str, str]]:

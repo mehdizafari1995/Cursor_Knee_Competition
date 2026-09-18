@@ -42,6 +42,22 @@ smoke/canary v1.3, prompts v1.0–v1.2, transport configs v1.0–v1.3.
 `JsonSchemaParser` 0.11.3 accepts `configs/second_reader_schema.json` without
 weakening it.
 
+The reported raw-file vs validation/generation hash gap is serialization, not
+content. There is no separate generation schema file.
+`generation_schema()` returns `validation_schema()` from the same on-disk JSON.
+
+| Hash | SHA-256 |
+| --- | --- |
+| schema_raw_bytes_sha256 | `639c41cc4f9ba1621cc1dd45404ca82ab0a6595c3e7494dca2ef2be1888f9b20` |
+| schema_canonical_json_sha256 | `c39e6236e509c466850e501969e7e8525bd40a189ab05ed3d591e99bd30d3b05` |
+| generation_schema_raw_bytes_sha256 | `639c41cc4f9ba1621cc1dd45404ca82ab0a6595c3e7494dca2ef2be1888f9b20` |
+| generation_schema_canonical_json_sha256 | `c39e6236e509c466850e501969e7e8525bd40a189ab05ed3d591e99bd30d3b05` |
+
+The on-disk file is pretty-printed (`indent=2`, trailing newline). Decoder
+hashes use `json.dumps(..., sort_keys=True, separators=(",", ":"))` of the
+same parsed object. Parsed validation, generation, and on-disk JSON compare
+equal.
+
 Enforced:
 
 - root object
@@ -76,9 +92,11 @@ Software fixture: 3/3 schema-valid, 12 targets, zero invalid enums, zero
 missing targets, zero unbalanced JSON, zero extra fields, zero max-token
 termination, zero gold, zero report-only.
 
-GPU constrained smoke is prepared in
-`notebooks/06_kaggle_second_reader_constrained_canary.ipynb` and was **not**
-executed in this environment (no attached Phi GPU).
+GPU constrained smoke uses
+`notebooks/06_kaggle_second_reader_constrained_canary.ipynb` on a private
+Kaggle Tesla T4 notebook, internet off, no competition dataset, no gold
+studies, no report-only studies, real `local_transformers` backend. Results
+are recorded in the GPU section after the private kernel completes.
 
 ## Phase E — constrained 14-example canary
 

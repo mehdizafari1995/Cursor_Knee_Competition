@@ -692,6 +692,13 @@ def run_synthetic_canary(
     repeatable_ok = hashes_match if (not smoke or n_repeats >= 2) else True
     ok = all_parseable and repeatable_ok and malformed_rate == 0.0 and transport_ok
     fail_status = "SMOKE_FAIL" if smoke else "CANARY_FAIL"
+    n_schema_valid_all_repeats = sum(
+        1
+        for rows in run_rows
+        for row in rows
+        if row.get("schema_valid") or row.get("ok")
+    )
+    n_completions = sum(len(rows) for rows in run_rows)
     result = {
         "status": "ok" if ok else fail_status,
         "ok": ok,
@@ -701,6 +708,9 @@ def run_synthetic_canary(
         "prompt_version": prompt.get("prompt_version"),
         "schema_version": SCHEMA_VERSION,
         "n_examples": n_ex,
+        "n_repeats": len(run_rows),
+        "n_completions": n_completions,
+        "n_schema_valid_all_repeats": n_schema_valid_all_repeats,
         "n_gold_studies_processed": 0,
         "n_report_only_studies_processed": 0,
         "malformed_output_rate": malformed_rate,

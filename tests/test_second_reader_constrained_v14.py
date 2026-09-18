@@ -25,6 +25,8 @@ from knee.lm_format_enforcer_wheels import (
 from knee.second_reader_canary import fixture_canary_generate_fn
 from knee.second_reader_constrained import (
     CANARY_VERSION_V1_4,
+    FROZEN_SCHEMA_CANONICAL_JSON_SHA256,
+    FROZEN_SCHEMA_RAW_BYTES_SHA256,
     PHI_EOS_IDS,
     assert_generation_schema_equivalent,
     audit_schema_against_lmfe,
@@ -32,6 +34,7 @@ from knee.second_reader_constrained import (
     hash_schema_payload,
     never_coerces_unknown_to_negative,
     run_constrained_canary,
+    schema_hash_provenance,
     tokenizer_prefix_tree_audit,
     validation_schema,
 )
@@ -102,6 +105,26 @@ def test_wheel_hash_verification(tmp_path):
         assert all(row["verified_sha256"] == row["sha256"] for row in verified)
     else:
         pytest.skip("vendored wheels are not present in this checkout")
+
+
+def test_schema_hash_provenance_raw_versus_canonical_same_object():
+    provenance = schema_hash_provenance()
+    assert provenance["schema_raw_bytes_sha256"] == FROZEN_SCHEMA_RAW_BYTES_SHA256
+    assert provenance["schema_canonical_json_sha256"] == FROZEN_SCHEMA_CANONICAL_JSON_SHA256
+    assert provenance["generation_schema_raw_bytes_sha256"] == FROZEN_SCHEMA_RAW_BYTES_SHA256
+    assert provenance["generation_schema_canonical_json_sha256"] == FROZEN_SCHEMA_CANONICAL_JSON_SHA256
+    assert provenance["same_parsed_object"] is True
+    assert provenance["raw_differs_from_canonical_due_to_serialization"] is True
+    assert provenance["generation_schema_is_validation_schema"] is True
+    validation = validation_schema()
+    generation = generation_schema()
+    on_disk = json.loads((REPO_ROOT / "configs" / "second_reader_schema.json").read_text(encoding="utf-8"))
+    assert on_disk == validation == generation
+    assert hash_schema_payload(on_disk) == hash_schema_payload(validation) == hash_schema_payload(generation)
+    assert sha256_file(REPO_ROOT / "configs" / "second_reader_schema.json") != hash_schema_payload(on_disk)
+    payload = assert_generation_schema_equivalent(validation, generation)
+    assert payload["equivalent"] is True
+    assert payload["validation_schema_sha256"] == payload["generation_schema_sha256"] == FROZEN_SCHEMA_CANONICAL_JSON_SHA256
 
 
 def test_schema_generation_equivalent_and_hashed():
@@ -211,6 +234,10 @@ def test_fixture_constrained_smoke_and_canary(tmp_path):
     assert semantic["ok"] is True
     assert semantic["code_never_coerces_unknown_to_negative"] is True
     assert semantic["synthetic_status"]["overall_status_accuracy"] == 1.0
+    assert full["n_schema_valid_all_repeats"] == 28
+    assert full["gold_rerun_authorized"] is False
+    assert full["intervention"]["fixture_not_a_model_result"] is True
+    assert full["intervention"]["intervention_rate"] is None
 
 
 def test_constrained_notebook_is_offline_synthetic_and_local_wheels():
@@ -224,6 +251,15 @@ def test_constrained_notebook_is_offline_synthetic_and_local_wheels():
     assert "!pip" not in lowered
     assert "install_from_local_wheels" in source
     assert "--no-index" in source or "no-index" in lowered or "install_from_local_wheels" in source
+    assert "pip_check" in source
+    assert "runtime_versions" in source or "runtime_dependency_versions" in source
+    assert "schema_raw_bytes_sha256" in source
+    assert "schema_canonical_json_sha256" in source
+    assert "generation_schema_raw_bytes_sha256" in source
+    assert "generation_schema_canonical_json_sha256" in source
+    assert "reset_constraint_stats" in source
+    assert "LAST_CONSTRAINT_STATS" not in source
+    assert "gold_rerun_authorized=false" in lowered
     assert "run_second_reader_gold_pilot" not in source
     assert "process_report_only=false" in lowered
     assert "second_reader_pilot_v1_4.yaml" in source
@@ -259,8 +295,18 @@ def test_wheels_are_allowlisted_but_not_required_in_git():
     assert would_include("notebooks/07_kaggle_second_reader_gold_constrained.ipynb")
     assert would_include("third_party/lm_format_enforcer/LICENSE")
     tracked = (REPO_ROOT / "vendor" / "wheels" / LMFE_WHEEL_NAME).is_file()
-    # Presence on disk is allowed; git tracking is forbidden by suffix tests.
     assert LMFE_WHEEL_NAME.endswith(".whl")
+    real_dir = REPO_ROOT / "vendor" / "wheels"
+    if (real_dir / LMFE_WHEEL_NAME).is_file() and (real_dir / INTEREGULAR_WHEEL_NAME).is_file():
+        verified = verify_vendored_wheels(real_dir)
+        assert {row["filename"] for row in verified} == {LMFE_WHEEL_NAME, INTEREGULAR_WHEEL_NAME}
+        dest = REPO_ROOT / "outputs" / "_bundle_allowlist_test"
+        from knee.kaggle_bundle import build_bundle
+
+        manifest = build_bundle(repo_root=REPO_ROOT, output_dir=dest)
+        names = {row["path"] for row in manifest["files"]}
+        assert "vendor/wheels/" + LMFE_WHEEL_NAME in names
+        assert "vendor/wheels/" + INTEREGULAR_WHEEL_NAME in names
     _ = tracked
 
 

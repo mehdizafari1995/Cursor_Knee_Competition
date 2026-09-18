@@ -28,6 +28,7 @@ from .second_reader_schema import (
     TARGET_FIELD_KEYS,
     TRANSPORT_PROTOCOL_VERSION_V1_1,
     TRANSPORT_PROTOCOL_VERSION_V1_2,
+    TRANSPORT_PROTOCOL_VERSION_V1_4,
     UNCERTAINTY_OR_NEGATION_CATEGORIES,
     allowed_enum_values,
 )
@@ -370,8 +371,13 @@ def collect_emitted_enums(targets_payload: Any) -> dict[str, list[str]]:
 
 
 def transport_protocol_alias(protocol: str | None) -> str:
-    """Map config / call-site version strings to v1.0 / v1.1 / v1.2."""
+    """Map config / call-site version strings to v1.0 / v1.1 / v1.2 / v1.4."""
     text = str(protocol or "v1.1")
+    if "v1.4" in text or text in {"v1.4", "1.4"}:
+        return "v1.4"
+    if "v1.3" in text or text in {"v1.3", "1.3"}:
+        # v1.3 reused transport v1.2; keep that mapping so frozen artefacts parse.
+        return "v1.2"
     if "v1.2" in text:
         return "v1.2"
     if "v1.0" in text and "v1.1" not in text and "v1.2" not in text:
@@ -379,6 +385,11 @@ def transport_protocol_alias(protocol: str | None) -> str:
     if text in {"v1.0", "1.0"}:
         return "v1.0"
     return "v1.1"
+
+
+def json_strict_transport(protocol: str | None) -> bool:
+    """True for JSON-object-only remainder rules (v1.2 and constrained v1.4)."""
+    return transport_protocol_alias(protocol) in {"v1.2", "v1.4"}
 
 
 def diagnostics_from_text(
@@ -398,7 +409,7 @@ def diagnostics_from_text(
     blob, remainder, reason = extract_balanced_json_object(stripped)
     alias = transport_protocol_alias(protocol)
     lead = stripped.lstrip()
-    if alias == "v1.2":
+    if json_strict_transport(alias):
         if lead.startswith("["):
             remainder_ok = False
             blob = None
@@ -455,14 +466,14 @@ def extract_json_object(text: str, *, protocol: str = "v1.1") -> str:
         raise MalformedSecondReaderOutput("empty_generation")
     alias = transport_protocol_alias(protocol)
     lead = stripped.lstrip()
-    if alias == "v1.2" and lead.startswith("["):
+    if json_strict_transport(alias) and lead.startswith("["):
         raise MalformedSecondReaderOutput("missing_JSON_object")
     blob, remainder, reason = extract_balanced_json_object(stripped)
     if reason:
         if fenced and reason == "missing_JSON_object":
             raise MalformedSecondReaderOutput("Markdown_code_fence")
         raise MalformedSecondReaderOutput(reason)
-    if alias == "v1.2":
+    if json_strict_transport(alias):
         if not remainder_is_whitespace_only(remainder):
             raise MalformedSecondReaderOutput("forbidden_extra_text")
     elif not remainder_is_allowed_transport_wrapper(remainder, fence_stripped=fenced):
@@ -547,7 +558,7 @@ def _coerce_targets_payload(payload: dict, *, protocol: str = "v1.1") -> tuple[A
     if isinstance(targets_payload, list):
         return targets_payload, False
     alias = transport_protocol_alias(protocol)
-    if alias != "v1.2" and all(
+    if not json_strict_transport(alias) and all(
         key in payload and isinstance(payload.get(key), dict) for key in TARGET_KEYS
     ):
         return {key: payload[key] for key in TARGET_KEYS}, True
@@ -579,6 +590,7 @@ def parse_second_reader_output(
         "v1.0": "second-reader-transport-v1.0",
         "v1.1": TRANSPORT_PROTOCOL_VERSION_V1_1,
         "v1.2": TRANSPORT_PROTOCOL_VERSION_V1_2,
+        "v1.4": TRANSPORT_PROTOCOL_VERSION_V1_4,
     }.get(alias, TRANSPORT_PROTOCOL_VERSION_V1_1)
     if gen.prompt_included_in_decoded_output:
         result = _malformed_result(

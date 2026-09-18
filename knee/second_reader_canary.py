@@ -268,6 +268,18 @@ def fixture_canary_generate_fn(report: str) -> str:
     return json.dumps(payload, separators=(",", ":"), ensure_ascii=True)
 
 
+def synthetic_truth_fields(report: str) -> dict[str, dict[str, str]]:
+    """Predeclared synthetic clinical fields. Not competition labels."""
+    payload = json.loads(fixture_canary_generate_fn(report))
+    targets = payload.get("targets") or {}
+    from .second_reader_schema import TARGET_FIELD_KEYS
+
+    return {
+        key: {field: str((targets.get(key) or {}).get(field) or "") for field in TARGET_FIELD_KEYS}
+        for key in TARGET_KEYS
+    }
+
+
 def _normalized_hash(result) -> str:
     if result.malformed:
         return hashlib.sha256(b"").hexdigest()
@@ -287,7 +299,16 @@ def _normalized_hash(result) -> str:
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()
 
 
-def _score_example(example: dict[str, str], *, config: dict, prompt: dict, generate_fn, weights_path) -> dict[str, Any]:
+def _score_example(
+    example: dict[str, str],
+    *,
+    config: dict,
+    prompt: dict,
+    generate_fn,
+    weights_path,
+    include_clinical_fields: bool = False,
+    include_synthetic_truth: bool = False,
+) -> dict[str, Any]:
     result = run_second_reader(
         example["report"],
         config=config,
@@ -346,6 +367,23 @@ def _score_example(example: dict[str, str], *, config: dict, prompt: dict, gener
         "inference_backend": result.inference_backend,
         "raw_was_stored": False,
     }
+    if include_clinical_fields and parsed_ok:
+        payload["clinical_fields"] = {
+            key: {
+                "status": pred.status,
+                "confidence": pred.confidence_category,
+                "evidence_category": pred.evidence_category,
+                "uncertainty_or_negation_category": pred.uncertainty_or_negation_category,
+            }
+            for key, pred in result.predictions.items()
+        }
+    else:
+        payload["clinical_fields"] = {}
+    if include_synthetic_truth:
+        payload["synthetic_truth"] = synthetic_truth_fields(example["report"])
+    else:
+        payload["synthetic_truth"] = {}
+    return payload
 
 
 def aggregate_generation_diagnostics(rows: list[dict[str, Any]], *, max_new_tokens: int) -> dict[str, Any]:
@@ -517,6 +555,8 @@ def run_synthetic_canary(
     n_repeats: int = 2,
     smoke: bool = False,
     examples: tuple[dict[str, str], ...] | None = None,
+    include_clinical_fields: bool = False,
+    include_synthetic_truth: bool = False,
 ) -> dict[str, Any]:
     """Score synthetic reports only. Refuses competition gold and report-only rows."""
     selected = examples or (
@@ -578,6 +618,8 @@ def run_synthetic_canary(
                 prompt=prompt,
                 generate_fn=generate_fn,
                 weights_path=weights_path,
+                include_clinical_fields=include_clinical_fields,
+                include_synthetic_truth=include_synthetic_truth,
             )
             for example in selected
         ]
@@ -684,11 +726,13 @@ def run_synthetic_canary(
         "termination_inspection": dict(PINNED_PHI35_TERMINATION),
         "freeze": freeze,
         "created_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "scored_rows": first,
     }
     summary = render_canary_summary(result)
     (sanitized_dir / SANITIZED_SUMMARY_FILENAME).write_text(summary, encoding="utf-8")
     public = dict(result)
     public.pop("freeze", None)
+    public.pop("scored_rows", None)
     (sanitized_dir / SANITIZED_METRICS_FILENAME).write_text(
         json.dumps(jsonable(public), indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )

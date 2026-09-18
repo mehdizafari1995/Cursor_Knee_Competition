@@ -31,7 +31,7 @@ DATA_SOURCE_SOFTWARE_FIXTURE = "software_fixture"
 DATA_SOURCE_LOCAL = "local_competition_data"
 
 SOURCE_MARKERS = ("knee/config.py", "knee/kaggle_audit.py")
-SOURCE_COPY_DIRS = ("knee", "scripts", "configs", "notebooks")
+SOURCE_COPY_DIRS = ("knee", "scripts", "configs", "notebooks", "vendor", "third_party")
 SOURCE_COPY_FILES = (
     "pyproject.toml",
     "requirements.txt",

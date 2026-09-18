@@ -88,6 +88,11 @@ checkpoints/
 wandb/
 mlruns/
 
+# Vendored Kaggle wheels and tokenizer snapshots (never commit binaries)
+vendor/wheels/*.whl
+vendor/wheels/*.tar.gz
+vendor/tokenizers/
+
 # Python
 __pycache__/
 *.py[cod]

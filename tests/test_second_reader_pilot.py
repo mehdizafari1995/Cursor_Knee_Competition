@@ -350,6 +350,7 @@ def test_committed_pilot_reports_are_sanitized():
         "reports/second_reader_termination.md",
         "reports/second_reader_synthetic_canary_v12.md",
         "reports/second_reader_synthetic_canary_v13.md",
+        "reports/second_reader_constrained_canary_v14.md",
     ):
         text = (REPO_ROOT / relative).read_text(encoding="utf-8")
         assert REPORT_LABEL_LEAK_TOKEN not in text

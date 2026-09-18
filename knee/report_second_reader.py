@@ -445,7 +445,7 @@ def _generate_with_transformers(
     pad_token_id = tokenizer.eos_token_id if tokenizer.pad_token_id is None else tokenizer.pad_token_id
     do_sample = bool(decoding.get("do_sample") or False)
     protocol = transport_protocol_alias(cfg.get("transport_protocol_version"))
-    use_json_stop = protocol == "v1.2" or bool(decoding.get("json_object_stop"))
+    use_json_stop = protocol in {"v1.2", "v1.4"} or bool(decoding.get("json_object_stop"))
     generate_kwargs: dict[str, Any] = {
         "max_new_tokens": int(decoding.get("max_new_tokens") or 1024),
         "do_sample": do_sample,
@@ -489,6 +489,26 @@ def _generate_with_transformers(
         generate_kwargs["eos_token_id"] = tokenizer.eos_token_id
         if tokenizer.eos_token_id is not None:
             eos_ids = [int(tokenizer.eos_token_id)]
+    recorder = None
+    if bool(decoding.get("schema_constrained")):
+        from .second_reader_constrained import PHI_EOS_IDS, attach_schema_constraints
+
+        prompt_length = int(inputs["input_ids"].shape[1])
+        attached = attach_schema_constraints(
+            tokenizer,
+            prompt_length=prompt_length,
+            force_json_field_order=bool(decoding.get("force_json_field_order")),
+        )
+        generate_kwargs["prefix_allowed_tokens_fn"] = attached["prefix_allowed_tokens_fn"]
+        generate_kwargs["eos_token_id"] = list(PHI_EOS_IDS)
+        eos_ids = list(PHI_EOS_IDS)
+        try:
+            from transformers import LogitsProcessorList
+        except Exception:
+            LogitsProcessorList = list  # type: ignore[misc, assignment]
+        generate_kwargs["logits_processor"] = LogitsProcessorList([attached["logits_processor"]])
+        recorder = attached["recorder"]
+        stopping_names = list(stopping_names) + ["prefix_allowed_tokens_fn"]
     with torch.no_grad():
         output_ids = model.generate(**inputs, **generate_kwargs)
     input_ids = inputs["input_ids"]
@@ -530,6 +550,13 @@ def _generate_with_transformers(
         eos_token_ids=tuple(eos_ids),
         stopping_criteria=tuple(stopping_names),
     )
+    if recorder is not None:
+        from . import second_reader_constrained as constrained_mod
+
+        generated_token_ids = generated_ids[0].tolist() if hasattr(generated_ids[0], "tolist") else list(generated_ids[0])
+        stats = recorder.summarize(generated_token_ids)
+        constrained_mod.LAST_CONSTRAINT_STATS = stats
+        constrained_mod.CONSTRAINT_STAT_LOG.append(stats)
     return generated, diag
 
 

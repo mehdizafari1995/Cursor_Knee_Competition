@@ -26,6 +26,8 @@ ALLOWLIST_DIRS = (
     "scripts",
     "configs",
     "notebooks",
+    "vendor",
+    "third_party",
 )
 
 ALLOWLIST_FILES = (

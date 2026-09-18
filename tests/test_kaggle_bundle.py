@@ -26,6 +26,7 @@ def test_would_include_allowlist_and_forbidden_paths():
     assert would_include("notebooks/05_kaggle_second_reader_synthetic_canary.ipynb")
     assert would_include("notebooks/06_kaggle_second_reader_constrained_canary.ipynb")
     assert would_include("notebooks/07_kaggle_second_reader_gold_constrained.ipynb")
+    assert would_include("notebooks/08_kaggle_second_reader_phase46_replay.ipynb")
     assert would_include("configs/second_reader_pilot.yaml")
     assert would_include("configs/second_reader_pilot_v1_1.yaml")
     assert would_include("configs/second_reader_pilot_v1_2.yaml")

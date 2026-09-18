@@ -329,6 +329,7 @@ def test_wheels_are_allowlisted_but_not_required_in_git():
     assert would_include("configs/lm_format_enforcer_wheels.yaml")
     assert would_include("notebooks/06_kaggle_second_reader_constrained_canary.ipynb")
     assert would_include("notebooks/07_kaggle_second_reader_gold_constrained.ipynb")
+    assert would_include("notebooks/08_kaggle_second_reader_phase46_replay.ipynb")
     assert would_include("third_party/lm_format_enforcer/LICENSE")
     tracked = (REPO_ROOT / "vendor" / "wheels" / LMFE_WHEEL_NAME).is_file()
     assert LMFE_WHEEL_NAME.endswith(".whl")

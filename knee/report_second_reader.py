@@ -355,13 +355,81 @@ def _load_causal_lm(weights_dir: Path, load_kwargs: dict[str, Any], selected: di
         return AutoModelForCausalLM.from_pretrained(str(weights_dir), **fallback)
 
 
+def _encode_second_reader_inputs(
+    tokenizer: Any,
+    report: str,
+    prompt: dict,
+    *,
+    model_device: Any = None,
+) -> dict[str, Any]:
+    """Tokenize once. Caller clones tensors for paired unconstrained/constrained runs."""
+    messages = [
+        {"role": "system", "content": str(prompt.get("system") or "")},
+        {"role": "user", "content": render_user_prompt(report, prompt=prompt)},
+    ]
+    if hasattr(tokenizer, "apply_chat_template"):
+        try:
+            encoded = tokenizer.apply_chat_template(
+                messages,
+                tokenize=True,
+                add_generation_prompt=True,
+                return_tensors="pt",
+                return_dict=True,
+            )
+        except TypeError:
+            encoded = tokenizer.apply_chat_template(
+                messages,
+                tokenize=True,
+                add_generation_prompt=True,
+                return_tensors="pt",
+            )
+    else:
+        encoded = tokenizer(render_user_prompt(report, prompt=prompt), return_tensors="pt")
+    inputs: dict[str, Any] = {}
+    if hasattr(encoded, "items") and not hasattr(encoded, "shape"):
+        for key in ("input_ids", "attention_mask", "token_type_ids"):
+            if key in encoded:
+                inputs[key] = encoded[key]
+    if "input_ids" not in inputs:
+        inputs = {"input_ids": encoded}
+    if hasattr(inputs["input_ids"], "dim") and inputs["input_ids"].dim() == 1:
+        inputs["input_ids"] = inputs["input_ids"].unsqueeze(0)
+        if "attention_mask" in inputs and hasattr(inputs["attention_mask"], "dim"):
+            if inputs["attention_mask"].dim() == 1:
+                inputs["attention_mask"] = inputs["attention_mask"].unsqueeze(0)
+    if model_device is not None:
+        inputs = {
+            key: value.to(model_device) if hasattr(value, "to") else value
+            for key, value in inputs.items()
+        }
+    return inputs
+
+
+def inspect_generate_kwargs(generate_kwargs: dict[str, Any]) -> dict[str, Any]:
+    """Gate 1: generate() must not receive prefix_allowed_tokens_fn."""
+    prefix_present = "prefix_allowed_tokens_fn" in generate_kwargs
+    processors = list(generate_kwargs.get("logits_processor") or [])
+    n_mask = sum(1 for proc in processors if getattr(proc, "schema_constraint_mask", False))
+    return {
+        "has_prefix_allowed_tokens_fn": bool(prefix_present),
+        "n_logits_processors": len(processors),
+        "n_schema_mask_processors": n_mask,
+        "ok_unconstrained": (not prefix_present) and n_mask == 0,
+        "ok_constrained": (not prefix_present) and n_mask == 1,
+    }
+
+
 def _generate_with_transformers(
     report: str,
     *,
     weights_dir: Path,
     cfg: dict,
     prompt: dict,
-) -> str:
+    prepared_inputs: dict[str, Any] | None = None,
+    schema_constrained_override: bool | None = None,
+    return_token_ids: bool = False,
+    eos_token_ids_override: list[int] | None = None,
+) -> Any:
     os.environ.setdefault("HF_HUB_OFFLINE", "1")
     os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
     os.environ.setdefault("HF_DATASETS_OFFLINE", "1")
@@ -397,51 +465,20 @@ def _generate_with_transformers(
         _TRANSFORMERS_CACHE[cache_key] = (tokenizer, model)
     else:
         tokenizer, model = packed
-    messages = [
-        {"role": "system", "content": str(prompt.get("system") or "")},
-        {"role": "user", "content": render_user_prompt(report, prompt=prompt)},
-    ]
-    if hasattr(tokenizer, "apply_chat_template"):
-        try:
-            encoded = tokenizer.apply_chat_template(
-                messages,
-                tokenize=True,
-                add_generation_prompt=True,
-                return_tensors="pt",
-                return_dict=True,
-            )
-        except TypeError:
-            encoded = tokenizer.apply_chat_template(
-                messages,
-                tokenize=True,
-                add_generation_prompt=True,
-                return_tensors="pt",
-            )
-    else:
-        encoded = tokenizer(render_user_prompt(report, prompt=prompt), return_tensors="pt")
-    inputs: dict[str, Any] = {}
-    if hasattr(encoded, "items") and not hasattr(encoded, "shape"):
-        for key in ("input_ids", "attention_mask", "token_type_ids"):
-            if key in encoded:
-                inputs[key] = encoded[key]
-    if "input_ids" not in inputs:
-        inputs = {"input_ids": encoded}
-    if hasattr(inputs["input_ids"], "dim") and inputs["input_ids"].dim() == 1:
-        inputs["input_ids"] = inputs["input_ids"].unsqueeze(0)
-        if "attention_mask" in inputs and hasattr(inputs["attention_mask"], "dim"):
-            if inputs["attention_mask"].dim() == 1:
-                inputs["attention_mask"] = inputs["attention_mask"].unsqueeze(0)
     model_device = getattr(model, "device", None)
     if model_device is None:
         try:
             model_device = next(model.parameters()).device
         except StopIteration:
             model_device = None
-    if model_device is not None:
-        inputs = {
-            key: value.to(model_device) if hasattr(value, "to") else value
-            for key, value in inputs.items()
-        }
+    if prepared_inputs is not None:
+        from .second_reader_intervention_audit import clone_tensor_payload
+
+        inputs = clone_tensor_payload(prepared_inputs)
+    else:
+        inputs = _encode_second_reader_inputs(
+            tokenizer, report, prompt, model_device=model_device
+        )
     pad_token_id = tokenizer.eos_token_id if tokenizer.pad_token_id is None else tokenizer.pad_token_id
     do_sample = bool(decoding.get("do_sample") or False)
     protocol = transport_protocol_alias(cfg.get("transport_protocol_version"))
@@ -490,7 +527,10 @@ def _generate_with_transformers(
         if tokenizer.eos_token_id is not None:
             eos_ids = [int(tokenizer.eos_token_id)]
     recorder = None
-    if bool(decoding.get("schema_constrained")):
+    schema_constrained = bool(decoding.get("schema_constrained"))
+    if schema_constrained_override is not None:
+        schema_constrained = bool(schema_constrained_override)
+    if schema_constrained:
         from .second_reader_constrained import PHI_EOS_IDS, attach_schema_constraints
 
         prompt_length = int(inputs["input_ids"].shape[1])
@@ -510,6 +550,14 @@ def _generate_with_transformers(
         generate_kwargs["logits_processor"] = LogitsProcessorList([attached["logits_processor"]])
         recorder = attached["recorder"]
         stopping_names = list(stopping_names) + ["schema_constraint_logits_processor"]
+    if eos_token_ids_override is not None:
+        eos_ids = [int(tid) for tid in eos_token_ids_override]
+        generate_kwargs["eos_token_id"] = eos_ids if len(eos_ids) != 1 else eos_ids[0]
+    gate = inspect_generate_kwargs(generate_kwargs)
+    if schema_constrained and not gate["ok_constrained"]:
+        raise RuntimeError("GATE1_FAIL: constrained generate kwargs failed processor-order proof")
+    if (not schema_constrained) and not gate["ok_unconstrained"]:
+        raise RuntimeError("GATE1_FAIL: unconstrained generate kwargs failed processor-order proof")
     with torch.no_grad():
         output_ids = model.generate(**inputs, **generate_kwargs)
     input_ids = inputs["input_ids"]
@@ -558,6 +606,9 @@ def _generate_with_transformers(
         stats = recorder.summarize(generated_token_ids)
         constrained_mod.LAST_CONSTRAINT_STATS = stats
         constrained_mod.CONSTRAINT_STAT_LOG.append(stats)
+    if return_token_ids:
+        generated_token_ids = generated_ids[0].tolist() if hasattr(generated_ids[0], "tolist") else list(generated_ids[0])
+        return generated, diag, generated_token_ids
     return generated, diag
 
 

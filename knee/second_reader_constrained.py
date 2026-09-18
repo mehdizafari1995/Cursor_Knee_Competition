@@ -77,6 +77,10 @@ def empty_intervention_payload(*, source: str, note: str) -> dict[str, Any]:
         "intervention_rate": 0.0,
         "n_structural_interventions": 0,
         "n_clinical_enum_interventions": 0,
+        "n_target_key_interventions": 0,
+        "n_property_name_interventions": 0,
+        "n_json_structure_interventions": 0,
+        "n_other_interventions": 0,
         "interventions_by_field": {},
         "unconstrained_to_constrained_enum": {},
         "n_rank_measurable": 0,
@@ -100,6 +104,10 @@ def aggregate_constraint_stats(rows: list[dict[str, Any]] | None = None) -> dict
     n_rejected = sum(int(item.get("n_top1_rejected") or 0) for item in items)
     n_structural = sum(int(item.get("n_structural_interventions") or 0) for item in items)
     n_clinical = sum(int(item.get("n_clinical_enum_interventions") or 0) for item in items)
+    n_target_key = sum(int(item.get("n_target_key_interventions") or 0) for item in items)
+    n_property_name = sum(int(item.get("n_property_name_interventions") or 0) for item in items)
+    n_json_structure = sum(int(item.get("n_json_structure_interventions") or 0) for item in items)
+    n_other = sum(int(item.get("n_other_interventions") or 0) for item in items)
     by_field: dict[str, int] = {}
     enum_pairs: dict[str, int] = {}
     rank_sum = 0.0
@@ -129,6 +137,10 @@ def aggregate_constraint_stats(rows: list[dict[str, Any]] | None = None) -> dict
         "intervention_rate": (float(n_rejected) / float(n_tokens)) if n_tokens else 0.0,
         "n_structural_interventions": n_structural,
         "n_clinical_enum_interventions": n_clinical,
+        "n_target_key_interventions": n_target_key,
+        "n_property_name_interventions": n_property_name,
+        "n_json_structure_interventions": n_json_structure,
+        "n_other_interventions": n_other,
         "interventions_by_field": dict(sorted(by_field.items())),
         "unconstrained_to_constrained_enum": dict(sorted(enum_pairs.items())),
         "n_rank_measurable": n_rank,
@@ -661,6 +673,8 @@ class ConstraintInterventionRecorder:
         recorder = self
 
         class _Proc(self._LogitsProcessor):  # type: ignore[misc]
+            schema_constraint_mask = True
+
             def __call__(self, input_ids, scores):
                 return recorder._observe(input_ids, scores)
 
@@ -742,6 +756,10 @@ class ConstraintInterventionRecorder:
         enum_pairs: dict[str, int] = {}
         n_structural = 0
         n_clinical = 0
+        n_target_key = 0
+        n_property_name = 0
+        n_json_structure = 0
+        n_other = 0
         ranks: list[float] = []
         gaps: list[float] = []
         for item in events:
@@ -769,13 +787,26 @@ class ConstraintInterventionRecorder:
                     enum_pairs[key] = enum_pairs.get(key, 0) + 1
             else:
                 n_structural += 1
+                if field == "target_key":
+                    n_target_key += 1
+                elif field in {"schema_version", "targets"}:
+                    n_property_name += 1
+                elif field == "structure":
+                    n_json_structure += 1
+                else:
+                    n_other += 1
         return {
             "n_generated_tokens": n_total,
+            "n_calls": n_total,
             "n_top1_allowed": n_total - n_rejected,
             "n_top1_rejected": n_rejected,
             "intervention_rate": (float(n_rejected) / float(n_total)) if n_total else 0.0,
             "n_structural_interventions": n_structural,
             "n_clinical_enum_interventions": n_clinical,
+            "n_target_key_interventions": n_target_key,
+            "n_property_name_interventions": n_property_name,
+            "n_json_structure_interventions": n_json_structure,
+            "n_other_interventions": n_other,
             "interventions_by_field": dict(sorted(by_field.items())),
             "unconstrained_to_constrained_enum": dict(sorted(enum_pairs.items())),
             "n_rank_measurable": len(ranks),
@@ -1004,6 +1035,10 @@ def evaluate_semantic_gates(
         "intervention_rate": intervention_rate if model_intervention else None,
         "n_structural_interventions": intervention.get("n_structural_interventions"),
         "n_clinical_enum_interventions": intervention.get("n_clinical_enum_interventions"),
+        "n_target_key_interventions": intervention.get("n_target_key_interventions"),
+        "n_property_name_interventions": intervention.get("n_property_name_interventions"),
+        "n_json_structure_interventions": intervention.get("n_json_structure_interventions"),
+        "n_other_interventions": intervention.get("n_other_interventions"),
         "interventions_by_field": intervention.get("interventions_by_field") or {},
         "unconstrained_to_constrained_enum": intervention.get("unconstrained_to_constrained_enum") or {},
         "n_rank_measurable": intervention.get("n_rank_measurable"),

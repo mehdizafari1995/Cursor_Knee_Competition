@@ -255,7 +255,7 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 ### 2026-09-18T12:29:19Z — Phase 4C.5 constrained-decoding provenance audit
 
 - starting commit SHA: `921f6cc5c5270d85639cfafbff825fe68dd39d92`
-- ending commit SHA: pending (filled after the 4C.5 commit)
+- ending commit SHA: `a60599dc16c66512325d9367cdaed4510943a8ab`
 - files changed: `knee/second_reader_intervention_audit.py`,
   `knee/second_reader_constrained.py`, `knee/report_second_reader.py`,
   `tests/test_second_reader_phase45.py`,

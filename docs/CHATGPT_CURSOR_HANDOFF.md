@@ -28,13 +28,14 @@ resolves to the same repository. PR #10 head branch is
 
 ## Current project state
 
-- current phase: Phase 4C.5 complete on CPU/tokenizer audit.
-  Outcome: `INTERVENTION_DIAGNOSTIC_FAIL`. GPU paired replay (E) was not
-  executed. Gold remains blocked.
+- current phase: Phase 4C.6 started. CPU Gate 1 passed. Phi GPU Gates 2–3
+  were not executed (`transformers_unavailable` / no CUDA). Outcome:
+  `INTERVENTION_DIAGNOSTIC_FAIL`. Gold remains blocked.
 - latest constrained-canary outcome: frozen kernel
   `mahdimzafari/rsna-knee-second-reader-constrained-canary` version 3 remains
-  recorded `CONSTRAINED_CANARY_PASS` and is immutable. Phase 4C.5 does not
-  treat that recorded status as a gold-authorization gate.
+  recorded `CONSTRAINED_CANARY_PASS` and is immutable. Phase 4C.6 does not
+  overwrite that kernel. A new kernel slug
+  `rsna-knee-second-reader-phase46-replay` is prepared in notebook 08.
 - latest Kaggle kernel name and version:
   `mahdimzafari/rsna-knee-second-reader-constrained-canary` version 3
   (Tesla T4, internet off). Versions 1–2 of that kernel are immutable failures
@@ -46,7 +47,7 @@ resolves to the same repository. PR #10 head branch is
   prompt `second-reader-prompt-v1.2.0`; transport
   `second-reader-transport-v1.4`; protocol `second-reader-pilot-v1.4.0`.
   v1.4 config hash unchanged.
-- test counts: `pytest --collect-only` collected 476 tests; `pytest -q` passed.
+- test counts: `pytest --collect-only` collected 493 tests; `pytest -q` passed.
 - gold executed: `false` (`n_gold_studies_processed: 0`;
   `gold_rerun_executed: false`; notebook 07 not executed).
 - report-only studies processed: `false`
@@ -171,26 +172,39 @@ remains blocked until `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`.
 - n_gold_studies_processed: 0
 - n_report_only_studies_processed: 0
 
+### Phase 4C.6 replay (CPU Gate 1; GPU skipped)
+
+- outcome: `INTERVENTION_DIAGNOSTIC_FAIL`
+- skip_reason: `transformers_unavailable`
+- gpu_replay_executed: false
+- kernel slug prepared: `rsna-knee-second-reader-phase46-replay`
+  (do not overwrite frozen constrained-canary v3)
+- Gate 1: file hashes match frozen schema/prompt/v1.4/LMFE pins;
+  `model.generate` does not receive `prefix_allowed_tokens_fn`;
+  unconstrained n_mask=0; constrained n_mask=1;
+  tokenize-once clone of `input_ids` / `attention_mask`;
+  paired calls share Phi EOS IDs `[32000, 32007, 32001]`
+- Gate 2 (07/12/13) and Gate 3 (14×2): not executed
+- `semantic_gate_status: NOT_PREDECLARED`
+- forbidden outcome not used: `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`
+- n_gold_studies_processed: 0
+- n_report_only_studies_processed: 0
+- gold_rerun_authorized: false
+
 ## Current blockers
 
 1. Frozen kernel v3 still records zero interventions while unconstrained was 11/14 schema-valid and constrained was 28/28. Token identity is unproven because completions were not retained.
-2. A zero-intervention deterministic constrained run should be token-identical to the unconstrained run. That GPU pair has not been re-run with the corrected processor.
-3. Semantic gate status is `NOT_PREDECLARED`. Do not invent a threshold from 0.815.
+2. A zero-intervention deterministic constrained run should be token-identical to the unconstrained run. That GPU pair has not been re-run with the corrected processor on a Tesla T4.
+3. Semantic gate status is `NOT_PREDECLARED`. Do not invent a threshold from 0.815. Do not emit `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`.
 4. Gold notebook 07 must remain blocked until `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS` with reconciled interventions.
 
 ## Next authorized task
 
-Phase 4C.5 recorded `INTERVENTION_DIAGNOSTIC_FAIL` and stopped before GPU
-replay. A later ChatGPT authorization may request a tokenize-once paired
-Phi GPU rerun of examples 07, 12, 13 then the 14-example canary using the
-corrected masking logits processor. Until that authorization:
+Phase 4C.6 recorded CPU Gate 1 pass and `INTERVENTION_DIAGNOSTIC_FAIL` because this environment cannot load Transformers or a CUDA Phi snapshot. Gates 2–3 remain the next GPU step.
+
+Execute `notebooks/08_kaggle_second_reader_phase46_replay.ipynb` as a **new** private Kaggle kernel `rsna-knee-second-reader-phase46-replay` (Tesla T4, internet off). Do not overwrite constrained-canary v3. Do not execute notebook 07. Do not process gold or report-only studies.
 
 Work on the existing branch `cursor/phase4c-second-reader-pilot-f351` and existing draft PR #10. Do not create another PR, merge anything, run the gold studies, process report-only studies, or modify scientific results.
-
-1. Constrained decoding repaired three malformed outputs, but the recorded intervention count was zero.
-2. A zero-intervention deterministic constrained run should be token-identical to the unconstrained run.
-3. The reported 0.815 synthetic accuracy needs a predeclared semantic threshold or must be labelled `SEMANTIC_GATE_NOT_ESTABLISHED`.
-4. Gold notebook 07 must remain blocked until these points are resolved.
 
 Standing authorization: `gold_rerun_authorized=false`. Do not execute
 `notebooks/07_kaggle_second_reader_gold_constrained.ipynb`. Do not process
@@ -282,5 +296,47 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 - report-only accessed: false
 - recommended next decision: keep gold blocked; authorize a tokenize-once
   Phi GPU pair only after ChatGPT review of the corrected processor
+
+### 2026-09-18T19:02:22Z — Phase 4C.6 corrected Phi GPU intervention replay
+
+- starting commit SHA: `aa9a54241f183ed0f5cb7047c7d929aae3bab77c`
+- implementation commit SHA: `fd4ed3b4db30e1d41e14d1753637c269a7c96505`
+- ending commit SHA: `fd4ed3b4db30e1d41e14d1753637c269a7c96505`
+- files changed: `knee/second_reader_phase46.py`,
+  `knee/report_second_reader.py`, `knee/second_reader_constrained.py`,
+  `scripts/run_second_reader_phase46.py`,
+  `notebooks/08_kaggle_second_reader_phase46_replay.ipynb`,
+  `tests/test_second_reader_phase46.py`,
+  `tests/test_agent_configuration.py`,
+  `tests/test_kaggle_bundle.py`,
+  `tests/test_second_reader_constrained_v14.py`,
+  `tests/test_second_reader_pilot.py`,
+  `reports/second_reader_phase46_intervention_replay.md`,
+  `docs/CHATGPT_CURSOR_HANDOFF.md`
+- commands and tests run:
+  - `python scripts/run_second_reader_phase46.py`: status
+    `INTERVENTION_DIAGNOSTIC_FAIL`, `skip_reason=transformers_unavailable`,
+    `gpu_replay_executed=false`, `gold_rerun_authorized=false`
+  - Gate 1 file hashes: schema/prompt/v1.4/LMFE/interegular match frozen pins;
+    processor-order proof ok (`prefix_allowed_tokens_fn` rejected;
+    unconstrained n_mask=0; constrained n_mask=1)
+  - `pytest -q`: pass (493 collected)
+  - wheel-hash and Kaggle-bundle allowlist tests: pass
+  - `git diff --check origin/main...HEAD`: pre-existing trailing blank line
+    in immutable `reports/second_reader_constrained_canary_v14.md` only
+  - privacy needle scan of 4C.6 files: no patient/UID/credential hits
+- sanitized results: outcome `INTERVENTION_DIAGNOSTIC_FAIL`;
+  `semantic_gate_status: NOT_PREDECLARED`; no
+  `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`; new kernel slug
+  `rsna-knee-second-reader-phase46-replay`; frozen kernel v3 not rewritten;
+  v1.4 config hash unchanged; tokenize-once clone + EOS override wired into
+  `generate()`; notebook 07 not executed
+- unresolved failures: no CUDA/Transformers in this environment, so Gates 2
+  and 3 (Phi 07/12/13 then 14×2) were not run; frozen GPU zero-intervention
+  contradiction remains; semantic threshold not predeclared
+- gold accessed: false
+- report-only accessed: false
+- recommended next decision: run notebook 08 on a private Kaggle Tesla T4
+  as a new kernel; keep gold blocked; do not overwrite constrained-canary v3
 
 CHATGPT_HANDOFF_READY

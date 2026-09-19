@@ -130,7 +130,7 @@ def aggregate_constraint_stats(rows: list[dict[str, Any]] | None = None) -> dict
     return {
         "source": "transformers_logits_processor",
         "note": "Aggregated immediately from per-token top-1 vs allowed-set comparisons. Full-vocabulary logits are not retained.",
-        "n_calls": len(items),
+        "n_calls": sum(int(item.get("n_calls") or 0) for item in items),
         "n_generated_tokens": n_tokens,
         "n_top1_allowed": n_allowed,
         "n_top1_rejected": n_rejected,
@@ -815,6 +815,8 @@ class ConstraintInterventionRecorder:
             "mean_prob_gap": (sum(gaps) / len(gaps)) if gaps else None,
             "raw_completions_stored": False,
             "logits_retained": False,
+            "source": "transformers_logits_processor",
+            "fixture_not_a_model_result": False,
         }
 
 

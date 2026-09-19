@@ -23,6 +23,7 @@ from knee.second_reader_phase46 import (
     PHASE46_KERNEL_SLUG,
     PHASE46_OUTCOMES,
     FakeSchemaMaskProcessor,
+    capture_isolated_recorder_stats,
     decide_phase46_outcome,
     evaluate_paired_sequences,
     gate1_file_hashes,
@@ -33,6 +34,15 @@ from knee.second_reader_phase46 import (
 from tests.competition_fixtures import REPORT_LABEL_LEAK_TOKEN
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+@pytest.fixture(autouse=True)
+def _reset_constraint_module_globals():
+    import knee.second_reader_constrained as constrained_mod
+
+    constrained_mod.reset_constraint_stats()
+    yield
+    constrained_mod.reset_constraint_stats()
 
 
 def test_inspect_generate_kwargs_rejects_prefix_fn_and_requires_one_mask():
@@ -269,3 +279,210 @@ def test_phase46_does_not_overwrite_v14_config_hash():
     text = (REPO_ROOT / "knee" / "second_reader_phase46.py").read_text(encoding="utf-8")
     assert "CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS" in text
     assert "never" in text.lower() or "forbidden" in text.lower()
+    assert "from .second_reader_constrained import CONSTRAINT_STAT_LOG, LAST_CONSTRAINT_STATS" not in text
+    assert "from . import second_reader_constrained as constrained_mod" in text
+
+
+def _gpu_recorder_stats(marker: int, *, n_tokens: int = 3) -> dict:
+    return {
+        "source": "transformers_logits_processor",
+        "fixture_not_a_model_result": False,
+        "n_calls": n_tokens,
+        "n_generated_tokens": n_tokens,
+        "n_top1_allowed": n_tokens,
+        "n_top1_rejected": 0,
+        "n_structural_interventions": 0,
+        "n_clinical_enum_interventions": 0,
+        "n_target_key_interventions": 0,
+        "n_property_name_interventions": 0,
+        "n_json_structure_interventions": 0,
+        "n_other_interventions": 0,
+        "intervention_rate": 0.0,
+        "interventions_by_field": {},
+        "capture_marker": marker,
+        "raw_completions_stored": False,
+        "logits_retained": False,
+    }
+
+
+def test_capture_reads_rebound_module_global_not_stale_import():
+    import knee.second_reader_constrained as constrained_mod
+    from knee.second_reader_phase46 import capture_isolated_recorder_stats
+
+    constrained_mod.reset_constraint_stats()
+    from knee.second_reader_constrained import LAST_CONSTRAINT_STATS as stale_name
+
+    assert stale_name is None
+    rebound = _gpu_recorder_stats(7)
+    constrained_mod.LAST_CONSTRAINT_STATS = rebound
+    constrained_mod.CONSTRAINT_STAT_LOG.append(rebound)
+    payload, err = capture_isolated_recorder_stats(constrained_mod, role="constrained")
+    assert err is None
+    assert payload is not None
+    assert payload["capture_marker"] == 7
+    assert payload["n_calls"] == 3
+    assert stale_name is None
+    constrained_mod.reset_constraint_stats()
+
+
+def test_capture_rejects_missing_stale_and_non_gpu_recorder():
+    import knee.second_reader_constrained as constrained_mod
+    from knee.second_reader_phase46 import capture_isolated_recorder_stats, reset_constraint_stats
+
+    reset_constraint_stats()
+    payload, err = capture_isolated_recorder_stats(constrained_mod, role="constrained")
+    assert payload is None
+    assert err == "missing_recorder:constrained:LAST_CONSTRAINT_STATS_is_none"
+
+    constrained_mod.LAST_CONSTRAINT_STATS = _gpu_recorder_stats(1)
+    payload, err = capture_isolated_recorder_stats(constrained_mod, role="constrained")
+    assert payload is None
+    assert err == "missing_recorder:constrained:expected_one_summary_got_0"
+
+    constrained_mod.CONSTRAINT_STAT_LOG.append(_gpu_recorder_stats(1))
+    constrained_mod.CONSTRAINT_STAT_LOG.append(_gpu_recorder_stats(2))
+    constrained_mod.LAST_CONSTRAINT_STATS = _gpu_recorder_stats(2)
+    payload, err = capture_isolated_recorder_stats(constrained_mod, role="constrained")
+    assert payload is None
+    assert "expected_one_summary_got_2" in str(err)
+
+    reset_constraint_stats()
+    bad = _gpu_recorder_stats(1)
+    bad["source"] = "missing_recorder"
+    constrained_mod.LAST_CONSTRAINT_STATS = bad
+    constrained_mod.CONSTRAINT_STAT_LOG.append(bad)
+    payload, err = capture_isolated_recorder_stats(constrained_mod, role="constrained_repeat")
+    assert payload is None
+    assert err == "missing_recorder:constrained_repeat:source_not_transformers_logits_processor"
+    reset_constraint_stats()
+
+
+def test_aggregate_n_calls_is_sum_of_per_run_calls_not_row_count():
+    from knee.second_reader_constrained import aggregate_constraint_stats
+
+    rows = [_gpu_recorder_stats(1, n_tokens=10), _gpu_recorder_stats(2, n_tokens=7)]
+    aggregated = aggregate_constraint_stats(rows)
+    assert aggregated["n_calls"] == 17
+    assert aggregated["n_generated_tokens"] == 17
+    assert aggregated["n_calls"] != len(rows)
+
+
+def test_run_one_example_pair_captures_rebound_stats_for_both_constrained_calls(monkeypatch):
+    import knee.second_reader_constrained as constrained_mod
+    import knee.second_reader_phase46 as phase46
+    from knee.report_second_reader import load_prompt_bundle
+    from knee.second_reader_canary import SYNTHETIC_CANARY_EXAMPLES
+    from knee.second_reader_parser import GenerationDiagnostics
+    from knee.second_reader_schema import compact_output_skeleton
+    from knee.second_reader_phase46 import run_one_example_pair
+
+    example = next(item for item in SYNTHETIC_CANARY_EXAMPLES if item["example_id"] == "CANARY_SYNTHETIC_07")
+    prompt = load_prompt_bundle()
+    markers: list[int] = []
+
+    def fake_encode(*_args, **_kwargs):
+        return {
+            "input_ids": torch.tensor([[1, 2, 3, 4]], dtype=torch.long),
+            "attention_mask": torch.tensor([[1, 1, 1, 1]], dtype=torch.long),
+        }
+
+    def fake_generate(
+        report,
+        *,
+        schema_constrained_override=None,
+        return_token_ids=True,
+        **_kwargs,
+    ):
+        diag = GenerationDiagnostics(n_generated_tokens=3, stopped_on_json_close=True)
+        ids = [10, 11, 12]
+        text = compact_output_skeleton()
+        if schema_constrained_override:
+            marker = len(markers) + 1
+            stats = _gpu_recorder_stats(marker)
+            constrained_mod.LAST_CONSTRAINT_STATS = stats
+            constrained_mod.CONSTRAINT_STAT_LOG.append(stats)
+            markers.append(marker)
+        return text, diag, ids
+
+    monkeypatch.setattr(phase46, "_encode_second_reader_inputs", fake_encode)
+    monkeypatch.setattr(phase46, "_generate_with_transformers", fake_generate)
+    constrained_mod.reset_constraint_stats()
+    result = run_one_example_pair(
+        example,
+        tokenizer=None,
+        weights_dir=Path("/tmp/not-a-real-snapshot"),
+        cfg={"decoding": {"schema_constrained": True, "max_new_tokens": 2048}},
+        prompt=prompt,
+    )
+    assert result["ok"] is True
+    assert markers == [1, 2]
+    assert result["constrained_intervention"]["capture_marker"] == 1
+    assert result["repeat_intervention"]["capture_marker"] == 2
+    assert result["constrained_intervention"]["source"] == "transformers_logits_processor"
+    assert result["repeat_intervention"]["fixture_not_a_model_result"] is False
+    blob = json.dumps(result)
+    assert REPORT_LABEL_LEAK_TOKEN not in blob
+    assert "FINDINGS:" not in blob
+
+
+def test_missing_or_stale_recorder_cannot_pass_gate2(monkeypatch):
+    import knee.second_reader_constrained as constrained_mod
+    import knee.second_reader_phase46 as phase46
+    from knee.report_second_reader import load_prompt_bundle
+    from knee.second_reader_canary import SYNTHETIC_CANARY_EXAMPLES
+    from knee.second_reader_parser import GenerationDiagnostics
+    from knee.second_reader_schema import compact_output_skeleton
+    from knee.second_reader_phase46 import run_one_example_pair
+
+    example = next(item for item in SYNTHETIC_CANARY_EXAMPLES if item["example_id"] == "CANARY_SYNTHETIC_12")
+    prompt = load_prompt_bundle()
+
+    def fake_encode(*_args, **_kwargs):
+        return {
+            "input_ids": torch.tensor([[9, 8, 7]], dtype=torch.long),
+            "attention_mask": torch.tensor([[1, 1, 1]], dtype=torch.long),
+        }
+
+    def fake_generate_missing(report, *, schema_constrained_override=None, **_kwargs):
+        diag = GenerationDiagnostics(n_generated_tokens=3, stopped_on_json_close=True)
+        return compact_output_skeleton(), diag, [1, 2, 3]
+
+    monkeypatch.setattr(phase46, "_encode_second_reader_inputs", fake_encode)
+    monkeypatch.setattr(phase46, "_generate_with_transformers", fake_generate_missing)
+    constrained_mod.reset_constraint_stats()
+    missing = run_one_example_pair(
+        example,
+        tokenizer=None,
+        weights_dir=Path("/tmp/not-a-real-snapshot"),
+        cfg={"decoding": {"schema_constrained": True}},
+        prompt=prompt,
+    )
+    assert missing["ok"] is False
+    assert missing["status"] == OUTCOME_INTERVENTION_DIAGNOSTIC_FAIL
+    assert missing["reason"] == "missing_recorder:constrained:LAST_CONSTRAINT_STATS_is_none"
+    assert "constrained_intervention" not in missing or missing.get("constrained_intervention") is None
+
+    def fake_generate_empty_substitute(report, *, schema_constrained_override=None, **_kwargs):
+        diag = GenerationDiagnostics(n_generated_tokens=3, stopped_on_json_close=True)
+        if schema_constrained_override:
+            from knee.second_reader_constrained import empty_intervention_payload
+
+            empty = empty_intervention_payload(source="missing_recorder", note="stale")
+            constrained_mod.LAST_CONSTRAINT_STATS = empty
+            constrained_mod.CONSTRAINT_STAT_LOG.append(empty)
+        return compact_output_skeleton(), diag, [1, 2, 3]
+
+    monkeypatch.setattr(phase46, "_generate_with_transformers", fake_generate_empty_substitute)
+    constrained_mod.reset_constraint_stats()
+    stale = run_one_example_pair(
+        example,
+        tokenizer=None,
+        weights_dir=Path("/tmp/not-a-real-snapshot"),
+        cfg={"decoding": {"schema_constrained": True}},
+        prompt=prompt,
+    )
+    assert stale["ok"] is False
+    assert stale["status"] == OUTCOME_INTERVENTION_DIAGNOSTIC_FAIL
+    assert "missing_recorder" in str(stale["reason"])
+    assert stale.get("constrained_intervention") is None
+

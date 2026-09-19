@@ -43,13 +43,13 @@ from .report_second_reader import (
     locate_weights_directory,
 )
 from .second_reader_canary import SYNTHETIC_CANARY_EXAMPLES, synthetic_truth_fields
+from . import second_reader_constrained as constrained_mod
 from .second_reader_constrained import (
     FROZEN_SCHEMA_CANONICAL_JSON_SHA256,
     FROZEN_SCHEMA_RAW_BYTES_SHA256,
     PHI_EOS_IDS,
     PINNED_TOKENIZER_SHA256,
     aggregate_constraint_stats,
-    empty_intervention_payload,
     evaluate_semantic_gates,
     never_coerces_unknown_to_negative,
     reset_constraint_stats,
@@ -569,6 +569,42 @@ def _parse_generated(text: str, *, protocol: str) -> Any:
     return parse_second_reader_output(text, protocol=protocol)
 
 
+def capture_isolated_recorder_stats(constrained_ns: Any, *, role: str) -> tuple[dict[str, Any] | None, str | None]:
+    """Read module globals after generate(). Never substitutes an empty payload."""
+    stats = constrained_ns.LAST_CONSTRAINT_STATS
+    log = list(constrained_ns.CONSTRAINT_STAT_LOG)
+    if stats is None:
+        return None, f"missing_recorder:{role}:LAST_CONSTRAINT_STATS_is_none"
+    if len(log) != 1:
+        return None, f"missing_recorder:{role}:expected_one_summary_got_{len(log)}"
+    payload = dict(stats)
+    if payload.get("source") != "transformers_logits_processor":
+        return None, f"missing_recorder:{role}:source_not_transformers_logits_processor"
+    if payload.get("fixture_not_a_model_result") is not False:
+        return None, f"missing_recorder:{role}:fixture_not_a_model_result"
+    n_calls = int(payload.get("n_calls") or 0)
+    n_tokens = int(payload.get("n_generated_tokens") or 0)
+    if n_tokens <= 0:
+        return None, f"missing_recorder:{role}:n_generated_tokens_not_positive"
+    if n_calls != n_tokens:
+        return None, f"missing_recorder:{role}:n_calls_ne_n_generated_tokens"
+    return payload, None
+
+
+def _recorder_fail_payload(*, reason: str, extra: dict[str, Any] | None = None) -> dict[str, Any]:
+    payload = {
+        "ok": False,
+        "status": OUTCOME_INTERVENTION_DIAGNOSTIC_FAIL,
+        "reason": reason,
+        "raw_completions_stored": False,
+        "logits_retained": False,
+        "report_text_stored": False,
+    }
+    if extra:
+        payload.update(extra)
+    return payload
+
+
 def run_one_example_pair(
     example: dict[str, str],
     *,
@@ -579,8 +615,6 @@ def run_one_example_pair(
     model_device: Any = None,
 ) -> dict[str, Any]:
     """Tokenize once, clone tensors, run unconstrained then constrained then repeat."""
-    from .second_reader_constrained import CONSTRAINT_STAT_LOG, LAST_CONSTRAINT_STATS
-
     report = example["report"]
     from .report_second_reader import render_user_prompt
 
@@ -634,8 +668,10 @@ def run_one_example_pair(
         return_token_ids=True,
         eos_token_ids_override=list(PHI_EOS_IDS),
     )
-    con_stats = dict(LAST_CONSTRAINT_STATS or empty_intervention_payload(source="missing_recorder", note=""))
-    con_log = list(CONSTRAINT_STAT_LOG)
+    con_stats, con_err = capture_isolated_recorder_stats(constrained_mod, role="constrained")
+    if con_err:
+        del un_text, con_text
+        return _recorder_fail_payload(reason=con_err)
     reset_constraint_stats()
     rep_text, rep_diag, rep_ids = _generate_with_transformers(
         report,
@@ -647,7 +683,13 @@ def run_one_example_pair(
         return_token_ids=True,
         eos_token_ids_override=list(PHI_EOS_IDS),
     )
-    rep_stats = dict(LAST_CONSTRAINT_STATS or empty_intervention_payload(source="missing_recorder", note=""))
+    rep_stats, rep_err = capture_isolated_recorder_stats(constrained_mod, role="constrained_repeat")
+    if rep_err:
+        del un_text, con_text, rep_text
+        return _recorder_fail_payload(
+            reason=rep_err,
+            extra={"constrained_intervention": con_stats},
+        )
 
     un_parsed = _parse_generated(un_text, protocol="v1.2")
     con_parsed = _parse_generated(con_text, protocol="v1.4")
@@ -700,7 +742,7 @@ def run_one_example_pair(
         "constrained_intervention": con_stats,
         "repeat_intervention": rep_stats,
         "reconciliation": recon,
-        "constraint_log_n": len(con_log),
+        "constraint_log_n": 1,
         "raw_completions_stored": False,
         "logits_retained": False,
         "report_text_stored": False,

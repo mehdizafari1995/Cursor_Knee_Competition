@@ -28,9 +28,10 @@ resolves to the same repository. PR #10 head branch is
 
 ## Current project state
 
-- current phase: Phase 4C.6 started. CPU Gate 1 passed. Phi GPU Gates 2–3
-  were not executed (`transformers_unavailable` / no CUDA). Outcome:
-  `INTERVENTION_DIAGNOSTIC_FAIL`. Gold remains blocked.
+- current phase: Phase 4C.6 recorder-capture correction. CPU Gate 1 passed.
+  Phi GPU Gates 2–3 were not executed (`transformers_unavailable` / no CUDA).
+  Outcome: `INTERVENTION_DIAGNOSTIC_FAIL`. Gold remains blocked. Do not
+  launch notebook 08 until ChatGPT reviews this correction.
 - latest constrained-canary outcome: frozen kernel
   `mahdimzafari/rsna-knee-second-reader-constrained-canary` version 3 remains
   recorded `CONSTRAINED_CANARY_PASS` and is immutable. Phase 4C.6 does not
@@ -47,7 +48,7 @@ resolves to the same repository. PR #10 head branch is
   prompt `second-reader-prompt-v1.2.0`; transport
   `second-reader-transport-v1.4`; protocol `second-reader-pilot-v1.4.0`.
   v1.4 config hash unchanged.
-- test counts: `pytest --collect-only` collected 493 tests; `pytest -q` passed.
+- test counts: `pytest --collect-only` collected 498 tests; `pytest -q` passed.
 - gold executed: `false` (`n_gold_studies_processed: 0`;
   `gold_rerun_executed: false`; notebook 07 not executed).
 - report-only studies processed: `false`
@@ -191,6 +192,12 @@ remains blocked until `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`.
 - n_report_only_studies_processed: 0
 - gold_rerun_authorized: false
 
+Recorder capture correction on this HEAD: `run_one_example_pair` reads
+`constrained_mod.LAST_CONSTRAINT_STATS` and `CONSTRAINT_STAT_LOG` after each
+isolated constrained generation. Missing/stale/empty recorder output is
+`INTERVENTION_DIAGNOSTIC_FAIL` with a `missing_recorder:*` reason. Aggregated
+`n_calls` is the sum of per-run `n_calls`. Notebook 08 has not been launched.
+
 ## Current blockers
 
 1. Frozen kernel v3 still records zero interventions while unconstrained was 11/14 schema-valid and constrained was 28/28. Token identity is unproven because completions were not retained.
@@ -200,9 +207,14 @@ remains blocked until `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`.
 
 ## Next authorized task
 
-Phase 4C.6 recorded CPU Gate 1 pass and `INTERVENTION_DIAGNOSTIC_FAIL` because this environment cannot load Transformers or a CUDA Phi snapshot. Gates 2–3 remain the next GPU step.
+Wait for ChatGPT review of the Phase 4C.6 recorder-capture correction.
+Do **not** launch `notebooks/08_kaggle_second_reader_phase46_replay.ipynb`
+until that review passes.
 
-Execute `notebooks/08_kaggle_second_reader_phase46_replay.ipynb` as a **new** private Kaggle kernel `rsna-knee-second-reader-phase46-replay` (Tesla T4, internet off). Do not overwrite constrained-canary v3. Do not execute notebook 07. Do not process gold or report-only studies.
+After review, the next GPU step remains a **new** private Kaggle kernel
+`rsna-knee-second-reader-phase46-replay` (Tesla T4, internet off). Do not
+overwrite constrained-canary v3. Do not execute notebook 07. Do not process
+gold or report-only studies.
 
 Work on the existing branch `cursor/phase4c-second-reader-pilot-f351` and existing draft PR #10. Do not create another PR, merge anything, run the gold studies, process report-only studies, or modify scientific results.
 
@@ -338,5 +350,36 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 - report-only accessed: false
 - recommended next decision: run notebook 08 on a private Kaggle Tesla T4
   as a new kernel; keep gold blocked; do not overwrite constrained-canary v3
+
+### 2026-09-19T22:30:57Z — Phase 4C.6 recorder-capture correction
+
+- starting commit SHA: `744126ac333d152c9868deac900be81b7476e6c1`
+- implementation commit SHA: `6d08d903639b0afe1bbc145a18e82663ab93a811`
+- ending commit SHA: `52aa1de7be1a668f86be285e47ac6ae330b40d50`
+- files changed: `knee/second_reader_phase46.py`,
+  `knee/second_reader_constrained.py`,
+  `tests/test_second_reader_phase46.py`,
+  `reports/second_reader_phase46_intervention_replay.md`,
+  `docs/CHATGPT_CURSOR_HANDOFF.md`
+- commands and tests run:
+  - `pytest -q`: pass (498 collected)
+  - wheel-hash and Kaggle-bundle allowlist tests: pass
+  - `git diff --check origin/main...HEAD`: pre-existing trailing blank line
+    in immutable `reports/second_reader_constrained_canary_v14.md` only
+  - privacy needle scan of 4C.6.1 files: no patient/UID/credential hits
+- sanitized results: `run_one_example_pair` reads
+  `constrained_mod.LAST_CONSTRAINT_STATS` after each isolated constrained
+  generation; missing/stale recorder yields `INTERVENTION_DIAGNOSTIC_FAIL`
+  with `missing_recorder:*`; does not substitute `empty_intervention_payload`;
+  aggregated `n_calls` is the sum of per-run `n_calls`; regression tests
+  rebind the module global and prove both constrained calls capture the new
+  object; notebook 08 not launched; gold_rerun_authorized=false
+- unresolved failures: no CUDA/Transformers, so Gates 2–3 still not executed
+  on Phi; frozen v3 zero-intervention contradiction remains; semantic
+  threshold not predeclared
+- gold accessed: false
+- report-only accessed: false
+- recommended next decision: wait for ChatGPT review; do not launch notebook
+  08 until that review passes; keep gold blocked
 
 CHATGPT_HANDOFF_READY

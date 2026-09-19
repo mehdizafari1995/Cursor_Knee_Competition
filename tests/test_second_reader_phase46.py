@@ -281,6 +281,7 @@ def test_phase46_does_not_overwrite_v14_config_hash():
     assert "never" in text.lower() or "forbidden" in text.lower()
     assert "from .second_reader_constrained import CONSTRAINT_STAT_LOG, LAST_CONSTRAINT_STATS" not in text
     assert "from . import second_reader_constrained as constrained_mod" in text
+    assert "last_stats_log_mismatch" in text
 
 
 def _gpu_recorder_stats(marker: int, *, n_tokens: int = 3) -> dict:
@@ -322,6 +323,46 @@ def test_capture_reads_rebound_module_global_not_stale_import():
     assert payload["capture_marker"] == 7
     assert payload["n_calls"] == 3
     assert stale_name is None
+    constrained_mod.reset_constraint_stats()
+
+
+def test_capture_rejects_stale_last_stats_vs_different_log_summary():
+    import knee.second_reader_constrained as constrained_mod
+    from knee.second_reader_phase46 import capture_isolated_recorder_stats
+
+    constrained_mod.reset_constraint_stats()
+    stale = _gpu_recorder_stats(11)
+    log_summary = _gpu_recorder_stats(22)
+    assert stale is not log_summary
+    constrained_mod.LAST_CONSTRAINT_STATS = stale
+    constrained_mod.CONSTRAINT_STAT_LOG.append(log_summary)
+    payload, err = capture_isolated_recorder_stats(constrained_mod, role="constrained")
+    assert payload is None
+    assert err == "missing_recorder:constrained:last_stats_log_mismatch"
+
+    payload, err = capture_isolated_recorder_stats(constrained_mod, role="constrained_repeat")
+    assert payload is None
+    assert err == "missing_recorder:constrained_repeat:last_stats_log_mismatch"
+
+    constrained_mod.reset_constraint_stats()
+    shared = _gpu_recorder_stats(3)
+    constrained_mod.LAST_CONSTRAINT_STATS = shared
+    constrained_mod.CONSTRAINT_STAT_LOG.append(shared)
+    payload, err = capture_isolated_recorder_stats(constrained_mod, role="constrained")
+    assert err is None
+    assert payload is not None
+    assert payload["capture_marker"] == 3
+
+    constrained_mod.reset_constraint_stats()
+    first = _gpu_recorder_stats(4)
+    copy = _gpu_recorder_stats(4)
+    assert first is not copy
+    constrained_mod.LAST_CONSTRAINT_STATS = first
+    constrained_mod.CONSTRAINT_STAT_LOG.append(copy)
+    payload, err = capture_isolated_recorder_stats(constrained_mod, role="constrained")
+    assert err is None
+    assert payload is not None
+    assert payload["capture_marker"] == 4
     constrained_mod.reset_constraint_stats()
 
 
@@ -485,3 +526,24 @@ def test_missing_or_stale_recorder_cannot_pass_gate2(monkeypatch):
     assert stale["status"] == OUTCOME_INTERVENTION_DIAGNOSTIC_FAIL
     assert "missing_recorder" in str(stale["reason"])
     assert stale.get("constrained_intervention") is None
+
+    def fake_generate_last_vs_log_mismatch(report, *, schema_constrained_override=None, **_kwargs):
+        diag = GenerationDiagnostics(n_generated_tokens=3, stopped_on_json_close=True)
+        if schema_constrained_override:
+            constrained_mod.LAST_CONSTRAINT_STATS = _gpu_recorder_stats(31)
+            constrained_mod.CONSTRAINT_STAT_LOG.append(_gpu_recorder_stats(32))
+        return compact_output_skeleton(), diag, [1, 2, 3]
+
+    monkeypatch.setattr(phase46, "_generate_with_transformers", fake_generate_last_vs_log_mismatch)
+    constrained_mod.reset_constraint_stats()
+    mismatch = run_one_example_pair(
+        example,
+        tokenizer=None,
+        weights_dir=Path("/tmp/not-a-real-snapshot"),
+        cfg={"decoding": {"schema_constrained": True}},
+        prompt=prompt,
+    )
+    assert mismatch["ok"] is False
+    assert mismatch["status"] == OUTCOME_INTERVENTION_DIAGNOSTIC_FAIL
+    assert mismatch["reason"] == "missing_recorder:constrained:last_stats_log_mismatch"
+    assert mismatch.get("constrained_intervention") is None

@@ -569,6 +569,11 @@ def _parse_generated(text: str, *, protocol: str) -> Any:
     return parse_second_reader_output(text, protocol=protocol)
 
 
+def _sanitized_recorder_payload(stats: Any) -> str:
+    """Canonical JSON of a recorder summary. Used when object identity is unstable."""
+    return json.dumps(jsonable(dict(stats)), sort_keys=True, default=str)
+
+
 def capture_isolated_recorder_stats(constrained_ns: Any, *, role: str) -> tuple[dict[str, Any] | None, str | None]:
     """Read module globals after generate(). Never substitutes an empty payload."""
     stats = constrained_ns.LAST_CONSTRAINT_STATS
@@ -577,6 +582,15 @@ def capture_isolated_recorder_stats(constrained_ns: Any, *, role: str) -> tuple[
         return None, f"missing_recorder:{role}:LAST_CONSTRAINT_STATS_is_none"
     if len(log) != 1:
         return None, f"missing_recorder:{role}:expected_one_summary_got_{len(log)}"
+    log_summary = log[0]
+    if stats is not log_summary:
+        try:
+            last_payload = _sanitized_recorder_payload(stats)
+            log_payload = _sanitized_recorder_payload(log_summary)
+        except (TypeError, ValueError):
+            return None, f"missing_recorder:{role}:last_stats_log_mismatch"
+        if last_payload != log_payload:
+            return None, f"missing_recorder:{role}:last_stats_log_mismatch"
     payload = dict(stats)
     if payload.get("source") != "transformers_logits_processor":
         return None, f"missing_recorder:{role}:source_not_transformers_logits_processor"

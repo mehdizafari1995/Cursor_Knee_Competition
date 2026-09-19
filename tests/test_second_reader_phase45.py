@@ -205,6 +205,28 @@ def test_semantic_gate_is_not_predeclared():
     assert audit["predeclared"] is False
     assert audit["internal_degrade_floor_commit"] == "ff4709e476268866213e10af2c762dd02b26e9e0"
     assert audit["do_not_create_threshold_after_0.815"] is True
+    assert audit["reports_available"] is True
+
+
+def test_semantic_gate_audit_missing_reports_stays_not_predeclared(monkeypatch):
+    from pathlib import Path
+
+    import knee.second_reader_intervention_audit as audit
+
+    real_read = Path.read_text
+
+    def fake_read(self, *args, **kwargs):
+        if "reports" in self.parts:
+            raise FileNotFoundError(self)
+        return real_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    payload = semantic_gate_audit()
+    assert payload["semantic_gate_status"] == "NOT_PREDECLARED"
+    assert payload["predeclared_threshold"] is None
+    assert payload["predeclared"] is False
+    assert payload["reports_available"] is False
+    assert payload["do_not_create_threshold_after_0.815"] is True
 
 
 def test_frozen_gpu_v3_is_intervention_diagnostic_fail():

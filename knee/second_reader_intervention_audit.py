@@ -547,14 +547,22 @@ def replay_malformed_variants(tokenizer_dir: str | None = None) -> dict[str, Any
     }
 
 
+def _read_text_if_exists(path: Path) -> str | None:
+    try:
+        return path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return None
+
+
 def semantic_gate_audit() -> dict[str, Any]:
     """Locate a predeclared synthetic clinical-accuracy threshold. Do not invent one."""
-    protocol = (PROJECT_ROOT / "reports" / "second_reader_pilot_protocol.md").read_text(encoding="utf-8")
-    v14_report = (PROJECT_ROOT / "reports" / "second_reader_constrained_canary_v14.md").read_text(
-        encoding="utf-8"
-    )
+    protocol_path = PROJECT_ROOT / "reports" / "second_reader_pilot_protocol.md"
+    v14_path = PROJECT_ROOT / "reports" / "second_reader_constrained_canary_v14.md"
+    protocol = _read_text_if_exists(protocol_path) or ""
+    v14_report = _read_text_if_exists(v14_path) or ""
     config_text = DEFAULT_PILOT_CONFIG_PATH_V1_4.read_text(encoding="utf-8")
     schema_text = DEFAULT_SCHEMA_PATH.read_text(encoding="utf-8")
+    reports_available = bool(protocol) and bool(v14_report)
     needles = (
         "synthetic_status_accuracy",
         "synthetic clinical-accuracy",
@@ -580,6 +588,7 @@ def semantic_gate_audit() -> dict[str, Any]:
         "config_declares_synthetic_accuracy_threshold": config_has_threshold,
         "schema_declares_synthetic_accuracy_threshold": schema_has_threshold,
         "v14_report_called_floor_predeclared": v14_claims_predeclared,
+        "reports_available": reports_available,
         "predeclared": predeclared,
         "note": (
             "The 0.50 value is an internal material_degrade floor added in the "

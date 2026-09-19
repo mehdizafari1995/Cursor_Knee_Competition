@@ -386,7 +386,7 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 - starting commit SHA: `d583947a845d89c836a34b4d9441f3ea530db63d`
 - last-vs-log guard commit: `c77bbd909e0377a69382aeb2115ff45c955a4970`
 - semantic-gate missing-reports commit: `3e8e0d40929a13f0ed6f2fb120823eab36166fdc`
-- ending commit SHA: recorded after this handoff commit
+- ending commit SHA: `96dac8566238012c6a52bacd475b0632cd1157cf`
 - files changed: `knee/second_reader_phase46.py`,
   `knee/second_reader_intervention_audit.py`,
   `tests/test_second_reader_phase46.py`,

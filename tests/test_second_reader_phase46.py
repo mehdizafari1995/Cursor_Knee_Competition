@@ -485,4 +485,3 @@ def test_missing_or_stale_recorder_cannot_pass_gate2(monkeypatch):
     assert stale["status"] == OUTCOME_INTERVENTION_DIAGNOSTIC_FAIL
     assert "missing_recorder" in str(stale["reason"])
     assert stale.get("constrained_intervention") is None
-

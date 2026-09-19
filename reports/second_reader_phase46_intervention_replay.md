@@ -51,6 +51,14 @@ JSON-object stop, Phi EOS IDs `[32000, 32007, 32001]`, eager attention.
 v1.4 config SHA-256 unchanged:
 `992af7a4b4483278445a6f3fb363c818611e79005618dff063460d0aed3bd7f7`.
 
+Recorder capture: `run_one_example_pair` reads
+`second_reader_constrained.LAST_CONSTRAINT_STATS` and
+`CONSTRAINT_STAT_LOG` through the module namespace after each isolated
+constrained generation. Missing, stale, empty, or fixture recorder output
+is `INTERVENTION_DIAGNOSTIC_FAIL` with a `missing_recorder:*` reason. It
+does not substitute `empty_intervention_payload`. Aggregated `n_calls` is
+the sum of per-run `n_calls`, not the number of result rows.
+
 ## Gate 2 — paired focus replay (07, 12, 13)
 
 Not executed. Requires pinned Phi-3.5-mini-instruct weights on a Tesla T4

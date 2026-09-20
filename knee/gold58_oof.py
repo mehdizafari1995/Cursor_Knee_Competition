@@ -222,13 +222,15 @@ def _inspect_series_dir(series_dir: Path) -> dict[str, Any]:
     }
 
 
-def inspect_series_inventory(series: pd.DataFrame, data_root: Path) -> list[dict[str, Any]]:
+def inspect_series_inventory(
+    series: pd.DataFrame, data_root: Path, *, split: str = "train"
+) -> list[dict[str, Any]]:
     """Filesystem + metadata inventory. Does not use labels."""
     required = {STUDY_ID_COLUMN, SERIES_ID_COLUMN, "Anatomical_Plane", "Fluid_Sensitive"}
     missing = sorted(required - set(series.columns))
     if missing:
         raise Gold58PreflightError(
-            STATUS_SERIES, f"train_series.csv missing columns: {missing}"
+            STATUS_SERIES, f"series table missing columns: {missing}"
         )
     inventory: list[dict[str, Any]] = []
     studies = series[STUDY_ID_COLUMN].astype(str).tolist()
@@ -237,7 +239,7 @@ def inspect_series_inventory(series: pd.DataFrame, data_root: Path) -> list[dict
     fluids = series["Fluid_Sensitive"].tolist()
     for study, series_uid, plane, fluid_raw in zip(studies, series_uids, planes, fluids):
         fluid = _truthy(fluid_raw)
-        info = _inspect_series_dir(_series_dir(data_root, study, series_uid))
+        info = _inspect_series_dir(_series_dir(data_root, study, series_uid, split=split))
         inventory.append(
             {
                 "study": study,
@@ -513,8 +515,10 @@ def build_resnet18_from_verified_file(path: Path) -> BaselineStudyModel:
     return BaselineStudyModel(_VerifiedEncoder(backbone), num_targets=NUM_TARGETS, aggregation="mean")
 
 
-def _series_dir(data_root: Path, study: str, series: str) -> Path:
-    return Path(data_root) / "train_series" / study / series
+def _series_dir(data_root: Path, study: str, series: str, split: str = "train") -> Path:
+    if split not in {"train", "test"}:
+        raise ValueError(f"split must be 'train' or 'test', got {split!r}")
+    return Path(data_root) / f"{split}_series" / study / series
 
 
 def build_folds(

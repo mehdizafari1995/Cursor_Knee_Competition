@@ -325,8 +325,11 @@ def test_module_never_calls_second_reader_generate():
     assert would_include("configs/gold58_image_resnet18_oof_v1.yaml")
     assert would_include("notebooks/10_kaggle_gold58_image_oof.ipynb")
     assert would_include("notebooks/11_kaggle_gold58_image_oof_v2.ipynb")
+    assert would_include("notebooks/12_kaggle_gold58_submission_rehearsal.ipynb")
     assert would_include("configs/gold58_image_resnet18_oof_v2.yaml")
     assert would_include("scripts/train_gold58_image_oof_v2.py")
+    assert would_include("knee/phase4e_rehearsal.py")
+    assert would_include("scripts/run_phase4e_rehearsal.py")
     assert sha256_file(REPO_ROOT / "configs" / "second_reader_pilot_v1_4.yaml") == FROZEN_V14
 
 

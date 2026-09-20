@@ -205,10 +205,28 @@ def test_v2_protocol_notebook_and_allowlist():
     )
     assert SERIES_RULE_V2 in report
     assert IMAGENET_SHA256 in report
+    run = (REPO_ROOT / "reports" / "gold58_image_oof_v2_run.md").read_text(
+        encoding="utf-8"
+    )
+    assert "GOLD58_OOF_COMPLETE" in run
+    assert KERNEL_SLUG_V2 in run
+    assert "training_run`: true" in run or "training_run: true" in run
+    assert "n_report_only_studies_processed`: 0" in run or (
+        "n_report_only_studies_processed: 0" in run
+    )
+    assert "n_tier_1" in run and "56" in run
+    assert "n_tier_2" in run and "2" in run
+    assert "0.6237496021463534" in run
+    assert "Tesla T4" in run
+    assert "notebooks 07" in run.lower() or "notebooks 07, 09" in run
+    assert REPORT_LABEL_LEAK_TOKEN not in run
+    assert "FINDINGS:" not in run
+    assert "DummySeriesDesc" not in run
     assert would_include("configs/gold58_image_resnet18_oof_v2.yaml")
     assert would_include("notebooks/11_kaggle_gold58_image_oof_v2.ipynb")
     assert would_include("scripts/train_gold58_image_oof_v2.py")
     assert not would_include("reports/gold58_image_oof_v2_protocol.md")
+    assert not would_include("reports/gold58_image_oof_v2_run.md")
     assert sha256_file(REPO_ROOT / "configs" / "second_reader_pilot_v1_4.yaml") == FROZEN_V14
     import json
 

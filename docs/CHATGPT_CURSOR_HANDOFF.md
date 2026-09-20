@@ -494,7 +494,7 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 ### 2026-09-20T14:45:00Z — Phase 4C.7 acceptance audit (no inference)
 
 - starting commit SHA: `e8ee3218724953763bdc28e8fac69d30b08095da`
-- ending commit SHA: pending this commit
+- ending commit SHA: `17bda1e28379bbfb58244231390f43974bc20d4c`
 - files changed: `knee/second_reader_acceptance.py`,
   `knee/second_reader_phase47.py`,
   `knee/second_reader_phase47_acceptance_audit.py`,

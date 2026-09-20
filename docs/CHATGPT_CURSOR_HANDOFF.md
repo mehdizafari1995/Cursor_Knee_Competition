@@ -668,7 +668,7 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 ### 2026-09-20T21:15:00Z — Phase 4D.2 gold58 image OOF v2
 
 - starting commit SHA: `17a5721b39d986e7ff70f263774cb0af6a430821`
-- ending commit SHA: pending this commit
+- ending commit SHA: `a5cf4ad278814b48f7f242684bb10f12764708c9`
 - files changed: `reports/gold58_image_oof_v2_run.md`,
   `tests/test_gold58_oof_v2.py`,
   `tests/test_agent_configuration.py`,
@@ -679,7 +679,7 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
     (`GOLD58_OOF_COMPLETE`; Tesla T4; internet off; competition attached;
     notebook 11)
   - v1 kernel/config/report not overwritten
-  - `pytest -q`: pending after this commit
+  - `pytest -q`: 573 passed
   - v1.4 config SHA-256 unchanged:
     `992af7a4b4483278445a6f3fb363c818611e79005618dff063460d0aed3bd7f7`
   - gold58 v2 recipe SHA-256:

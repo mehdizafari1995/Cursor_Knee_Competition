@@ -202,6 +202,10 @@ def test_phase47_report_and_bundle_allowlist():
     path = REPO_ROOT / "reports" / "second_reader_phase47_gold_constrained_v14.md"
     text = path.read_text(encoding="utf-8")
     assert "gold_rerun_authorized: false" in text
+    assert "n_gold_studies_processed: 58" in text
+    assert "n_report_only_studies_processed: 0" in text
+    assert "PILOT_EXECUTED" in text
+    assert "CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS" in text
     assert REPORT_LABEL_LEAK_TOKEN not in text
     assert "FINDINGS:" not in text
     assert would_include("knee/second_reader_phase47.py")

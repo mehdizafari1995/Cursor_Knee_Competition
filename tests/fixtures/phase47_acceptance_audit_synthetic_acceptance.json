@@ -1,0 +1,38 @@
+{
+  "ACL": {
+    "status": "PILOT_PASS"
+  },
+  "Baker's": {
+    "status": "PILOT_FAIL"
+  },
+  "Contusion": {
+    "status": "PILOT_FAIL"
+  },
+  "Effusion": {
+    "status": "PILOT_FAIL"
+  },
+  "Fracture": {
+    "status": "PILOT_RESTRICTED"
+  },
+  "Lateral Meniscus": {
+    "status": "PILOT_PASS"
+  },
+  "Lateral OA": {
+    "status": "PILOT_FAIL"
+  },
+  "MCL": {
+    "status": "PILOT_RESTRICTED"
+  },
+  "Medial Meniscus": {
+    "status": "PILOT_PASS"
+  },
+  "Medial OA": {
+    "status": "PILOT_RESTRICTED"
+  },
+  "PF OA": {
+    "status": "PILOT_FAIL"
+  },
+  "Synovitis": {
+    "status": "PILOT_FAIL"
+  }
+}

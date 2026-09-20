@@ -28,11 +28,13 @@ resolves to the same repository. PR #10 head branch is
 
 ## Current project state
 
-- current phase: Phase 4C.7 single controlled gold-only constrained
-  evaluation. Outcome: `PILOT_EXECUTED`. Primary-system frozen acceptance
-  is mixed (one `PILOT_PASS`, several `PILOT_RESTRICTED` / `PILOT_FAIL`).
-  Do not emit `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`. Do not scale or
-  train from this result.
+- current phase: Phase 4C.7 acceptance audit (no inference). Outcome:
+  `ACCEPTANCE_AUDIT_COMPLETE`. Primary-system status labels are unchanged
+  after fail-closed CI. Medial Meniscus remains `PILOT_PASS` because both
+  precision and NPV CI lower bounds are finite and >= 0.70. Kernel
+  `mahdimzafari/rsna-knee-second-reader-gold-constrained-v14` v1 remains
+  the frozen scientific record. Do not emit
+  `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`. Do not scale or train.
 - latest constrained-canary outcome: frozen kernel
   `mahdimzafari/rsna-knee-second-reader-constrained-canary` version 3 remains
   recorded `CONSTRAINED_CANARY_PASS` and is immutable.
@@ -45,13 +47,16 @@ resolves to the same repository. PR #10 head branch is
   phase46-replay v2
   `CONSTRAINED_FORMAT_PASS_SEMANTIC_GATE_NOT_ESTABLISHED`; synthetic
   canary v1 `CANARY_FAIL`; smoke v2 `SMOKE_FAIL`; smoke/canary v1.3
-  `CANARY_FAIL`. Notebook 07 was not executed.
+  `CANARY_FAIL`. Notebook 07 was not executed. No new kernel was launched
+  for this audit.
 - schema and configuration versions: schema `second-reader-schema-v1.0.0`;
   prompt `second-reader-prompt-v1.2.0`; transport
   `second-reader-transport-v1.4`; protocol `second-reader-pilot-v1.4.0`.
   v1.4 config hash unchanged.
 - gold executed: `true` (`n_gold_studies_processed: 58`;
-  `gold_rerun_authorized: false` after the run; notebook 07 not executed).
+  `gold_eval_executed: true`; `gold_rerun_executed: true`;
+  `gold_rerun_authorized: false`; notebook 07 not executed). No additional
+  gold exposure in this audit.
 - report-only studies processed: `false`
   (`n_report_only_studies_processed: 0`).
 - PR #10 is draft and unmerged.
@@ -484,6 +489,53 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
   private rows committed)
 - report-only accessed: false
 - recommended next decision: ChatGPT review; do not process report-only
+  studies; do not train; do not merge PR #10
+
+### 2026-09-20T14:45:00Z — Phase 4C.7 acceptance audit (no inference)
+
+- starting commit SHA: `e8ee3218724953763bdc28e8fac69d30b08095da`
+- ending commit SHA: pending this commit
+- files changed: `knee/second_reader_acceptance.py`,
+  `knee/second_reader_phase47.py`,
+  `knee/second_reader_phase47_acceptance_audit.py`,
+  `scripts/run_second_reader_phase47_acceptance_audit.py`,
+  `tests/test_second_reader_acceptance_audit.py`,
+  `tests/test_second_reader_phase47.py`,
+  `tests/test_second_reader_pilot.py`,
+  `tests/test_agent_configuration.py`,
+  `tests/fixtures/phase47_acceptance_audit_synthetic_metrics.json`,
+  `tests/fixtures/phase47_acceptance_audit_synthetic_acceptance.json`,
+  `reports/second_reader_phase47_acceptance_audit.md`,
+  `reports/second_reader_phase47_gold_constrained_v14.md`,
+  `docs/CHATGPT_CURSOR_HANDOFF.md`
+- commands and tests run:
+  - `python scripts/run_second_reader_phase47_acceptance_audit.py`:
+    `ACCEPTANCE_AUDIT_COMPLETE` from existing sanitized
+    `second_reader_gold_metrics.json`; no generate()
+  - `pytest -q`: 526 passed
+  - wheel-hash and Kaggle-bundle allowlist tests: pass
+  - `git diff --check origin/main...HEAD`: pre-existing trailing blank line
+    in immutable `reports/second_reader_constrained_canary_v14.md` only
+  - privacy needle scan: no patient/UID/credential hits in audit artefacts
+  - no new Kaggle kernel; frozen gold-constrained-v14 v1, gold-pilot v7,
+    and constrained-canary v3 remained COMPLETE
+- sanitized results: execution flags corrected to
+  `gold_eval_executed=true` and `gold_rerun_executed=true` with
+  `gold_rerun_authorized=false`; configured CI lower bounds are required;
+  missing/NaN/non-finite CI fails the metric; primary-system labels
+  unchanged; Medial Meniscus still `PILOT_PASS` (precision CI low 1.0,
+  NPV CI low 1.0, both finite >= 0.70; NPV denom=2 reported tiny, not a
+  YAML gate); MCL remains `PILOT_RESTRICTED` (1 decision, NPV CI
+  non-finite); `semantic_gate_status: NOT_PREDECLARED`; forbidden
+  `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS` not used
+- unresolved failures: most targets still fail frozen precision/NPV
+  gates; semantic threshold still not predeclared; tiny denominators are
+  reported only; do not scale
+- gold accessed: false for this audit (reused existing sanitized
+  aggregates from the prior 58-study run; no additional gold exposure)
+- report-only accessed: false
+- recommended next decision: ChatGPT review of the acceptance audit;
+  do not start Phase 4C.8 scientific work; do not process report-only
   studies; do not train; do not merge PR #10
 
 CHATGPT_HANDOFF_READY

@@ -12,6 +12,12 @@ uses the frozen gold acceptance criteria in
 semantic threshold. Do not emit `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`.
 This result is not automatic permission to scale or train.
 
+The kernel-v1 scientific tables, hashes, and private-row hashes below are
+frozen. Execution-flag correction and fail-closed CI recomputation live in
+`reports/second_reader_phase47_acceptance_audit.md`. `n_gold_studies_processed=58`
+implies `gold_eval_executed=true` and `gold_rerun_executed=true`;
+`gold_rerun_authorized` remains false.
+
 ## Kernel
 
 - kernel slug: `mahdimzafari/rsna-knee-second-reader-gold-constrained-v14`

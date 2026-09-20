@@ -56,6 +56,7 @@ from .second_reader_phase46 import (
     runtime_capability,
     skip_reason_from_runtime,
 )
+from .second_reader_acceptance import execution_flag_mismatch_reasons, execution_flags_for_counts
 from .second_reader_pilot import load_pilot_config, run_second_reader_gold_pilot
 from .second_reader_schema import DEFAULT_PILOT_CONFIG_PATH_V1_4
 
@@ -181,6 +182,19 @@ def _base_payload(
     }
     if extra:
         payload.update(extra)
+    payload.update(
+        execution_flags_for_counts(
+            n_gold_studies_processed=int(payload.get("n_gold_studies_processed") or 0)
+        )
+    )
+    payload["notebook_07_executed"] = False
+    mismatches = execution_flag_mismatch_reasons(payload)
+    payload["execution_flag_invariant_ok"] = not mismatches
+    payload["execution_flag_mismatch_reasons"] = mismatches
+    if mismatches:
+        payload["ok"] = False
+        payload["status"] = "EXECUTION_FLAG_INVARIANT_FAIL"
+        payload["skip_reason"] = mismatches[0]
     return payload
 
 
@@ -438,8 +452,18 @@ def run_phase47_gold_constrained(
         payload["status"] = "INTERVENTION_DIAGNOSTIC_FAIL"
         payload["ok"] = False
         payload["skip_reason"] = (recorder.get("reasons") or ["missing_recorder"])[0]
-    payload["gold_rerun_authorized"] = False
-    payload["gold_rerun_executed"] = False
+    payload.update(
+        execution_flags_for_counts(
+            n_gold_studies_processed=int(payload.get("n_gold_studies_processed") or 0)
+        )
+    )
     payload["notebook_07_executed"] = False
+    mismatches = execution_flag_mismatch_reasons(payload)
+    payload["execution_flag_invariant_ok"] = not mismatches
+    payload["execution_flag_mismatch_reasons"] = mismatches
+    if mismatches:
+        payload["ok"] = False
+        payload["status"] = "EXECUTION_FLAG_INVARIANT_FAIL"
+        payload["skip_reason"] = mismatches[0]
     _write_sanitized(out_dir, payload)
     return payload

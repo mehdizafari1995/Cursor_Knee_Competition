@@ -113,6 +113,8 @@ def test_fixture_gold_only_does_not_process_report_only(tmp_path):
     assert result["n_report_only_studies_selected"] == 0
     assert result["gold_rerun_authorized"] is False
     assert result["gold_eval_executed"] is True
+    assert result["gold_rerun_executed"] is True
+    assert result["execution_flag_invariant_ok"] is True
     assert result["process_report_only_studies"] is False
     assert result["internet_used"] is False
     assert result["training_run"] is False
@@ -159,6 +161,7 @@ def test_real_kaggle_wrong_gold_count_does_not_call_generate(tmp_path):
     assert result["n_gold_studies_processed"] == 0
     assert result["n_report_only_studies_processed"] == 0
     assert result["gold_eval_executed"] is False
+    assert result["gold_rerun_executed"] is False
     assert result["gold_rerun_authorized"] is False
     assert "gold_count_not_58" in str(result.get("skip_reason"))
 
@@ -209,8 +212,10 @@ def test_phase47_report_and_bundle_allowlist():
     assert REPORT_LABEL_LEAK_TOKEN not in text
     assert "FINDINGS:" not in text
     assert would_include("knee/second_reader_phase47.py")
+    assert would_include("knee/second_reader_phase47_acceptance_audit.py")
     assert would_include("notebooks/09_kaggle_second_reader_gold_constrained_v14.ipynb")
     assert would_include("scripts/run_second_reader_phase47.py")
+    assert would_include("scripts/run_second_reader_phase47_acceptance_audit.py")
     generate_src = (REPO_ROOT / "knee" / "report_second_reader.py").read_text(encoding="utf-8")
     assert 'generate_kwargs["prefix_allowed_tokens_fn"]' not in generate_src
     assert sha256_file(REPO_ROOT / "configs" / "second_reader_pilot_v1_4.yaml") == (

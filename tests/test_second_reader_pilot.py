@@ -362,6 +362,7 @@ def test_committed_pilot_reports_are_sanitized():
         "reports/gold58_image_oof_v2_protocol.md",
         "reports/gold58_image_oof_v2_run.md",
         "reports/phase4e_submission_rehearsal_protocol.md",
+        "reports/phase4e_submission_rehearsal_run.md",
     ):
         text = (REPO_ROOT / relative).read_text(encoding="utf-8")
         assert REPORT_LABEL_LEAK_TOKEN not in text

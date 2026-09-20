@@ -261,6 +261,7 @@ class TestScaffolding:
             "reports/gold58_image_oof_v2_protocol.md",
             "reports/gold58_image_oof_v2_run.md",
             "reports/phase4e_submission_rehearsal_protocol.md",
+            "reports/phase4e_submission_rehearsal_run.md",
             "knee/gold58_oof.py",
             "scripts/train_gold58_image_oof.py",
             "scripts/train_gold58_image_oof_v2.py",

@@ -307,10 +307,38 @@ def test_internet_guard_and_protocol_allowlist():
     assert would_include("scripts/run_phase4e_rehearsal.py")
     assert would_include("notebooks/12_kaggle_gold58_submission_rehearsal.ipynb")
     assert not would_include("reports/phase4e_submission_rehearsal_protocol.md")
+    run = (REPO_ROOT / "reports" / "phase4e_submission_rehearsal_run.md").read_text(
+        encoding="utf-8"
+    )
+    assert STATUS_COMPLETE in run
+    assert KERNEL_SLUG in run
+    assert "n_visible_test_studies`: 3" in run or "n_visible_test_studies: 3" in run
+    assert "n_models_loaded`: 5" in run or "n_models_loaded: 5" in run
+    assert "competition_submission_written`: false" in run or (
+        "competition_submission_written: false" in run
+    )
+    assert "training_run`: false" in run or "training_run: false" in run
+    assert "hidden_test_available`: false" in run or "hidden_test_available: false" in run
+    assert "n_report_only_studies_processed`: 0" in run or (
+        "n_report_only_studies_processed: 0" in run
+    )
+    assert "Tesla T4" in run
+    assert "n_tier_1" in run and "n_tier_2" in run
+    assert "e42fdc386d4df39772b5305dae16f39ad2fad4be9e6ba01a37d49643f0adf454" in run
+    assert "0.04726875014603138" in run
+    assert "0.9005700945854187" in run
+    assert "/kaggle/working/submission.csv" in run
+    assert "notebooks 07" in run.lower()
+    assert REPORT_LABEL_LEAK_TOKEN not in run
+    assert "FINDINGS:" not in run
+    assert "DummySeriesDesc" not in run
+    assert not would_include("reports/phase4e_submission_rehearsal_run.md")
     for uid in REPORT_LABEL_GOLD_UIDS + REPORT_LABEL_WEAK_UIDS:
         assert uid not in report
+        assert uid not in run
     for patient in REPORT_LABEL_PATIENTS:
         assert patient not in report
+        assert patient not in run
 
 
 def test_notebook_12_is_offline_gpu_and_does_not_submit():

@@ -28,30 +28,36 @@ resolves to the same repository. PR #10 head branch is
 
 ## Current project state
 
-- current phase: Phase 4D.2 gold58 image-only grouped OOF v2. Outcome:
-  `GOLD58_OOF_COMPLETE`. Combined 58-row OOF macro ROC AUC
-  0.6237496021463534 (patient bootstrap 95% CI 0.571677–0.674140).
-  Frozen v1 remains `SERIES_SELECTION_PREFLIGHT_FAIL` and was not
-  retuned. Do not emit `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`. Do not
-  scale or train on weak labels. Do not launch a third OOF run.
+- current phase: Phase 4E gold58 five-checkpoint visible-test submission
+  rehearsal. Outcome: `SUBMISSION_REHEARSAL_COMPLETE`. Visible example
+  test n=3. Hidden test unavailable on a private kernel
+  (`hidden_test_available: false`). No competition submission was
+  written and no submission slot was consumed. Frozen v1 remains
+  `SERIES_SELECTION_PREFLIGHT_FAIL`. Frozen v2 remains
+  `GOLD58_OOF_COMPLETE` (combined 58-row OOF macro ROC AUC
+  0.6237496021463534). Do not emit `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`.
+  Do not scale or train on weak labels. Do not launch a third OOF run.
+  Do not retune v1 or v2. Do not initiate a scoring/submit kernel.
 - latest constrained-canary outcome: frozen kernel
   `mahdimzafari/rsna-knee-second-reader-constrained-canary` version 3 remains
   recorded `CONSTRAINED_CANARY_PASS` and is immutable.
 - latest Kaggle kernel name and version:
-  `mahdimzafari/rsna-knee-gold58-image-oof-v2` version 1
-  (`GOLD58_OOF_COMPLETE`, Tesla T4, internet off, competition attached,
-  notebook 11). Frozen prior kernels remain: gold58-image-oof-v1 v1
+  `mahdimzafari/rsna-knee-gold58-submission-rehearsal-v1` version 1
+  (`SUBMISSION_REHEARSAL_COMPLETE`, Tesla T4, internet off, competition
+  attached, notebook 12). Frozen prior kernels remain:
+  gold58-image-oof-v2 v1 `GOLD58_OOF_COMPLETE`; gold58-image-oof-v1 v1
   `SERIES_SELECTION_PREFLIGHT_FAIL`; gold-constrained-v14 v1
   `PILOT_EXECUTED`; constrained-canary v3 `CONSTRAINED_CANARY_PASS`;
   gold `rsna-knee-second-reader-gold-pilot` v7 `PILOT_EXECUTION_FAIL`;
   phase46-replay v2
   `CONSTRAINED_FORMAT_PASS_SEMANTIC_GATE_NOT_ESTABLISHED`. Notebooks 07,
-  09, and 10 were not executed.
+  09, 10, and 11 were not executed.
 - schema and configuration versions: schema `second-reader-schema-v1.0.0`;
   prompt `second-reader-prompt-v1.2.0`; transport
   `second-reader-transport-v1.4`; protocol `second-reader-pilot-v1.4.0`;
   gold58 v1 recipe `gold58-image-resnet18-grouped-oof-v1` (frozen
-  fail-closed); gold58 v2 recipe `gold58-image-resnet18-grouped-oof-v2`.
+  fail-closed); gold58 v2 recipe `gold58-image-resnet18-grouped-oof-v2`;
+  Phase 4E protocol `gold58-image-resnet18-submission-rehearsal-v1`.
   v1.4 config hash unchanged.
 - gold second-reader executed this phase: `false`. Prior Phase 4C.7 record
   remains `n_gold_studies_processed: 58` with
@@ -254,32 +260,62 @@ remains blocked until `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`.
 - notebooks 07, 09, and 10 not executed
 - forbidden outcome not used: `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`
 
+### Phase 4E gold58 visible-test submission rehearsal (Tesla T4 kernel v1)
+
+- outcome: `SUBMISSION_REHEARSAL_COMPLETE`
+- kernel: `mahdimzafari/rsna-knee-gold58-submission-rehearsal-v1` v1
+- GPU: Tesla T4; internet off; competition attached; notebook 12
+- packaged source HEAD: `b5f253f89139f14c22f03cee069bc699fd742b92`
+- checkpoint dataset: `mahdimzafari/gold58-oof-v2-fold-checkpoints`
+- n_models_loaded: 5; five fold SHA-256 MATCH frozen Phase 4D.2
+- n_visible_test_studies: 3; visible_test_only: true
+- hidden_test_available: false; inference_on_hidden_test: false
+- series rule: `deterministic-primary-series-v2`; n_selected=3;
+  n_tier_1=2; n_tier_2=1; n_zero_readable=0
+- ensemble: equal-weight mean of five fold sigmoid probabilities
+- rehearsal CSV (private): n_rows=3; n_columns=13; official header;
+  probability_min 0.04726875014603138;
+  probability_max 0.9005700945854187;
+  sha256 `e42fdc386d4df39772b5305dae16f39ad2fad4be9e6ba01a37d49643f0adf454`
+- `/kaggle/working/submission.csv` was not written
+- competition_submission_written: false; consumes_submission_slot: false
+- deterministic_repeat max_abs_diff: 0.0; within_tolerance true
+- wall_seconds: 22.996; peak_gpu_memory_bytes: 175136256
+- seconds_per_study: 4.574655; safety 2.0; projected_hidden 11894 s
+  for documented n=1300; n_studies_9h_capacity 3541
+- n_report_only_studies_processed: 0
+- notebooks 07, 09, 10, and 11 not executed
+- frozen v1 and v2 kernels/configs/reports unchanged
+- forbidden outcome not used: `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`
+
 ## Current blockers
 
-1. The measured gold-58 image OOF is a weak first baseline (macro AUC
-   0.62375, CI 0.572–0.674). MCL (0.417) and PF OA (0.493) are at or
-   below chance. This is not a competition submission and is not
-   permission to retune v2.
-2. Frozen v1 remains `SERIES_SELECTION_PREFLIGHT_FAIL`
+1. The 3-row visible-test rehearsal is not a leaderboard score. Hidden
+   test was unavailable on this private kernel. Do not interpret the
+   rehearsal CSV as competition scoring.
+2. The measured gold-58 image OOF remains a weak first baseline (macro
+   AUC 0.62375, CI 0.572–0.674). MCL and PF OA are at or below chance.
+   This is not permission to retune v2.
+3. Frozen v1 remains `SERIES_SELECTION_PREFLIGHT_FAIL`
    (n_unique=48, n_zero=2, n_multi=8). Do not edit v1 history.
-3. The second reader remains parked: 11/12 targets are `PILOT_FAIL` or
+4. The second reader remains parked: 11/12 targets are `PILOT_FAIL` or
    `PILOT_RESTRICTED`. Medial Meniscus `PILOT_PASS` is exploratory
    (coverage 10/58, NPV denom=2), not deployment evidence.
-4. Semantic gate status remains `NOT_PREDECLARED`. Do not invent a
+5. Semantic gate status remains `NOT_PREDECLARED`. Do not invent a
    threshold from 0.815. Do not emit
    `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`.
-5. Gold notebook 07 remains a historical blocked stub. Do not execute
-   notebooks 07, 09, or 10. Do not reopen Phase 4C. Do not launch a
-   third OOF run unless ChatGPT authorizes a new versioned experiment.
-6. No public/private leaderboard score or hidden-test inference exists.
+6. Gold notebook 07 remains a historical blocked stub. Do not execute
+   notebooks 07, 09, 10, or 11. Do not reopen Phase 4C. Do not launch a
+   third OOF run or a scoring/submit kernel unless ChatGPT authorizes it.
 
 ## Next authorized task
 
-Wait for ChatGPT. Accept frozen v2 as the first measured gold-58 image
-baseline. Do **not** retune `deterministic-primary-series-v2` or
+Wait for ChatGPT. Accept Phase 4E as `SUBMISSION_REHEARSAL_COMPLETE`.
+Do **not** initiate a Kaggle competition submission or scoring run.
+Do **not** retune `deterministic-primary-series-v2` or
 `sagittal-fluid-sensitive-unique-v1`. Do **not** launch a third OOF
 kernel. Do **not** train, submit, merge, reopen Phase 4C, execute
-notebook 07/09/10, or process report-only studies.
+notebook 07/09/10/11, or process report-only studies.
 
 Work on the existing branch `cursor/phase4c-second-reader-pilot-f351` and existing draft PR #10. Do not create another PR, merge anything, rerun gold, process report-only studies, or modify scientific results.
 
@@ -288,7 +324,8 @@ Standing authorization: `gold_second_reader_rerun_authorized=false`. Do not exec
 the 4,349 report-only studies. Do not overwrite immutable experiment
 evidence (gold kernel v7, canary v1, smoke v2, smoke/canary v1.3, constrained
 kernel versions 1–3, phase46-replay v1–v2, gold-constrained-v14 v1,
-gold58-image-oof-v1 v1, gold58-image-oof-v2 v1, prompts v1.0–v1.2,
+gold58-image-oof-v1 v1, gold58-image-oof-v2 v1,
+gold58-submission-rehearsal-v1 v1, prompts v1.0–v1.2,
 transport configs v1.0–v1.4, gold58 recipes v1 and v2).
 `HARD_WEAK_LABEL_TRAINING_ALLOWED=false`.
 `SCALE_TO_REPORT_ONLY_SECOND_READER_ALLOWED=false`.
@@ -697,5 +734,43 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 - report-only accessed: false
 - recommended next decision: ChatGPT; freeze v2 as the measured baseline;
   do not launch a third OOF run; do not merge PR #10
+
+### 2026-09-20T23:40:00Z — Phase 4E gold58 visible-test submission rehearsal
+
+- starting commit SHA: `b5f253f89139f14c22f03cee069bc699fd742b92`
+- ending commit SHA: pending this commit
+- files changed: `reports/phase4e_submission_rehearsal_run.md`,
+  `tests/test_phase4e_rehearsal.py`,
+  `tests/test_agent_configuration.py`,
+  `tests/test_second_reader_pilot.py`,
+  `docs/CHATGPT_CURSOR_HANDOFF.md`
+- commands and tests run:
+  - one private T4 kernel:
+    `mahdimzafari/rsna-knee-gold58-submission-rehearsal-v1` v1
+    (`SUBMISSION_REHEARSAL_COMPLETE`; Tesla T4; internet off; competition
+    attached; notebook 12)
+  - v1 and v2 kernels/configs/reports not overwritten
+  - `pytest -q`: pending after this commit
+  - v1.4 config SHA-256 unchanged:
+    `992af7a4b4483278445a6f3fb363c818611e79005618dff063460d0aed3bd7f7`
+  - gold58 v2 recipe SHA-256:
+    `4b65bc0d4d56a3dd36b6898c71d630a113c99f6e4b986e51a15ae1b66e1ea093`
+- sanitized results: n_visible_test_studies=3; n_models_loaded=5;
+  hidden_test_available=false; n_selected=3; n_tier_1=2; n_tier_2=1;
+  rehearsal CSV n_rows=3 n_columns=13;
+  sha256 `e42fdc386d4df39772b5305dae16f39ad2fad4be9e6ba01a37d49643f0adf454`;
+  probability_min 0.04726875014603138; probability_max 0.9005700945854187;
+  deterministic_repeat max_abs_diff=0.0; wall 22.996 s;
+  peak GPU 175136256 bytes; seconds_per_study 4.574655;
+  projected_hidden 11894 s; n_studies_9h_capacity 3541;
+  competition_submission_written=false; consumes_submission_slot=false;
+  n_report_only_processed=0; `/kaggle/working/submission.csv` not written
+- unresolved failures: hidden test unavailable on a private kernel;
+  3-row rehearsal is not a leaderboard score; OOF baseline remains weak
+- gold accessed: false (visible example/public test fixture only)
+- report-only accessed: false
+- recommended next decision: ChatGPT; accept 4E as
+  `SUBMISSION_REHEARSAL_COMPLETE`; do not launch a scoring/submit kernel;
+  do not merge PR #10
 
 CHATGPT_HANDOFF_READY

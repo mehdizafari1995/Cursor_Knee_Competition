@@ -340,6 +340,11 @@ def test_protocol_and_reports_are_sanitized():
     assert SERIES_RULE in report
     assert IMAGENET_SHA256 in report
     assert "PatientID" in report
+    run = (REPO_ROOT / "reports" / "gold58_image_oof_run.md").read_text(encoding="utf-8")
+    assert "SERIES_SELECTION_PREFLIGHT_FAIL" in run
+    assert "training_run" in run
+    assert REPORT_LABEL_LEAK_TOKEN not in run
+    assert "FINDINGS:" not in run
 
 
 def test_notebook_10_is_offline_gpu_and_image_only():

@@ -255,6 +255,7 @@ class TestScaffolding:
             "reports/phase4c_second_reader_parked.md",
             "reports/phase4d_competition_readiness.md",
             "reports/gold58_image_oof_protocol.md",
+            "reports/gold58_image_oof_run.md",
             "knee/gold58_oof.py",
             "scripts/train_gold58_image_oof.py",
             "tests/test_gold58_oof.py",

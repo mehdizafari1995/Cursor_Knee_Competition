@@ -28,35 +28,33 @@ resolves to the same repository. PR #10 head branch is
 
 ## Current project state
 
-- current phase: Phase 4D competition-readiness review (read-only, no
-  inference). Outcome: `READINESS_REVIEW_COMPLETE`. Phase 4C is closed.
-  Second-reader verdict: `SECOND_READER_PARKED_NOT_SCORE_BEARING`.
-  Score-bearing system: image-only `BaselineStudyModel` (ResNet-18) via
-  `scripts/predict_baseline.py` → `knee.submission.write_competition_submission`.
-  Selected next experiment (not run): `gold58-image-resnet18-grouped-oof`.
-  `phase4d_experiment_executed=false`. Do not emit
-  `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`. Do not scale or train.
+- current phase: Phase 4D.1 gold58 image-only grouped OOF. Outcome:
+  `SERIES_SELECTION_PREFLIGHT_FAIL`. The private T4 kernel stopped before
+  training. The predeclared sagittal fluid-sensitive unique-series rule did
+  not yield exactly one series for every labelled study
+  (n_unique=48, n_zero=2, n_multi=8, n_required=58). No OOF score.
+  Do not retune the series rule from this result. Do not emit
+  `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`. Do not scale or train on weak labels.
 - latest constrained-canary outcome: frozen kernel
   `mahdimzafari/rsna-knee-second-reader-constrained-canary` version 3 remains
   recorded `CONSTRAINED_CANARY_PASS` and is immutable.
 - latest Kaggle kernel name and version:
-  `mahdimzafari/rsna-knee-second-reader-gold-constrained-v14` version 1
-  (`KernelWorkerStatus.COMPLETE`, Tesla T4, internet off, gold-only).
-  Frozen prior kernels remain: constrained-canary v3
-  `CONSTRAINED_CANARY_PASS`; gold
-  `rsna-knee-second-reader-gold-pilot` v7 `PILOT_EXECUTION_FAIL`;
-  phase46-replay v2
-  `CONSTRAINED_FORMAT_PASS_SEMANTIC_GATE_NOT_ESTABLISHED`; synthetic
-  canary v1 `CANARY_FAIL`; smoke v2 `SMOKE_FAIL`; smoke/canary v1.3
-  `CANARY_FAIL`. Notebooks 07 and 09 were not executed in Phase 4D. No new
-  kernel was launched for this review.
+  `mahdimzafari/rsna-knee-gold58-image-oof-v1` version 1
+  (`KernelWorkerStatus.ERROR` after fail-closed series preflight, Tesla T4,
+  internet off, competition attached, notebook 10). Frozen prior kernels
+  remain: gold-constrained-v14 v1 `PILOT_EXECUTED`; constrained-canary v3
+  `CONSTRAINED_CANARY_PASS`; gold `rsna-knee-second-reader-gold-pilot` v7
+  `PILOT_EXECUTION_FAIL`; phase46-replay v2
+  `CONSTRAINED_FORMAT_PASS_SEMANTIC_GATE_NOT_ESTABLISHED`. Notebooks 07 and 09
+  were not executed.
 - schema and configuration versions: schema `second-reader-schema-v1.0.0`;
   prompt `second-reader-prompt-v1.2.0`; transport
-  `second-reader-transport-v1.4`; protocol `second-reader-pilot-v1.4.0`.
-  v1.4 config hash unchanged.
-- gold executed this phase: `false` (Phase 4D reused no gold rows and
-  launched no inference). Prior Phase 4C.7 record remains
-  `n_gold_studies_processed: 58` with `gold_rerun_authorized: false`.
+  `second-reader-transport-v1.4`; protocol `second-reader-pilot-v1.4.0`;
+  gold58 recipe `gold58-image-resnet18-grouped-oof-v1`. v1.4 config hash
+  unchanged.
+- gold second-reader executed this phase: `false`. Prior Phase 4C.7 record
+  remains `n_gold_studies_processed: 58` with
+  `gold_second_reader_rerun_authorized: false`.
 - report-only studies processed: `false`
   (`n_report_only_studies_processed: 0`).
 - `HARD_WEAK_LABEL_TRAINING_ALLOWED`: `false`
@@ -235,44 +233,41 @@ remains blocked until `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`.
 
 ## Current blockers
 
-1. No real image checkpoint, OOF score, ensemble, or public/private
-   leaderboard score exists. `metric_reproduction_status` is
-   `NO_SAVED_COMPETITION_PREDICTIONS`.
-2. `scripts/train_baseline.py` refuses full training even with
-   `--allow-training` because `HARD_WEAK_LABEL_TRAINING_ALLOWED` is false.
-   A gold-only trainer is not implemented. Phase 4D did not add or run it.
-3. The second reader is parked: 11/12 targets are `PILOT_FAIL` or
+1. Phase 4D.1 stopped at `SERIES_SELECTION_PREFLIGHT_FAIL`: 48/58 labelled
+   studies have exactly one sagittal fluid-sensitive series; 2 have zero;
+   8 have more than one. No image OOF score. Do not retune the frozen v1
+   series rule from this result.
+2. No real image checkpoint, OOF score, ensemble, or public/private
+   leaderboard score exists.
+3. The second reader remains parked: 11/12 targets are `PILOT_FAIL` or
    `PILOT_RESTRICTED`. Medial Meniscus `PILOT_PASS` is exploratory
    (coverage 10/58, NPV denom=2), not deployment evidence.
 4. Semantic gate status remains `NOT_PREDECLARED`. Do not invent a
    threshold from 0.815. Do not emit
    `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`.
 5. Gold notebook 07 remains a historical blocked stub. Do not execute
-   notebooks 07 or 09. Do not reopen Phase 4C.
-6. `patient_grouped_folds_allowed` remains a closed coordinator gate.
-   Example test is 3 rows; hidden test is not local; this VM cannot hold
-   the ~570 GB DICOM tree.
+   notebooks 07 or 09. Do not reopen Phase 4C. Do not launch a second OOF
+   run unless ChatGPT authorizes a new series-selection rule.
 
 ## Next authorized task
 
-Wait for ChatGPT authorization before implementing or running
-`gold58-image-resnet18-grouped-oof`. Phase 4D **stops** before that
-experiment. Do **not** train, infer, launch a Kaggle kernel, submit, or
-merge. Do **not** reopen Phase 4C, execute notebook 07/09, process
-report-only studies, or train from second-reader labels.
+Wait for ChatGPT. Do **not** retune `sagittal-fluid-sensitive-unique-v1`
+from the 4D.1 counts. Do **not** launch a second OOF kernel. Do **not**
+train, submit, merge, reopen Phase 4C, execute notebook 07/09, or process
+report-only studies.
 
 Work on the existing branch `cursor/phase4c-second-reader-pilot-f351` and existing draft PR #10. Do not create another PR, merge anything, rerun gold, process report-only studies, or modify scientific results.
 
-Standing authorization: `gold_rerun_authorized=false`. Do not execute
+Standing authorization: `gold_second_reader_rerun_authorized=false`. Do not execute
 `notebooks/07_kaggle_second_reader_gold_constrained.ipynb`. Do not process
 the 4,349 report-only studies. Do not overwrite immutable experiment
 evidence (gold kernel v7, canary v1, smoke v2, smoke/canary v1.3, constrained
 kernel versions 1–3, phase46-replay v1–v2, gold-constrained-v14 v1,
-prompts v1.0–v1.2, transport configs v1.0–v1.4).
+gold58-image-oof-v1 v1, prompts v1.0–v1.2, transport configs v1.0–v1.4,
+gold58 recipe v1).
 `HARD_WEAK_LABEL_TRAINING_ALLOWED=false`.
 `SCALE_TO_REPORT_ONLY_SECOND_READER_ALLOWED=false`.
 `SECOND_READER_SCORE_BEARING_ALLOWED=false`.
-`PHASE4D_EXPERIMENT_EXECUTED=false`.
 
 ## Cursor completion protocol
 
@@ -602,5 +597,47 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
   `gold58-image-resnet18-grouped-oof` on labelled image data only;
   do not reopen Phase 4C; do not process report-only studies; do not
   submit; do not merge PR #10
+
+### 2026-09-20T18:05:00Z — Phase 4D.1 gold58 image-only grouped OOF
+
+- starting commit SHA: `a278f7ef1aeef014998a94736b852c754a0a52a7`
+- ending commit SHA: pending this commit
+- files changed: `knee/gold58_oof.py`,
+  `scripts/train_gold58_image_oof.py`,
+  `configs/gold58_image_resnet18_oof_v1.yaml`,
+  `notebooks/10_kaggle_gold58_image_oof.ipynb`,
+  `tests/test_gold58_oof.py`,
+  `tests/test_agent_configuration.py`,
+  `tests/test_second_reader_pilot.py`,
+  `reports/gold58_image_oof_protocol.md`,
+  `reports/gold58_image_oof_run.md`,
+  `docs/CHATGPT_CURSOR_HANDOFF.md`
+- commands and tests run:
+  - `pytest -q`: 558 passed
+  - ImageNet SHA-256 verified:
+    `f37072fd47e89c5e827621c5baffa7500819f7896bbacec160b1a16c560e07ec`
+  - gold58 recipe SHA-256:
+    `92f9d8b52d9488646a4dd19ca9740b8ae658c5f71bf6812a393b91fa3a07af9c`
+  - v1.4 config SHA-256 unchanged:
+    `992af7a4b4483278445a6f3fb363c818611e79005618dff063460d0aed3bd7f7`
+  - wheel-hash / bundle allowlist tests: pass; protocol and run reports
+    `would_include=false`
+  - `git diff --check origin/main...HEAD`: pre-existing trailing blank
+    lines in immutable `reports/second_reader_constrained_canary_v14.md`
+    and frozen `reports/second_reader_phase47_acceptance_audit.md` only
+  - privacy needle scan: gold58 protocol and run reports clean
+  - one private T4 kernel: `mahdimzafari/rsna-knee-gold58-image-oof-v1` v1
+    (`KernelWorkerStatus.ERROR` after fail-closed series preflight)
+- sanitized results: `SERIES_SELECTION_PREFLIGHT_FAIL`; n_labelled=58;
+  n_unique=48; n_zero=2; n_multi=8; training_run=false; GPU Tesla T4;
+  n_report_only_processed=0; no OOF score; no submission; frozen v1.4
+  hash unchanged
+- unresolved failures: unique sagittal fluid-sensitive series rule does
+  not cover all 58 labelled studies; do not retune in this phase
+- gold accessed: labelled train.csv targets and train_series metadata on
+  Kaggle only; no private rows committed
+- report-only accessed: false
+- recommended next decision: ChatGPT; do not launch a second OOF run;
+  do not merge PR #10
 
 CHATGPT_HANDOFF_READY

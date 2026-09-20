@@ -449,7 +449,7 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 
 - starting commit SHA: `ccbee7c825800f89b4e79e787d20a86978a2e354`
 - implementation commit SHA: `7a1072c90cb547f510fdf18b573397553879ab6f`
-- ending commit SHA: recorded after this handoff lands
+- ending commit SHA: `77c672dd9f6f548cf47319c5a6ab006ecefbd007`
 - files changed: `knee/second_reader_phase47.py`,
   `scripts/run_second_reader_phase47.py`,
   `notebooks/09_kaggle_second_reader_gold_constrained_v14.ipynb`,

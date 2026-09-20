@@ -28,12 +28,13 @@ resolves to the same repository. PR #10 head branch is
 
 ## Current project state
 
-- current phase: Phase 4C.7 acceptance audit (no inference). Outcome:
-  `ACCEPTANCE_AUDIT_COMPLETE`. Primary-system status labels are unchanged
-  after fail-closed CI. Medial Meniscus remains `PILOT_PASS` because both
-  precision and NPV CI lower bounds are finite and >= 0.70. Kernel
-  `mahdimzafari/rsna-knee-second-reader-gold-constrained-v14` v1 remains
-  the frozen scientific record. Do not emit
+- current phase: Phase 4D competition-readiness review (read-only, no
+  inference). Outcome: `READINESS_REVIEW_COMPLETE`. Phase 4C is closed.
+  Second-reader verdict: `SECOND_READER_PARKED_NOT_SCORE_BEARING`.
+  Score-bearing system: image-only `BaselineStudyModel` (ResNet-18) via
+  `scripts/predict_baseline.py` → `knee.submission.write_competition_submission`.
+  Selected next experiment (not run): `gold58-image-resnet18-grouped-oof`.
+  `phase4d_experiment_executed=false`. Do not emit
   `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`. Do not scale or train.
 - latest constrained-canary outcome: frozen kernel
   `mahdimzafari/rsna-knee-second-reader-constrained-canary` version 3 remains
@@ -47,18 +48,20 @@ resolves to the same repository. PR #10 head branch is
   phase46-replay v2
   `CONSTRAINED_FORMAT_PASS_SEMANTIC_GATE_NOT_ESTABLISHED`; synthetic
   canary v1 `CANARY_FAIL`; smoke v2 `SMOKE_FAIL`; smoke/canary v1.3
-  `CANARY_FAIL`. Notebook 07 was not executed. No new kernel was launched
-  for this audit.
+  `CANARY_FAIL`. Notebooks 07 and 09 were not executed in Phase 4D. No new
+  kernel was launched for this review.
 - schema and configuration versions: schema `second-reader-schema-v1.0.0`;
   prompt `second-reader-prompt-v1.2.0`; transport
   `second-reader-transport-v1.4`; protocol `second-reader-pilot-v1.4.0`.
   v1.4 config hash unchanged.
-- gold executed: `true` (`n_gold_studies_processed: 58`;
-  `gold_eval_executed: true`; `gold_rerun_executed: true`;
-  `gold_rerun_authorized: false`; notebook 07 not executed). No additional
-  gold exposure in this audit.
+- gold executed this phase: `false` (Phase 4D reused no gold rows and
+  launched no inference). Prior Phase 4C.7 record remains
+  `n_gold_studies_processed: 58` with `gold_rerun_authorized: false`.
 - report-only studies processed: `false`
   (`n_report_only_studies_processed: 0`).
+- `HARD_WEAK_LABEL_TRAINING_ALLOWED`: `false`
+- `SCALE_TO_REPORT_ONLY_SECOND_READER_ALLOWED`: `false`
+- `SECOND_READER_SCORE_BEARING_ALLOWED`: `false`
 - PR #10 is draft and unmerged.
 
 ## Frozen evidence
@@ -232,21 +235,31 @@ remains blocked until `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`.
 
 ## Current blockers
 
-1. Frozen kernel v3 still records `intervention_rate=0.0` historically.
-   Phase 4C.6 and 4C.7 now count blocked tokens. Frozen v3 remains immutable.
-2. Semantic gate status is `NOT_PREDECLARED`. Do not invent a threshold from
-   0.815. Do not emit `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`.
-3. Gold notebook 07 remains a historical blocked stub and was not executed.
-4. Strict-agreement gold acceptance passed only Medial Meniscus. Do not
-   scale to report-only studies or train on hard weak labels.
+1. No real image checkpoint, OOF score, ensemble, or public/private
+   leaderboard score exists. `metric_reproduction_status` is
+   `NO_SAVED_COMPETITION_PREDICTIONS`.
+2. `scripts/train_baseline.py` refuses full training even with
+   `--allow-training` because `HARD_WEAK_LABEL_TRAINING_ALLOWED` is false.
+   A gold-only trainer is not implemented. Phase 4D did not add or run it.
+3. The second reader is parked: 11/12 targets are `PILOT_FAIL` or
+   `PILOT_RESTRICTED`. Medial Meniscus `PILOT_PASS` is exploratory
+   (coverage 10/58, NPV denom=2), not deployment evidence.
+4. Semantic gate status remains `NOT_PREDECLARED`. Do not invent a
+   threshold from 0.815. Do not emit
+   `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`.
+5. Gold notebook 07 remains a historical blocked stub. Do not execute
+   notebooks 07 or 09. Do not reopen Phase 4C.
+6. `patient_grouped_folds_allowed` remains a closed coordinator gate.
+   Example test is 3 rows; hidden test is not local; this VM cannot hold
+   the ~570 GB DICOM tree.
 
 ## Next authorized task
 
-Wait for ChatGPT review of the Phase 4C.7 gold evaluation. Do **not**
-process the 4,349 report-only studies. Do **not** train, scale, submit, or
-merge. Do **not** execute notebook 07. Do not overwrite frozen kernels.
-`gold_rerun_authorized=false`. This evaluation is not automatic permission
-to scale or train.
+Wait for ChatGPT authorization before implementing or running
+`gold58-image-resnet18-grouped-oof`. Phase 4D **stops** before that
+experiment. Do **not** train, infer, launch a Kaggle kernel, submit, or
+merge. Do **not** reopen Phase 4C, execute notebook 07/09, process
+report-only studies, or train from second-reader labels.
 
 Work on the existing branch `cursor/phase4c-second-reader-pilot-f351` and existing draft PR #10. Do not create another PR, merge anything, rerun gold, process report-only studies, or modify scientific results.
 
@@ -256,6 +269,10 @@ the 4,349 report-only studies. Do not overwrite immutable experiment
 evidence (gold kernel v7, canary v1, smoke v2, smoke/canary v1.3, constrained
 kernel versions 1–3, phase46-replay v1–v2, gold-constrained-v14 v1,
 prompts v1.0–v1.2, transport configs v1.0–v1.4).
+`HARD_WEAK_LABEL_TRAINING_ALLOWED=false`.
+`SCALE_TO_REPORT_ONLY_SECOND_READER_ALLOWED=false`.
+`SECOND_READER_SCORE_BEARING_ALLOWED=false`.
+`PHASE4D_EXPERIMENT_EXECUTED=false`.
 
 ## Cursor completion protocol
 
@@ -537,5 +554,47 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 - recommended next decision: ChatGPT review of the acceptance audit;
   do not start Phase 4C.8 scientific work; do not process report-only
   studies; do not train; do not merge PR #10
+
+### 2026-09-20T15:30:00Z — Phase 4D read-only competition-readiness review
+
+- starting commit SHA: `27f82921cf616de3ff4e02ecb779d39ed38b8668`
+- ending commit SHA: pending this commit
+- files changed: `knee/phase4d_readiness.py`,
+  `scripts/run_phase4d_readiness.py`,
+  `tests/test_phase4d_readiness.py`,
+  `tests/test_agent_configuration.py`,
+  `tests/test_second_reader_pilot.py`,
+  `reports/phase4c_second_reader_parked.md`,
+  `reports/phase4d_competition_readiness.md`,
+  `docs/CHATGPT_CURSOR_HANDOFF.md`
+- commands and tests run:
+  - `python scripts/run_phase4d_readiness.py`: `READINESS_REVIEW_COMPLETE`;
+    training/inference/kernel/submission/experiment flags all false
+  - `pytest -q`: pending this run
+  - wheel-hash and Kaggle-bundle allowlist tests: pending this run
+  - `git diff --check`: pending this run
+  - no new Kaggle kernel; frozen gold-constrained-v14 v1, gold-pilot v7,
+    and constrained-canary v3 remained COMPLETE
+- sanitized results: second reader parked
+  `SECOND_READER_PARKED_NOT_SCORE_BEARING`; score-bearing path is
+  image-only ResNet-18 baseline; `NO_SAVED_COMPETITION_PREDICTIONS`;
+  selected experiment `gold58-image-resnet18-grouped-oof` not implemented
+  and not run; Tesla T4 estimate 20–90 minutes on 58 labelled train
+  DICOMs plus `train.csv` labels only; no report-only rows; no second-reader
+  files; `HARD_WEAK_LABEL_TRAINING_ALLOWED=false`;
+  `SCALE_TO_REPORT_ONLY_SECOND_READER_ALLOWED=false`;
+  `SECOND_READER_SCORE_BEARING_ALLOWED=false`;
+  `phase4d_experiment_executed=false`; forbidden
+  `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS` not used
+- unresolved failures: no image checkpoint or OOF; training loop not
+  implemented while hard-weak gate is closed; most second-reader targets
+  still fail frozen precision/NPV gates; semantic threshold still not
+  predeclared; do not run the proposed command in this phase
+- gold accessed: false (no additional gold exposure; no private rows)
+- report-only accessed: false
+- recommended next decision: ChatGPT authorization to implement and run
+  `gold58-image-resnet18-grouped-oof` on labelled image data only;
+  do not reopen Phase 4C; do not process report-only studies; do not
+  submit; do not merge PR #10
 
 CHATGPT_HANDOFF_READY

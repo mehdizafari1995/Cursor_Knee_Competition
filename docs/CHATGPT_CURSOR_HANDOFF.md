@@ -738,7 +738,7 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 ### 2026-09-20T23:40:00Z — Phase 4E gold58 visible-test submission rehearsal
 
 - starting commit SHA: `b5f253f89139f14c22f03cee069bc699fd742b92`
-- ending commit SHA: pending this commit
+- ending commit SHA: `a99145cb385265b721258c6ee15e4ada874b087b`
 - files changed: `reports/phase4e_submission_rehearsal_run.md`,
   `tests/test_phase4e_rehearsal.py`,
   `tests/test_agent_configuration.py`,
@@ -750,7 +750,7 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
     (`SUBMISSION_REHEARSAL_COMPLETE`; Tesla T4; internet off; competition
     attached; notebook 12)
   - v1 and v2 kernels/configs/reports not overwritten
-  - `pytest -q`: pending after this commit
+  - `pytest -q`: 589 passed
   - v1.4 config SHA-256 unchanged:
     `992af7a4b4483278445a6f3fb363c818611e79005618dff063460d0aed3bd7f7`
   - gold58 v2 recipe SHA-256:

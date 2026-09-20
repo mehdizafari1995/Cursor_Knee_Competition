@@ -601,7 +601,7 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 ### 2026-09-20T18:05:00Z — Phase 4D.1 gold58 image-only grouped OOF
 
 - starting commit SHA: `a278f7ef1aeef014998a94736b852c754a0a52a7`
-- ending commit SHA: pending this commit
+- ending commit SHA: `b6964aae620bbd45b78f7043be9a2b39a197ca51`
 - files changed: `knee/gold58_oof.py`,
   `scripts/train_gold58_image_oof.py`,
   `configs/gold58_image_resnet18_oof_v1.yaml`,

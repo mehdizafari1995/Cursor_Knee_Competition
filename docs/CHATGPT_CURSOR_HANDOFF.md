@@ -558,7 +558,7 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 ### 2026-09-20T15:30:00Z — Phase 4D read-only competition-readiness review
 
 - starting commit SHA: `27f82921cf616de3ff4e02ecb779d39ed38b8668`
-- ending commit SHA: pending this commit
+- ending commit SHA: `57556a4fa77bc50d6a285ce78c510575ea78beaf`
 - files changed: `knee/phase4d_readiness.py`,
   `scripts/run_phase4d_readiness.py`,
   `tests/test_phase4d_readiness.py`,
@@ -570,9 +570,15 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 - commands and tests run:
   - `python scripts/run_phase4d_readiness.py`: `READINESS_REVIEW_COMPLETE`;
     training/inference/kernel/submission/experiment flags all false
-  - `pytest -q`: pending this run
-  - wheel-hash and Kaggle-bundle allowlist tests: pending this run
-  - `git diff --check`: pending this run
+  - `pytest -q`: 537 passed
+  - wheel-hash and Kaggle-bundle allowlist tests: pass; v1.4 config hash
+    unchanged; new `knee/` and `scripts/` files would_include true;
+    parked/readiness reports are not in the Kaggle zip
+  - `git diff --check origin/main...HEAD`: pre-existing trailing blank
+    lines in immutable `reports/second_reader_constrained_canary_v14.md`
+    and frozen `reports/second_reader_phase47_acceptance_audit.md` only
+  - privacy needle scan: no patient/UID/credential hits in Phase 4D
+    reports; test file mentions needles only as forbidden-token asserts
   - no new Kaggle kernel; frozen gold-constrained-v14 v1, gold-pilot v7,
     and constrained-canary v3 remained COMPLETE
 - sanitized results: second reader parked

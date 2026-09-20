@@ -98,7 +98,8 @@ def test_phase4d_module_never_trains_or_generates():
     assert "run_phase47_gold_constrained" not in src
     assert "run_second_reader_gold_pilot" not in src
     assert "generate_fn" not in src
-    assert not (REPO_ROOT / "scripts" / "train_gold58_image_oof.py").exists()
+    assert (REPO_ROOT / "scripts" / "train_gold58_image_oof.py").is_file()
+    assert PHASE4D_EXPERIMENT_EXECUTED is False
 
 
 def test_phase4d_reports_and_bundle_allowlist():

@@ -58,12 +58,18 @@ from .competition import SAMPLE_SUBMISSION_COLUMNS as OFFICIAL_SUBMISSION_COLUMN
 from .submission import align_to_sample, validate_submission, write_competition_submission
 
 PROTOCOL = "gold58-image-resnet18-grouped-oof-v1"
+PROTOCOL_V2 = "gold58-image-resnet18-grouped-oof-v2"
 DEFAULT_CONFIG_PATH = PROJECT_ROOT / "configs" / "gold58_image_resnet18_oof_v1.yaml"
+DEFAULT_CONFIG_PATH_V2 = PROJECT_ROOT / "configs" / "gold58_image_resnet18_oof_v2.yaml"
 KERNEL_SLUG = "mahdimzafari/rsna-knee-gold58-image-oof-v1"
+KERNEL_SLUG_V2 = "mahdimzafari/rsna-knee-gold58-image-oof-v2"
 EXPECTED_LABELLED_REAL = 58
 IMAGENET_FILENAME = "resnet18-f37072fd.pth"
 IMAGENET_SHA256 = "f37072fd47e89c5e827621c5baffa7500819f7896bbacec160b1a16c560e07ec"
 SERIES_RULE = "sagittal-fluid-sensitive-unique-v1"
+SERIES_RULE_V2 = "deterministic-primary-series-v2"
+IMAGENET_MEAN = (0.485, 0.456, 0.406)
+IMAGENET_STD = (0.229, 0.224, 0.225)
 STATUS_COMPLETE = "GOLD58_OOF_COMPLETE"
 STATUS_GROUPING = "GROUPING_PREFLIGHT_FAIL"
 STATUS_SERIES = "SERIES_SELECTION_PREFLIGHT_FAIL"
@@ -171,6 +177,237 @@ def unique_series_or_fail(
             ),
         )
     return lookup
+
+
+def normalize_series_description(value: Any) -> str:
+    return " ".join(str(value or "").strip().lower().split())
+
+
+def _series_tier(plane: str, fluid: bool) -> int:
+    sag = str(plane or "").strip().lower() == "sagittal"
+    if sag and fluid:
+        return 1
+    if sag:
+        return 2
+    if fluid:
+        return 3
+    return 4
+
+
+def _inspect_series_dir(series_dir: Path) -> dict[str, Any]:
+    paths = list_dicom_paths(series_dir)
+    n_readable = 0
+    descriptions: list[str] = []
+    patient_ids: list[str] = []
+    n_unreadable = 0
+    for path in paths:
+        try:
+            ds = read_header(path, stop_before_pixels=True)
+        except Exception:
+            n_unreadable += 1
+            continue
+        n_readable += 1
+        descriptions.append(str(getattr(ds, "SeriesDescription", "") or ""))
+        pid = str(getattr(ds, "PatientID", "") or "").strip()
+        if pid:
+            patient_ids.append(pid)
+    desc = descriptions[0] if descriptions else ""
+    return {
+        "n_files": int(len(paths)),
+        "n_readable": int(n_readable),
+        "n_unreadable": int(n_unreadable),
+        "series_description": desc,
+        "patient_ids": patient_ids,
+        "missing_dir": not series_dir.is_dir(),
+    }
+
+
+def inspect_series_inventory(series: pd.DataFrame, data_root: Path) -> list[dict[str, Any]]:
+    """Filesystem + metadata inventory. Does not use labels."""
+    required = {STUDY_ID_COLUMN, SERIES_ID_COLUMN, "Anatomical_Plane", "Fluid_Sensitive"}
+    missing = sorted(required - set(series.columns))
+    if missing:
+        raise Gold58PreflightError(
+            STATUS_SERIES, f"train_series.csv missing columns: {missing}"
+        )
+    inventory: list[dict[str, Any]] = []
+    studies = series[STUDY_ID_COLUMN].astype(str).tolist()
+    series_uids = series[SERIES_ID_COLUMN].astype(str).tolist()
+    planes = series["Anatomical_Plane"].astype(str).tolist()
+    fluids = series["Fluid_Sensitive"].tolist()
+    for study, series_uid, plane, fluid_raw in zip(studies, series_uids, planes, fluids):
+        fluid = _truthy(fluid_raw)
+        info = _inspect_series_dir(_series_dir(data_root, study, series_uid))
+        inventory.append(
+            {
+                "study": study,
+                "series_uid": series_uid,
+                "plane": plane.strip().lower(),
+                "fluid_sensitive": bool(fluid),
+                "tier": _series_tier(plane, fluid),
+                **info,
+            }
+        )
+    return inventory
+
+
+def select_deterministic_primary_series_v2(
+    inventory: list[dict[str, Any]], study_ids: list[str]
+) -> tuple[dict[str, str], dict[str, Any]]:
+    """Rank readable series with the frozen v2 hierarchy. Labels are not used."""
+    by_study: dict[str, list[dict[str, Any]]] = {}
+    n_unreadable = 0
+    n_missing_dir = 0
+    for item in inventory:
+        if item["missing_dir"]:
+            n_missing_dir += 1
+        n_unreadable += int(item["n_unreadable"])
+        if int(item["n_readable"]) < 1:
+            continue
+        by_study.setdefault(item["study"], []).append(item)
+
+    lookup: dict[str, str] = {}
+    n_zero = 0
+    tier_counts = Counter()
+    tie_counts = Counter()
+    dicom_counts: Counter[str] = Counter()
+    plane_counts: Counter[str] = Counter()
+    fluid_counts = Counter()
+    for study in study_ids:
+        readable = list(by_study.get(study) or [])
+        if not readable:
+            n_zero += 1
+            continue
+        best_tier = min(int(item["tier"]) for item in readable)
+        tier_rows = [item for item in readable if int(item["tier"]) == best_tier]
+        ranked = sorted(
+            tier_rows,
+            key=lambda item: (
+                -int(item["n_readable"]),
+                normalize_series_description(item["series_description"]),
+                str(item["series_uid"]),
+            ),
+        )
+        winner = ranked[0]
+        lookup[study] = str(winner["series_uid"])
+        tier_counts[str(best_tier)] += 1
+        plane_counts[str(winner["plane"]) or "<empty>"] += 1
+        fluid_counts["true" if winner["fluid_sensitive"] else "false"] += 1
+        dicom_counts[str(int(winner["n_readable"]))] += 1
+        if len(tier_rows) == 1:
+            tie_counts["none"] += 1
+        else:
+            max_n = max(int(item["n_readable"]) for item in tier_rows)
+            at_max = [item for item in tier_rows if int(item["n_readable"]) == max_n]
+            if len(at_max) == 1:
+                tie_counts["dicom_count"] += 1
+            else:
+                win_desc = normalize_series_description(winner["series_description"])
+                same_desc = [
+                    item
+                    for item in at_max
+                    if normalize_series_description(item["series_description"]) == win_desc
+                ]
+                if len(same_desc) == 1:
+                    tie_counts["series_description"] += 1
+                else:
+                    tie_counts["series_uid"] += 1
+
+    aggregates = {
+        "series_selection_rule": SERIES_RULE_V2,
+        "n_required": int(len(study_ids)),
+        "n_selected": int(len(lookup)),
+        "n_zero_readable": int(n_zero),
+        "n_unreadable_instances": int(n_unreadable),
+        "n_missing_series_dir": int(n_missing_dir),
+        "n_tier_1": int(tier_counts.get("1", 0)),
+        "n_tier_2": int(tier_counts.get("2", 0)),
+        "n_tier_3": int(tier_counts.get("3", 0)),
+        "n_tier_4": int(tier_counts.get("4", 0)),
+        "n_tie_break_none": int(tie_counts.get("none", 0)),
+        "n_tie_break_dicom_count": int(tie_counts.get("dicom_count", 0)),
+        "n_tie_break_series_description": int(tie_counts.get("series_description", 0)),
+        "n_tie_break_series_uid": int(tie_counts.get("series_uid", 0)),
+        "selected_dicom_count_distribution": dict(sorted(dicom_counts.items(), key=lambda kv: int(kv[0]))),
+        "selected_plane_counts": dict(sorted(plane_counts.items())),
+        "selected_fluid_sensitive_counts": dict(sorted(fluid_counts.items())),
+    }
+    if n_zero or len(lookup) != len(study_ids):
+        raise Gold58PreflightError(
+            STATUS_SERIES,
+            (
+                f"{SERIES_RULE_V2} did not yield exactly one readable series per "
+                f"labelled study (n_zero_readable={n_zero}, n_selected={len(lookup)}, "
+                f"n_required={len(study_ids)})"
+            ),
+        )
+    return lookup, aggregates
+
+
+def collect_patient_tokens_across_readable_series(
+    study_ids: list[str], inventory: list[dict[str, Any]]
+) -> dict[str, str]:
+    """PatientID from every readable series in the study, not only the chosen series."""
+    by_study: dict[str, list[str]] = {study: [] for study in study_ids}
+    for item in inventory:
+        study = str(item["study"])
+        if study not in by_study:
+            continue
+        if int(item["n_readable"]) < 1:
+            continue
+        by_study[study].extend(str(pid) for pid in item["patient_ids"] if str(pid).strip())
+
+    tokens: dict[str, str] = {}
+    n_missing = 0
+    n_disagree = 0
+    for study in study_ids:
+        unique = sorted(set(by_study.get(study) or []))
+        if not unique:
+            n_missing += 1
+            continue
+        if len(unique) != 1:
+            n_disagree += 1
+            continue
+        tokens[study] = patient_group_token(unique[0])
+    if n_missing or n_disagree or len(tokens) != len(study_ids):
+        raise Gold58PreflightError(
+            STATUS_GROUPING,
+            (
+                "PatientID incomplete or inconsistent across readable series "
+                f"(n_missing={n_missing}, n_disagree={n_disagree})"
+            ),
+        )
+    return tokens
+
+
+def assert_train_pos_neg_every_target(
+    labels: np.ndarray, fold_ids: np.ndarray, n_folds: int
+) -> dict[str, Any]:
+    """v2 fold gate: every training partition has a known + and known - per target."""
+    per_fold: dict[str, Any] = {}
+    failures: list[str] = []
+    for fold in range(n_folds):
+        train_labels = labels[fold_ids != fold]
+        fold_report: dict[str, Any] = {}
+        for t, name in enumerate(OFFICIAL_TARGET_COLUMNS):
+            col = train_labels[:, t]
+            known = np.isfinite(col)
+            n_pos = int((col[known] == 1).sum())
+            n_neg = int((col[known] == 0).sum())
+            fold_report[name] = {"n_positive": n_pos, "n_negative": n_neg}
+            if n_pos < 1 or n_neg < 1:
+                failures.append(f"fold{fold}:{name}:pos={n_pos}:neg={n_neg}")
+        per_fold[str(fold)] = fold_report
+    if failures:
+        n_fail = len(failures)
+        raise Gold58PreflightError(
+            STATUS_FOLDS,
+            (
+                "every training partition must contain at least one known positive "
+                f"and one known negative for every target (n_failing_target_folds={n_fail})"
+            ),
+        )
+    return {"n_failing_target_folds": 0, "train_class_support": per_fold}
 
 
 def patient_group_token(patient_id: str) -> str:
@@ -561,13 +798,20 @@ def _predict_loader(model: torch.nn.Module, loader: DataLoader, device: torch.de
     return ids, np.concatenate(probs, axis=0), np.concatenate(labels, axis=0)
 
 
-def _base_payload(status: str, reason: str | None, extra: dict[str, Any] | None = None) -> dict[str, Any]:
+def _base_payload(
+    status: str,
+    reason: str | None,
+    extra: dict[str, Any] | None = None,
+    *,
+    cfg: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    cfg = cfg or {}
     payload: dict[str, Any] = {
-        "protocol": PROTOCOL,
+        "protocol": str(cfg.get("protocol") or PROTOCOL),
         "status": status,
         "ok": status == STATUS_COMPLETE,
         "skip_reason": reason,
-        "kernel_slug": KERNEL_SLUG,
+        "kernel_slug": str(cfg.get("kernel_slug") or KERNEL_SLUG),
         "HARD_WEAK_LABEL_TRAINING_ALLOWED": HARD_WEAK_LABEL_TRAINING_ALLOWED,
         "SCALE_TO_REPORT_ONLY_SECOND_READER_ALLOWED": SCALE_TO_REPORT_ONLY_SECOND_READER_ALLOWED,
         "SECOND_READER_SCORE_BEARING_ALLOWED": SECOND_READER_SCORE_BEARING_ALLOWED,
@@ -579,6 +823,7 @@ def _base_payload(status: str, reason: str | None, extra: dict[str, Any] | None 
         "competition_submission_written": False,
         "notebook_07_executed": False,
         "notebook_09_executed": False,
+        "notebook_10_executed": False,
         "n_report_only_studies_processed": 0,
         "use_second_reader": False,
         "use_weak_labels": False,
@@ -633,8 +878,11 @@ def run_gold58_image_oof(
     out_dir.mkdir(parents=True, exist_ok=True)
     layout = layout or KaggleLayout(output_dirname=str(cfg["output_dirname"]))
     pre = preflight(layout=layout, data_root=data_root, output_dir=out_dir)
+    def _payload(status: str, reason: str | None, extra: dict[str, Any] | None = None) -> dict[str, Any]:
+        return _base_payload(status, reason, extra, cfg=cfg)
+
     if not pre.ok or pre.data_root is None:
-        payload = _base_payload(STATUS_PREFLIGHT, pre.message or "DATA_NOT_AVAILABLE")
+        payload = _payload(STATUS_PREFLIGHT, pre.message or "DATA_NOT_AVAILABLE")
         _write_public(out_dir, payload)
         return payload
 
@@ -642,14 +890,15 @@ def run_gold58_image_oof(
     data_source = infer_data_source(root, layout=layout)
     train = pd.read_csv(root / "train.csv")
     series = pd.read_csv(root / "train_series.csv")
-    # Series rule is applied to metadata before joining labels.
-    candidates = select_sagittal_fluid_sensitive_series(series)
+    rule = str(cfg.get("series_selection_rule") or SERIES_RULE)
+    is_v2 = rule == SERIES_RULE_V2
+    # Series rule is applied to metadata/files before joining labels.
     labelled, report_only = select_labelled_studies(train)
     study_ids = labelled[STUDY_ID_COLUMN].astype(str).tolist()
     n_labelled = len(study_ids)
     n_report_only_present = int(len(report_only))
     if data_source == DATA_SOURCE_REAL_KAGGLE and n_labelled != EXPECTED_LABELLED_REAL:
-        payload = _base_payload(
+        payload = _payload(
             STATUS_PREFLIGHT,
             f"labelled_count_not_{EXPECTED_LABELLED_REAL}:{n_labelled}",
             extra={"n_labelled_studies": n_labelled, "data_source": data_source},
@@ -657,13 +906,22 @@ def run_gold58_image_oof(
         _write_public(out_dir, payload)
         return payload
     if n_labelled < 2:
-        payload = _base_payload(STATUS_PREFLIGHT, f"too_few_labelled:{n_labelled}")
+        payload = _payload(STATUS_PREFLIGHT, f"too_few_labelled:{n_labelled}")
         _write_public(out_dir, payload)
         return payload
 
+    series_aggregates: dict[str, Any] | None = None
     try:
-        series_lookup = unique_series_or_fail(candidates, study_ids)
-        tokens = collect_patient_tokens(study_ids, series_lookup, root)
+        if is_v2:
+            inventory = inspect_series_inventory(series, root)
+            series_lookup, series_aggregates = select_deterministic_primary_series_v2(
+                inventory, study_ids
+            )
+            tokens = collect_patient_tokens_across_readable_series(study_ids, inventory)
+        else:
+            candidates = select_sagittal_fluid_sensitive_series(series)
+            series_lookup = unique_series_or_fail(candidates, study_ids)
+            tokens = collect_patient_tokens(study_ids, series_lookup, root)
         labels, _mask = extract_label_matrix(labelled, require_all=True)
         fold_table, fold_meta = build_folds(
             study_ids,
@@ -672,18 +930,22 @@ def run_gold58_image_oof(
             n_folds=int(cfg["n_folds"]),
             seed=int(cfg["seed"]),
         )
+        fold_support = None
+        if is_v2 or bool(cfg.get("fold_require_pos_neg_every_target")):
+            fold_support = assert_train_pos_neg_every_target(
+                labels, fold_table["fold"].to_numpy(), int(cfg["n_folds"])
+            )
     except Gold58PreflightError as exc:
-        payload = _base_payload(
-            exc.status,
-            exc.reason,
-            extra={
-                "n_labelled_studies": n_labelled,
-                "n_report_only_studies_present": n_report_only_present,
-                "n_report_only_studies_processed": 0,
-                "data_source": data_source,
-                "series_selection_rule": SERIES_RULE,
-            },
-        )
+        extra_fail: dict[str, Any] = {
+            "n_labelled_studies": n_labelled,
+            "n_report_only_studies_present": n_report_only_present,
+            "n_report_only_studies_processed": 0,
+            "data_source": data_source,
+            "series_selection_rule": rule,
+        }
+        if series_aggregates:
+            extra_fail["series_selection_aggregates"] = series_aggregates
+        payload = _payload(exc.status, exc.reason, extra=extra_fail)
         _write_public(out_dir, payload)
         return payload
 
@@ -706,7 +968,7 @@ def run_gold58_image_oof(
         "per_fold": fold_class_counts(labels, fold_ids, int(cfg["n_folds"])),
         "n_report_only_studies_present": n_report_only_present,
         "n_report_only_studies_processed": 0,
-        "series_selection_rule": SERIES_RULE,
+        "series_selection_rule": rule,
         "n_chosen_series": len(series_lookup),
         "series_description_counts": series_description_counts(root, series_lookup),
         "fold_metadata_public": {
@@ -718,11 +980,15 @@ def run_gold58_image_oof(
             "group_source": "PatientID",
         },
     }
+    if series_aggregates:
+        sanitized_preflight["series_selection_aggregates"] = series_aggregates
+    if fold_support:
+        sanitized_preflight["train_class_support_ok"] = True
 
     scientific = bool(execute_training) and not allow_tiny_encoder_for_tests
     cuda_needed = cfg.get("require_cuda_for_scientific_run", True) if require_cuda is None else require_cuda
     if scientific and cuda_needed and not torch.cuda.is_available():
-        payload = _base_payload(
+        payload = _payload(
             STATUS_PREFLIGHT,
             "cuda_required",
             extra={"preflight_aggregates": sanitized_preflight, "data_source": data_source},
@@ -734,7 +1000,7 @@ def run_gold58_image_oof(
     weight_sha = None
     if scientific:
         if weights_file is None:
-            payload = _base_payload(
+            payload = _payload(
                 STATUS_WEIGHTS,
                 "imagenet_weights_missing",
                 extra={"preflight_aggregates": sanitized_preflight},
@@ -744,12 +1010,12 @@ def run_gold58_image_oof(
         try:
             weight_sha = verify_imagenet_weights(weights_file, str(cfg["imagenet_weights_sha256"]))
         except Gold58PreflightError as exc:
-            payload = _base_payload(exc.status, exc.reason, extra={"preflight_aggregates": sanitized_preflight})
+            payload = _payload(exc.status, exc.reason, extra={"preflight_aggregates": sanitized_preflight})
             _write_public(out_dir, payload)
             return payload
 
     if not execute_training:
-        payload = _base_payload(
+        payload = _payload(
             "PREFLIGHT_PASS_TRAINING_NOT_EXECUTED",
             "execute_training=false",
             extra={
@@ -790,21 +1056,30 @@ def run_gold58_image_oof(
         val_dirs = [_series_dir(root, s, series_lookup[s]) for s in val_ids]
         train_y = labels[train_mask]
         val_y = labels[val_mask]
+        interpolation = str(cfg.get("interpolation") or "nearest")
+        imagenet_normalize = bool(cfg.get("imagenet_normalize"))
+        imagenet_mean = tuple(cfg.get("imagenet_mean") or IMAGENET_MEAN)
+        imagenet_std = tuple(cfg.get("imagenet_std") or IMAGENET_STD)
+        ds_kwargs = {
+            "num_slices": int(cfg["num_slices"]),
+            "image_size": int(cfg["image_size"]),
+            "percentiles": tuple(cfg["intensity_percentiles"]),
+            "interpolation": interpolation,
+            "imagenet_normalize": imagenet_normalize,
+            "imagenet_mean": imagenet_mean,
+            "imagenet_std": imagenet_std,
+        }
         train_ds = StudySliceDataset(
             train_ids,
             train_dirs,
             train_y,
-            num_slices=int(cfg["num_slices"]),
-            image_size=int(cfg["image_size"]),
-            percentiles=tuple(cfg["intensity_percentiles"]),
+            **ds_kwargs,
         )
         val_ds = StudySliceDataset(
             val_ids,
             val_dirs,
             val_y,
-            num_slices=int(cfg["num_slices"]),
-            image_size=int(cfg["image_size"]),
-            percentiles=tuple(cfg["intensity_percentiles"]),
+            **ds_kwargs,
         )
         train_loader = DataLoader(
             train_ds,
@@ -821,7 +1096,12 @@ def run_gold58_image_oof(
             num_workers=0,
         )
         if allow_tiny_encoder_for_tests:
-            model = build_baseline_model(smoke=True, encoder_name="tiny", pretrained=False).to(device)
+            in_channels = 3 if bool(cfg.get("imagenet_normalize")) else 1
+            model = BaselineStudyModel(
+                TinySliceEncoder(in_channels=in_channels),
+                num_targets=NUM_TARGETS,
+                aggregation=str(cfg.get("aggregation") or "mean"),
+            ).to(device)
         else:
             model = _reload_scientific().to(device)
         stats = _train_one_fold(
@@ -846,7 +1126,13 @@ def run_gold58_image_oof(
         if round_trip is None:
             sample_batch = next(iter(val_loader))
             reload_fn = (
-                (lambda: build_baseline_model(smoke=True, encoder_name="tiny", pretrained=False))
+                (
+                    lambda: BaselineStudyModel(
+                        TinySliceEncoder(in_channels=3 if bool(cfg.get("imagenet_normalize")) else 1),
+                        num_targets=NUM_TARGETS,
+                        aggregation=str(cfg.get("aggregation") or "mean"),
+                    )
+                )
                 if allow_tiny_encoder_for_tests
                 else _reload_scientific
             )
@@ -859,7 +1145,7 @@ def run_gold58_image_oof(
                 atol=float(cfg["round_trip_atol"]),
             )
             if not round_trip["within_tolerance"]:
-                payload = _base_payload(
+                payload = _payload(
                     STATUS_PREFLIGHT,
                     f"round_trip_diff={round_trip['max_abs_diff']}",
                     extra={"round_trip": round_trip, "preflight_aggregates": sanitized_preflight},
@@ -871,7 +1157,7 @@ def run_gold58_image_oof(
     y_true = np.concatenate(oof_true, axis=0)
     assert_probabilities_ok(y_prob)
     if len(oof_ids) != n_labelled or len(set(oof_ids)) != n_labelled:
-        payload = _base_payload(
+        payload = _payload(
             STATUS_PREFLIGHT,
             f"oof_count_mismatch:{len(oof_ids)}",
             extra={"preflight_aggregates": sanitized_preflight},
@@ -913,7 +1199,7 @@ def run_gold58_image_oof(
             **bootstrap["per_target"][name],
         }
 
-    payload = _base_payload(
+    payload = _payload(
         STATUS_COMPLETE,
         None,
         extra={
@@ -941,6 +1227,8 @@ def run_gold58_image_oof(
             "device": str(device),
             "amp": use_amp,
             "n_labelled_studies": n_labelled,
+            "interpolation": str(cfg.get("interpolation") or "nearest"),
+            "imagenet_normalize": bool(cfg.get("imagenet_normalize")),
         },
     )
     _write_public(out_dir, payload)
@@ -981,6 +1269,39 @@ def render_protocol_markdown(cfg: dict[str, Any] | None = None) -> str:
             f"- AMP: `{cfg['amp']}`; cudnn_deterministic: `{cfg['cudnn_deterministic']}`",
             f"- folds: {cfg['n_folds']}; seed {cfg['seed']}; PatientID required; no StudyInstanceUID fallback",
             f"- series rule: `{SERIES_RULE}` (exactly one sagittal fluid-sensitive series per study)",
+            f"- primary metric: combined 58-row OOF macro ROC AUC (not a mean of fold AUCs)",
+            f"- bootstrap: patient-level percentile, n={cfg['bootstrap_n_resamples']}, seed={cfg['bootstrap_seed']}",
+            "- no report-only rows, no weak labels, no second reader, no hidden test, no submission",
+            "",
+        ]
+    )
+
+
+def render_protocol_markdown_v2(cfg: dict[str, Any] | None = None) -> str:
+    cfg = cfg or load_gold58_config(DEFAULT_CONFIG_PATH_V2)
+    return "\n".join(
+        [
+            "# Phase 4D.2 gold58 image-only grouped OOF protocol v2",
+            "",
+            "Predeclared before execution. No hyperparameter search.",
+            "Does not edit v1 history. Frozen v1 kernel/config/report stay unchanged.",
+            "The second reader is not on this path.",
+            "",
+            f"- protocol: `{PROTOCOL_V2}`",
+            f"- kernel: `{KERNEL_SLUG_V2}`",
+            f"- encoder: ImageNet ResNet-18 (`{cfg['imagenet_weights_filename']}`)",
+            f"- ImageNet SHA-256: `{cfg['imagenet_weights_sha256']}`",
+            f"- slices: {cfg['num_slices']} linspace; resize {cfg['image_size']} bilinear; percentiles {cfg['intensity_percentiles']}",
+            f"- ImageNet normalize after RGB repeat: mean {cfg.get('imagenet_mean')} std {cfg.get('imagenet_std')}",
+            f"- augmentation: `{cfg['augmentation']}`",
+            f"- optimizer: {cfg['optimizer']} lr={cfg['learning_rate']} weight_decay={cfg['weight_decay']}",
+            f"- schedule: {cfg['lr_schedule']} T_max={cfg['lr_schedule_t_max_epochs']}",
+            f"- epochs: {cfg['epochs']}; checkpoint: `{cfg['checkpoint_rule']}`",
+            f"- loss: masked BCE; unknown stays NaN",
+            f"- AMP: `{cfg['amp']}`; cudnn_deterministic: `{cfg['cudnn_deterministic']}`",
+            f"- folds: {cfg['n_folds']}; seed {cfg['seed']}; PatientID from all readable series; no StudyInstanceUID fallback",
+            f"- series rule: `{SERIES_RULE_V2}` (tiered ranking; exactly one readable series per labelled study)",
+            f"- fold gate: every training partition has known positive and known negative for all 12 targets",
             f"- primary metric: combined 58-row OOF macro ROC AUC (not a mean of fold AUCs)",
             f"- bootstrap: patient-level percentile, n={cfg['bootstrap_n_resamples']}, seed={cfg['bootstrap_seed']}",
             "- no report-only rows, no weak labels, no second reader, no hidden test, no submission",

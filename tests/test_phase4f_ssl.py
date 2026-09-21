@@ -286,8 +286,11 @@ def test_protocol_notebook_allowlist_and_privacy():
     assert would_include("scripts/run_phase4f_ssl.py")
     assert would_include("configs/unlabeled_image_simsiam_ssl_v1.yaml")
     assert would_include("notebooks/13_kaggle_unlabeled_image_ssl_v1.ipynb")
+    assert would_include("notebooks/14_kaggle_unlabeled_image_ssl_canary.ipynb")
+    assert would_include("knee/phase4f_ssl_canary.py")
     assert not would_include("reports/phase4f_ssl_protocol.md")
     assert not would_include("reports/phase4f_ssl_readiness.md")
+    assert not would_include("reports/phase4f_ssl_canary_protocol.md")
     import json
 
     nb = json.loads(

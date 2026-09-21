@@ -98,11 +98,15 @@ STATUS_INTERNET = "INTERNET_PREFLIGHT_FAIL"
 STATUS_SCOPE = "SSL_CANARY_SCOPE_FAIL"
 STATUS_OOF = "GOLD58_SSL_OOF_NOT_AUTHORIZED"
 STATUS_FULL = "SSL_EXECUTION_NOT_AUTHORIZED"
+STATUS_GPU_PREFLIGHT = "SSL_CANARY_GPU_PREFLIGHT_FAIL"
+STATUS_GPU_PREFLIGHT_PASS = "SSL_CANARY_GPU_PREFLIGHT_PASS"
 
 AUTHORIZED_N_STUDIES = 64
 AUTHORIZED_STEPS = 40
 AUTHORIZED_CHECKPOINT_STEP = 20
 AUTHORIZED_BATCH = 8
+PROBE_EIGVALSH_MAX_DIM = 16
+LAST_EIGVALSH_META: dict[str, Any] = {}
 
 REQUIRED_CHECKPOINT_KEYS = (
     "encoder",
@@ -385,13 +389,37 @@ def mean_abs_pairwise_cosine(z: torch.Tensor) -> float:
     return float(values.abs().mean().cpu())
 
 
+def _eigvalsh_float32_gram(gram: torch.Tensor) -> torch.Tensor:
+    """Record dtype/shape then eigendecompose a float32 n×n Gram matrix."""
+    if gram.dtype != torch.float32:
+        gram = gram.float()
+    LAST_EIGVALSH_META.clear()
+    LAST_EIGVALSH_META.update(
+        {
+            "dtype": str(gram.dtype),
+            "is_float32": bool(gram.dtype == torch.float32),
+            "shape": [int(dim) for dim in gram.shape],
+            "device_type": gram.device.type,
+            "max_dim": int(max(gram.shape)) if gram.ndim else 0,
+        }
+    )
+    return torch.linalg.eigvalsh(gram)
+
+
 def effective_rank(z: torch.Tensor) -> float:
+    """Effective rank from the centered sample Gram ``X @ X.T / (n-1)`` in float32.
+
+    The nonzero spectrum matches feature covariance. The canary probe has 16 rows,
+    so this is a 16×16 solve instead of a 2048×2048 feature covariance.
+    """
+    z = z.detach().float()
     if z.ndim != 2 or z.shape[0] < 2 or z.shape[1] < 1:
         return float("nan")
-    centered = z.detach() - z.detach().mean(dim=0, keepdim=True)
-    denom = max(int(z.shape[0]) - 1, 1)
-    cov = (centered.T @ centered) / float(denom)
-    eigs = torch.linalg.eigvalsh(cov).clamp(min=0)
+    n = int(z.shape[0])
+    centered = z - z.mean(dim=0, keepdim=True)
+    denom = max(n - 1, 1)
+    gram = (centered @ centered.T) / float(denom)
+    eigs = _eigvalsh_float32_gram(gram).clamp(min=0)
     total = float(eigs.sum().cpu())
     if not math.isfinite(total) or total <= 0.0:
         return 0.0
@@ -465,14 +493,38 @@ def std_only_diagnostics(
     *,
     cfg: dict[str, Any],
 ) -> dict[str, Any]:
-    """Per-step SimSiam std gates. Cosine/rank are reserved for the probe set."""
-    full = compute_collapse_diagnostics(encoder_z, projector_z, predictor_p, cfg=cfg)
-    std_reasons = [name for name in full["reasons"] if name.endswith("_std")]
+    """Per-step std gates only.
+
+    Must not call pairwise cosine, covariance, SVD, eigendecomposition, or the
+    full probe function. Cosine and effective rank run once on the frozen probe
+    set after the training segment.
+    """
+    encoder_z = encoder_z.detach().float()
+    projector_z = projector_z.detach().float()
+    predictor_p = predictor_p.detach().float()
+    thresholds = collapse_thresholds(cfg)
+    encoder_std = representation_std(encoder_z)
+    projector_std = representation_std(projector_z)
+    predictor_std = representation_std(predictor_p)
+    reasons: list[str] = []
+    if (not math.isfinite(encoder_std)) or encoder_std < thresholds["encoder_std_min"]:
+        reasons.append("encoder_std")
+    if (not math.isfinite(projector_std)) or projector_std < thresholds["projector_std_min"]:
+        reasons.append("projector_std")
+    if (not math.isfinite(predictor_std)) or predictor_std < thresholds["predictor_std_min"]:
+        reasons.append("predictor_std")
     return {
-        **full,
-        "collapsed": bool(std_reasons),
-        "reasons": std_reasons,
-        "probe_only_reasons": [name for name in full["reasons"] if not name.endswith("_std")],
+        "encoder_std": encoder_std,
+        "projector_std": projector_std,
+        "predictor_std": predictor_std,
+        "thresholds": {
+            "encoder_std_min": thresholds["encoder_std_min"],
+            "projector_std_min": thresholds["projector_std_min"],
+            "predictor_std_min": thresholds["predictor_std_min"],
+        },
+        "collapsed": bool(reasons),
+        "reasons": reasons,
+        "std_only": True,
     }
 
 
@@ -793,11 +845,11 @@ def _one_optimizer_step(
             z2 = torch.zeros_like(z2)
             p1 = torch.zeros_like(p1)
             p2 = torch.zeros_like(p2)
-        diagnostics = std_only_diagnostics(
-            encoder_z, projector_z, predictor_p, cfg=cfg
-        )
-        assert_collapse_ok(diagnostics)
         loss = simsiam_loss(p1, z2, p2, z1)
+    diagnostics = std_only_diagnostics(
+        encoder_z, projector_z, predictor_p, cfg=cfg
+    )
+    assert_collapse_ok(diagnostics)
     if not torch.isfinite(loss):
         raise Phase4FCanaryError(STATUS_FINITE, "nonfinite_ssl_loss")
     scaler.scale(loss).backward()
@@ -807,6 +859,177 @@ def _one_optimizer_step(
     scaler.update()
     scheduler.step()
     return float(loss.detach().cpu()), grad_norm, diagnostics
+
+
+def _sanitize_gpu_preflight(result: dict[str, Any]) -> dict[str, Any]:
+    keys = (
+        "status",
+        "ok",
+        "skip_reason",
+        "gpu_name",
+        "use_amp",
+        "device_type",
+        "eigvalsh",
+        "eigvalsh_calls_during_optimizer_step",
+        "imagenet_weights_sha256_verified",
+        "n_real_unlabelled_studies_pixels_opened",
+        "loss_finite",
+        "grad_norm_finite",
+        "std_only",
+        "probe_collapsed",
+        "probe_effective_rank",
+        "probe_mean_abs_pairwise_cosine",
+    )
+    return {key: result.get(key) for key in keys}
+
+
+def run_canary_amp_software_preflight(
+    *,
+    cfg: dict[str, Any],
+    model: SimSiamStudyModel,
+    device: torch.device,
+    use_amp: bool,
+) -> dict[str, Any]:
+    """Synthetic AMP/std-only/probe check. Opens zero real pixels.
+
+    GPU-preflight values are a software check only. They must not retune
+    thresholds or the frozen recipe.
+    """
+    model = model.to(device)
+    optimizer, scheduler, scaler, _computed_amp = _make_optimizer_bundle(
+        model, cfg, device=device
+    )
+    scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
+    generator = torch.Generator(device="cpu").manual_seed(int(cfg.get("seed") or 42))
+    batch = torch.rand(2, 2, 1, 32, 32)
+    model.train()
+    optimizer.zero_grad(set_to_none=True)
+    eig_calls = {"n": 0}
+    orig_eig = torch.linalg.eigvalsh
+
+    def _count_eig(*args: Any, **kwargs: Any) -> torch.Tensor:
+        eig_calls["n"] += 1
+        return orig_eig(*args, **kwargs)
+
+    torch.linalg.eigvalsh = _count_eig  # type: ignore[method-assign]
+    try:
+        with torch.cuda.amp.autocast(enabled=use_amp):
+            v1, v2 = two_views_canary(batch.to(device), generator=generator, cfg=cfg)
+            p1, z1, p2, z2 = model.forward_views(v1, v2)
+            encoder_z = torch.cat([model.encode(v1), model.encode(v2)], dim=0)
+            projector_z = torch.cat([z1, z2], dim=0)
+            predictor_p = torch.cat([p1, p2], dim=0)
+        std_diag = std_only_diagnostics(encoder_z, projector_z, predictor_p, cfg=cfg)
+        assert_collapse_ok(std_diag)
+        with torch.cuda.amp.autocast(enabled=use_amp):
+            loss = simsiam_loss(p1, z2, p2, z1)
+        if not torch.isfinite(loss):
+            raise Phase4FCanaryError(STATUS_GPU_PREFLIGHT, "nonfinite_preflight_loss")
+        scaler.scale(loss).backward()
+        scaler.unscale_(optimizer)
+        grad_norm = finite_grad_norm(model)
+        scaler.step(optimizer)
+        scaler.update()
+        scheduler.step()
+    finally:
+        torch.linalg.eigvalsh = orig_eig  # type: ignore[method-assign]
+    if eig_calls["n"] != 0:
+        raise Phase4FCanaryError(
+            STATUS_GPU_PREFLIGHT, "eigvalsh_called_during_std_only_step"
+        )
+
+    pout = int(projector_z.shape[1])
+    half_z = torch.randn(PROBE_EIGVALSH_MAX_DIM, pout, dtype=torch.float16, device=device)
+    LAST_EIGVALSH_META.clear()
+    probe_diag = compute_collapse_diagnostics(half_z, half_z, half_z, cfg=cfg)
+    eig_meta = dict(LAST_EIGVALSH_META)
+    shape = eig_meta.get("shape") or []
+    if not eig_meta.get("is_float32"):
+        raise Phase4FCanaryError(STATUS_GPU_PREFLIGHT, "eigvalsh_not_float32")
+    if not shape or int(max(int(dim) for dim in shape)) > PROBE_EIGVALSH_MAX_DIM:
+        raise Phase4FCanaryError(STATUS_GPU_PREFLIGHT, f"eigvalsh_dim_{shape}")
+    return {
+        "status": STATUS_GPU_PREFLIGHT_PASS,
+        "ok": True,
+        "skip_reason": None,
+        "use_amp": bool(use_amp),
+        "device_type": device.type,
+        "std_only": {
+            "encoder_std": std_diag["encoder_std"],
+            "projector_std": std_diag["projector_std"],
+            "predictor_std": std_diag["predictor_std"],
+            "collapsed": std_diag["collapsed"],
+            "reasons": std_diag["reasons"],
+        },
+        "probe_collapsed": bool(probe_diag.get("collapsed")),
+        "probe_effective_rank": probe_diag.get("effective_rank"),
+        "probe_mean_abs_pairwise_cosine": probe_diag.get("mean_abs_pairwise_cosine"),
+        "eigvalsh": eig_meta,
+        "eigvalsh_calls_during_optimizer_step": 0,
+        "loss_finite": True,
+        "grad_norm_finite": bool(math.isfinite(grad_norm)),
+        "n_real_unlabelled_studies_pixels_opened": 0,
+        "n_report_text_rows_processed": 0,
+        "n_second_reader_rows_processed": 0,
+    }
+
+
+def run_canary_gpu_preflight(
+    *,
+    cfg: dict[str, Any],
+    require_tesla_t4: bool = True,
+    require_real_resnet18: bool = True,
+    weights_path: Path | None = None,
+) -> dict[str, Any]:
+    """Mandatory CUDA AMP preflight. Fail closed with zero real pixels opened."""
+    extra: dict[str, Any] = {
+        "n_real_unlabelled_studies_pixels_opened": 0,
+        "n_report_text_rows_processed": 0,
+        "n_second_reader_rows_processed": 0,
+        "report_text_never_read": True,
+    }
+    try:
+        if not torch.cuda.is_available():
+            raise Phase4FCanaryError(STATUS_GPU_PREFLIGHT, "cuda_required")
+        gpu_name = torch.cuda.get_device_name(0)
+        extra["gpu_name"] = gpu_name
+        if require_tesla_t4 and "Tesla T4" not in gpu_name:
+            raise Phase4FCanaryError(STATUS_GPU_PREFLIGHT, "expected_tesla_t4")
+        if require_real_resnet18:
+            path = Path(weights_path) if weights_path is not None else locate_imagenet_weights()
+            if path is None:
+                raise Phase4FCanaryError(STATUS_GPU_PREFLIGHT, "imagenet_weights_missing")
+            try:
+                extra["imagenet_weights_sha256_verified"] = verify_imagenet_weights(
+                    path, str(cfg.get("imagenet_weights_sha256") or IMAGENET_SHA256)
+                )
+            except Gold58PreflightError as exc:
+                raise Phase4FCanaryError(STATUS_GPU_PREFLIGHT, str(exc.reason)) from exc
+            model = build_canary_model(cfg, tiny=False, weights_path=path)
+        else:
+            model = build_canary_model(cfg, tiny=True, weights_path=None)
+        device = torch.device("cuda")
+        use_amp = bool(cfg.get("amp") == "cuda_only")
+        software = run_canary_amp_software_preflight(
+            cfg=cfg, model=model, device=device, use_amp=use_amp
+        )
+        extra.update(software)
+        extra["ok"] = True
+        extra["status"] = STATUS_GPU_PREFLIGHT_PASS
+        return extra
+    except Exception as exc:  # noqa: BLE001 - fail closed before pixels
+        status = getattr(exc, "status", STATUS_GPU_PREFLIGHT) or STATUS_GPU_PREFLIGHT
+        if status != STATUS_GPU_PREFLIGHT:
+            status = STATUS_GPU_PREFLIGHT
+        reason = getattr(exc, "reason", None) or f"uncaught_{type(exc).__name__}"
+        extra.update(
+            {
+                "status": STATUS_GPU_PREFLIGHT,
+                "ok": False,
+                "skip_reason": str(reason)[:200],
+            }
+        )
+        return extra
 
 
 def _write_public(output_dir: Path, payload: dict[str, Any]) -> None:
@@ -840,6 +1063,9 @@ def _payload(
         "competition_submission_allowed": False,
         "n_real_unlabelled_studies_pixels_opened": 0,
         "n_report_only_studies_processed": 0,
+        "n_report_text_rows_processed": 0,
+        "n_second_reader_rows_processed": 0,
+        "report_text_never_read": True,
         "training_run": False,
         "OOF_run": False,
         "inference_run": False,
@@ -1341,14 +1567,12 @@ def run_phase4f_ssl_canary(
         and data_source == DATA_SOURCE_REAL_KAGGLE
     )
     extra["scientific_evaluation"] = bool(scientific)
+    extra["n_report_text_rows_processed"] = 0
+    extra["n_second_reader_rows_processed"] = 0
+    extra["report_text_never_read"] = True
 
     if not execute_training:
         payload = _payload(STATUS_FAIL, "execute_training=false_for_authorized_canary", extra=extra)
-        _write_public(out, payload)
-        return payload
-
-    if scientific and str(cfg.get("amp") or "") == "cuda_only" and not torch.cuda.is_available():
-        payload = _payload(STATUS_FAIL, "cuda_required", extra=extra)
         _write_public(out, payload)
         return payload
 
@@ -1358,6 +1582,26 @@ def run_phase4f_ssl_canary(
     cohort_public: dict[str, Any] = {}
     weights_file: Path | None = None
     weight_sha = None
+
+    if scientific:
+        gpu_pre = run_canary_gpu_preflight(
+            cfg=cfg,
+            require_tesla_t4=True,
+            require_real_resnet18=True,
+        )
+        extra["gpu_preflight"] = _sanitize_gpu_preflight(gpu_pre)
+        extra["gpu_preflight_ok"] = bool(gpu_pre.get("ok"))
+        if not gpu_pre.get("ok"):
+            payload = _payload(
+                STATUS_GPU_PREFLIGHT,
+                str(gpu_pre.get("skip_reason") or "gpu_preflight_failed"),
+                extra=extra,
+            )
+            payload["n_real_unlabelled_studies_pixels_opened"] = 0
+            payload["n_report_text_rows_processed"] = 0
+            payload["n_second_reader_rows_processed"] = 0
+            _write_public(out, payload)
+            return payload
 
     try:
         if scientific or (root is not None and not synthetic_tensors):
@@ -1452,6 +1696,9 @@ def run_phase4f_ssl_canary(
                 "timings": timings,
                 "cohort": cohort_public,
                 "n_real_unlabelled_studies_pixels_opened": n_pixels_opened if scientific else 0,
+                "n_report_text_rows_processed": 0,
+                "n_second_reader_rows_processed": 0,
+                "report_text_never_read": True,
             }
         )
         payload = _payload(status if status else STATUS_FAIL, str(reason)[:200], extra=extra)
@@ -1480,6 +1727,12 @@ def run_phase4f_ssl_canary(
     )
     extra["n_real_unlabelled_studies_pixels_opened"] = n_pixels_opened if scientific else 0
     extra["n_fixture_studies_pixels_opened"] = 0 if scientific else n_pixels_opened
+    extra["n_report_text_rows_processed"] = 0
+    extra["n_second_reader_rows_processed"] = 0
+    extra["report_text_never_read"] = True
+    extra["unlabeled_image_rows_opened_without_reading_report_text"] = (
+        extra["n_real_unlabelled_studies_pixels_opened"]
+    )
 
     if segment == "train_to_mid":
         extra["training_run"] = True
@@ -1557,8 +1810,18 @@ def render_canary_protocol_markdown(cfg: dict[str, Any] | None = None) -> str:
             f"{cfg.get('collapse_predictor_std_min')}; "
             f"mean_abs_cosine_max={cfg.get('collapse_mean_abs_cosine_max')}; "
             f"effective_rank_min={cfg.get('collapse_effective_rank_min')}",
+            "- per-step diagnostics: encoder/projector/predictor std only; no cosine,",
+            "  covariance, SVD, or eigendecomposition during optimizer steps",
+            "- probe cosine and effective rank run once after the training segment",
+            "- effective rank uses the float32 n×n centered Gram `X @ X.T / (n-1)`",
+            "  (probe n=16), not 2048×2048 feature covariance",
+            "- GPU AMP preflight before train.csv / series / DICOM: Tesla T4, ImageNet",
+            "  hash, synthetic ResNet-18 AMP step, std-only on AMP outputs, probe",
+            "  eigvalsh float32 dim<=16; fail `SSL_CANARY_GPU_PREFLIGHT_FAIL` with",
+            "  zero real pixels if any check fails",
             "- pass: `SSL_CANARY_PASS_FULL_RUN_NOT_AUTHORIZED`",
             "- fail: `SSL_CANARY_FAIL`",
+            "- GPU preflight fail: `SSL_CANARY_GPU_PREFLIGHT_FAIL`",
             f"- config SHA-256: `{cfg['_config_sha256']}`",
             f"- frozen Phase 4F v1 config SHA-256: `{FROZEN_SSL_V1_CONFIG_SHA256}`",
             "- UNLABELED_IMAGE_SSL_EXECUTION_ALLOWED=false",

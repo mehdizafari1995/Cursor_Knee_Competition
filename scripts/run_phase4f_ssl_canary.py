@@ -71,6 +71,9 @@ def main() -> int:
         "n_real_unlabelled_studies_pixels_opened": result.get(
             "n_real_unlabelled_studies_pixels_opened"
         ),
+        "n_report_text_rows_processed": result.get("n_report_text_rows_processed"),
+        "n_second_reader_rows_processed": result.get("n_second_reader_rows_processed"),
+        "report_text_never_read": result.get("report_text_never_read"),
         "OOF_run": result.get("OOF_run"),
         "inference_run": result.get("inference_run"),
         "competition_submission_written": result.get("competition_submission_written"),

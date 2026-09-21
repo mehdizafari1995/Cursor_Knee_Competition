@@ -48,21 +48,29 @@ from knee.phase4f_ssl_canary import (
     UNLABELED_IMAGE_SSL_CANARY_EXECUTION_ALLOWED,
     CanaryUnlabeledStudySliceDataset,
     Phase4FCanaryError,
+    STATUS_GPU_PREFLIGHT,
     apply_imagenet_last,
     assert_checkpoint_complete,
     assert_not_empty_batch,
     assert_resume_hashes,
     assert_unit_interval_for_intensity_jitter,
     assert_zero_gold_overlap,
+    build_canary_model,
     compute_collapse_diagnostics,
+    effective_rank,
     load_canary_config,
     render_canary_protocol_markdown,
+    run_canary_amp_software_preflight,
+    run_canary_gpu_preflight,
     run_interrupted_synthetic,
     run_phase4f_ssl_canary,
     run_uninterrupted_synthetic,
     select_canary_study_ids,
+    std_only_diagnostics,
     two_views_canary,
     validate_collapse_fixtures,
+    _make_optimizer_bundle,
+    _one_optimizer_step,
 )
 from tests.competition_fixtures import (
     REPORT_LABEL_GOLD_UIDS,
@@ -212,6 +220,92 @@ def test_collapse_diagnostics_accept_float16():
     collapsed = torch.ones(16, 32)
     assert compute_collapse_diagnostics(diverse, diverse, diverse, cfg=cfg)["collapsed"] is False
     assert compute_collapse_diagnostics(collapsed, collapsed, collapsed, cfg=cfg)["collapsed"] is True
+
+
+def test_optimizer_step_std_only_does_not_call_eigvalsh(monkeypatch):
+    cfg = load_canary_config()
+    device = torch.device("cpu")
+    model = build_canary_model(cfg, tiny=True, weights_path=None).to(device)
+    optimizer, scheduler, scaler, _use_amp = _make_optimizer_bundle(model, cfg, device=device)
+    generator = torch.Generator().manual_seed(0)
+    batch = torch.rand(4, 2, 1, 16, 16)
+
+    def boom(*_args, **_kwargs):
+        raise AssertionError("eigvalsh_called_during_optimizer_step")
+
+    monkeypatch.setattr(torch.linalg, "eigvalsh", boom)
+    loss, grad, diag = _one_optimizer_step(
+        model=model,
+        optimizer=optimizer,
+        scheduler=scheduler,
+        scaler=scaler,
+        batch=batch,
+        generator=generator,
+        cfg=cfg,
+        device=device,
+        use_amp=False,
+        collapse_fixture=False,
+    )
+    assert math.isfinite(loss)
+    assert math.isfinite(grad)
+    assert diag["std_only"] is True
+    assert "encoder_std" in diag
+    assert "effective_rank" not in diag
+    assert "mean_abs_pairwise_cosine" not in diag
+    std = std_only_diagnostics(
+        torch.randn(8, 32), torch.randn(8, 32), torch.randn(8, 32), cfg=cfg
+    )
+    assert std["std_only"] is True
+    assert std["collapsed"] is False
+
+
+def test_probe_eigvalsh_float32_at_most_16x16_rejects_collapse(monkeypatch):
+    calls = []
+    orig = torch.linalg.eigvalsh
+
+    def wrapped(matrix, *args, **kwargs):
+        calls.append({"dtype": matrix.dtype, "shape": tuple(matrix.shape)})
+        return orig(matrix, *args, **kwargs)
+
+    monkeypatch.setattr(torch.linalg, "eigvalsh", wrapped)
+    cfg = load_canary_config()
+    collapsed = torch.ones(16, 2048, dtype=torch.float16)
+    bad = compute_collapse_diagnostics(collapsed, collapsed, collapsed, cfg=cfg)
+    assert bad["collapsed"] is True
+    assert calls
+    for call in calls:
+        assert call["dtype"] == torch.float32
+        assert call["shape"] == (16, 16)
+        assert max(call["shape"]) <= 16
+    diverse = torch.randn(16, 2048, dtype=torch.float16)
+    ok = compute_collapse_diagnostics(diverse, diverse, diverse, cfg=cfg)
+    assert ok["collapsed"] is False
+    assert math.isfinite(ok["effective_rank"])
+    rank = effective_rank(torch.randn(16, 2048, dtype=torch.float16))
+    assert math.isfinite(rank)
+    assert calls[-1]["dtype"] == torch.float32
+    assert calls[-1]["shape"] == (16, 16)
+
+
+def test_gpu_preflight_fails_closed_without_cuda_and_local_amp_software_passes():
+    cfg = load_canary_config()
+    if not torch.cuda.is_available():
+        gpu = run_canary_gpu_preflight(cfg=cfg)
+        assert gpu["status"] == STATUS_GPU_PREFLIGHT
+        assert gpu["ok"] is False
+        assert gpu["skip_reason"] == "cuda_required"
+        assert gpu["n_real_unlabelled_studies_pixels_opened"] == 0
+        assert gpu["n_report_text_rows_processed"] == 0
+        assert gpu["n_second_reader_rows_processed"] == 0
+    model = build_canary_model(cfg, tiny=True, weights_path=None)
+    software = run_canary_amp_software_preflight(
+        cfg=cfg, model=model, device=torch.device("cpu"), use_amp=False
+    )
+    assert software["ok"] is True
+    assert software["eigvalsh_calls_during_optimizer_step"] == 0
+    assert software["eigvalsh"]["is_float32"] is True
+    assert int(software["eigvalsh"]["max_dim"]) <= 16
+    assert software["n_real_unlabelled_studies_pixels_opened"] == 0
 
 
 def test_empty_batch_and_missing_checkpoint_keys_fail_closed():
@@ -414,6 +508,11 @@ def test_protocol_notebook_allowlist_and_privacy():
     assert "competitions submit" not in lowered
     assert "segment=\"train_to_mid\"" in source
     assert "segment=\"resume_to_end\"" in source
+    assert "run_canary_gpu_preflight" in source
+    assert source.index("run_canary_gpu_preflight") < source.index('segment="train_to_mid"')
+    assert "SSL_CANARY_GPU_PREFLIGHT_FAIL" in source
+    assert "n_report_text_rows_processed" in source
+    assert "n_second_reader_rows_processed" in source
     assert "notebook_07_executed=false" in source
     assert "notebook_13_executed=false" in source
     assert "UNLABELED_IMAGE_SSL_EXECUTION_ALLOWED" in source

@@ -19,7 +19,7 @@ private dataset contents in this file.
 - PR draft: `true`
 - branch name: `cursor/phase4c-second-reader-pilot-f351`
 - base branch: `main`
-- current HEAD SHA at handoff creation: `48a7fc1f65f8841518641c0b4a57a610dffb93d6`
+- current HEAD SHA at handoff creation: `3758a8682a334b50d5f0861841d4cb8cb39dfa9c`
 
 GitHub's canonical `nameWithOwner` is `mehdizafari1995/Cursor_Knee_Competition`.
 `origin` uses the lowercase path `mehdizafari1995/cursor_knee_competition` and
@@ -1045,6 +1045,7 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 
 - starting commit SHA: `a2d549ccc65b49612a156651141b197f65ca2200`
 - implementation commit SHA: `48a7fc1f65f8841518641c0b4a57a610dffb93d6`
+- ending commit SHA: `3758a8682a334b50d5f0861841d4cb8cb39dfa9c`
 - files added (implementation): `knee/phase4f_ssl_canary_v3.py`,
   `configs/unlabeled_image_simsiam_ssl_canary_v3.yaml`,
   `scripts/run_phase4f_ssl_canary_v3.py`,

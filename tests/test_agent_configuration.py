@@ -267,6 +267,7 @@ class TestScaffolding:
             "reports/phase4f_ssl_protocol.md",
             "reports/phase4f_ssl_readiness.md",
             "reports/phase4f_ssl_canary_protocol.md",
+            "reports/phase4f_ssl_canary_run.md",
             "configs/unlabeled_image_simsiam_ssl_v1.yaml",
             "configs/unlabeled_image_simsiam_ssl_canary_v1.yaml",
             "knee/phase4f_ssl.py",

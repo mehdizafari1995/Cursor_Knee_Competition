@@ -366,6 +366,7 @@ def test_committed_pilot_reports_are_sanitized():
         "reports/phase4f_ssl_protocol.md",
         "reports/phase4f_ssl_readiness.md",
         "reports/phase4f_ssl_canary_protocol.md",
+        "reports/phase4f_ssl_canary_run.md",
     ):
         text = (REPO_ROOT / relative).read_text(encoding="utf-8")
         assert REPORT_LABEL_LEAK_TOKEN not in text

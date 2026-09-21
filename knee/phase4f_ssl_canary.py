@@ -420,6 +420,9 @@ def compute_collapse_diagnostics(
     *,
     cfg: dict[str, Any],
 ) -> dict[str, Any]:
+    encoder_z = encoder_z.detach().float()
+    projector_z = projector_z.detach().float()
+    predictor_p = predictor_p.detach().float()
     thresholds = collapse_thresholds(cfg)
     encoder_std = representation_std(encoder_z)
     projector_std = representation_std(projector_z)
@@ -1441,9 +1444,9 @@ def run_phase4f_ssl_canary(
             collapse_fixture=collapse_fixture,
             timings=timings,
         )
-    except (Phase4FCanaryError, Gold58PreflightError, Phase4FError) as exc:
+    except Exception as exc:  # noqa: BLE001 - canary must fail closed, not crash the kernel
         status = getattr(exc, "status", STATUS_FAIL)
-        reason = getattr(exc, "reason", str(exc))
+        reason = getattr(exc, "reason", None) or f"uncaught_{type(exc).__name__}"
         extra.update(
             {
                 "timings": timings,
@@ -1451,7 +1454,7 @@ def run_phase4f_ssl_canary(
                 "n_real_unlabelled_studies_pixels_opened": n_pixels_opened if scientific else 0,
             }
         )
-        payload = _payload(status if status else STATUS_FAIL, reason, extra=extra)
+        payload = _payload(status if status else STATUS_FAIL, str(reason)[:200], extra=extra)
         _write_public(out, payload)
         return payload
 

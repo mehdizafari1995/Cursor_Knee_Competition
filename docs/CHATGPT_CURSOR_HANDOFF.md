@@ -28,25 +28,31 @@ resolves to the same repository. PR #10 head branch is
 
 ## Current project state
 
-- current phase: Phase 4F image-only SimSiam SSL design. Outcome:
-  `SSL_SMOKE_COMPLETE` on synthetic/tiny tensors only.
-  `n_real_unlabelled_studies_processed=0`. No Kaggle kernel. Frozen
-  Phase 4E remains `SUBMISSION_REHEARSAL_COMPLETE`. Frozen v2 remains
+- current phase: Phase 4F.1 bounded unlabeled-image SimSiam SSL canary.
+  Outcome: `SSL_CANARY_FAIL`. Kernel
+  `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v1` version 1 is
+  frozen ERROR (`linalg_eigh_cuda` not implemented for AMP float16 on
+  the first optimizer step). `n_real_unlabelled_studies_pixels_opened=64`.
+  Resume, losses, and the guarded 4,349-study projection were not
+  measured. Do not launch a second canary unless ChatGPT authorizes a
+  new versioned run. Do not launch the full 4,349-study SSL job.
+  Frozen Phase 4F v1 remains `SSL_SMOKE_COMPLETE`. Frozen Phase 4E
+  remains `SUBMISSION_REHEARSAL_COMPLETE`. Frozen v2 remains
   `GOLD58_OOF_COMPLETE` (combined 58-row OOF macro ROC AUC
   0.6237496021463534). Frozen v1 remains `SERIES_SELECTION_PREFLIGHT_FAIL`.
   Do not emit `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`. Do not submit the
-  0.62375 OOF baseline. Do not launch unlabeled SSL on real pixels until
-  ChatGPT sets `UNLABELED_IMAGE_SSL_EXECUTION_ALLOWED=true`.
+  0.62375 OOF baseline.
 - latest constrained-canary outcome: frozen kernel
   `mahdimzafari/rsna-knee-second-reader-constrained-canary` version 3 remains
   recorded `CONSTRAINED_CANARY_PASS` and is immutable.
-- latest Kaggle kernel name and version (unchanged; 4F kernel not launched):
-  `mahdimzafari/rsna-knee-gold58-submission-rehearsal-v1` version 1
-  (`SUBMISSION_REHEARSAL_COMPLETE`, Tesla T4, internet off, competition
-  attached, notebook 12). Prepared, not launched:
-  `mahdimzafari/rsna-knee-unlabeled-image-ssl-v1`. Frozen prior kernels
-  remain: gold58-image-oof-v2 v1 `GOLD58_OOF_COMPLETE`; gold58-image-oof-v1
-  v1 `SERIES_SELECTION_PREFLIGHT_FAIL`; gold-constrained-v14 v1
+- latest Kaggle kernel name and version:
+  `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v1` version 1
+  (`SSL_CANARY_FAIL` / worker ERROR, Tesla T4, internet off, competition
+  attached, notebook 14). Frozen prior kernels remain:
+  gold58-submission-rehearsal-v1 v1 `SUBMISSION_REHEARSAL_COMPLETE`;
+  unlabeled-image-ssl-v1 prepared not launched; gold58-image-oof-v2 v1
+  `GOLD58_OOF_COMPLETE`; gold58-image-oof-v1 v1
+  `SERIES_SELECTION_PREFLIGHT_FAIL`; gold-constrained-v14 v1
   `PILOT_EXECUTED`; constrained-canary v3 `CONSTRAINED_CANARY_PASS`;
   gold `rsna-knee-second-reader-gold-pilot` v7 `PILOT_EXECUTION_FAIL`;
   phase46-replay v2
@@ -58,7 +64,8 @@ resolves to the same repository. PR #10 head branch is
   gold58 v1 recipe `gold58-image-resnet18-grouped-oof-v1` (frozen
   fail-closed); gold58 v2 recipe `gold58-image-resnet18-grouped-oof-v2`;
   Phase 4E protocol `gold58-image-resnet18-submission-rehearsal-v1`;
-  Phase 4F protocol `unlabeled-image-simsiam-ssl-v1`.
+  Phase 4F protocol `unlabeled-image-simsiam-ssl-v1`;
+  Phase 4F.1 protocol `unlabeled-image-simsiam-ssl-canary-v1`.
   v1.4 config hash unchanged.
 - gold second-reader executed this phase: `false`. Prior Phase 4C.7 record
   remains `n_gold_studies_processed: 58` with
@@ -67,6 +74,9 @@ resolves to the same repository. PR #10 head branch is
   (`n_report_only_studies_processed: 0`).
 - `UNLABELED_IMAGE_SSL_PLANNING_ALLOWED`: `true`
 - `UNLABELED_IMAGE_SSL_EXECUTION_ALLOWED`: `false`
+- `UNLABELED_IMAGE_SSL_CANARY_EXECUTION_ALLOWED`: `true` for the consumed
+  64-study / 40-step canary only; kernel v1 already ran; do not relaunch
+  without a new ChatGPT authorization
 - `GOLD58_SSL_OOF_EXECUTION_ALLOWED`: `false`
 - `HARD_WEAK_LABEL_TRAINING_ALLOWED`: `false`
 - `SCALE_TO_REPORT_ONLY_SECOND_READER_ALLOWED`: `false`
@@ -842,5 +852,41 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 - report-only accessed: false (pixels not opened)
 - recommended next decision: ChatGPT; authorize a later unlabeled-pixel
   SSL kernel separately; do not launch notebook 13 now; do not merge PR #10
+
+### 2026-09-21T05:10:00Z — Phase 4F.1 bounded unlabeled-image SSL canary
+
+- starting commit SHA: `22b78eb1cf19d6da39f388ce10eea6ff238c620d`
+- ending commit SHA: pending SHA-record after this handoff
+- files changed: `knee/phase4f_ssl_canary.py`,
+  `tests/test_phase4f_ssl_canary.py`,
+  `reports/phase4f_ssl_canary_run.md`,
+  `tests/test_agent_configuration.py`,
+  `tests/test_second_reader_pilot.py`,
+  `docs/CHATGPT_CURSOR_HANDOFF.md`
+- commands and tests run:
+  - local preflight then one private T4 kernel:
+    `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v1` v1
+  - worker `KernelWorkerStatus.ERROR`; recorded `SSL_CANARY_FAIL`
+  - Phase 4F v1 files not edited; kernel v1 not overwritten after the error
+  - no second canary launch
+  - `pytest` canary file passed after float32 diagnostic harden
+  - v1.4 config SHA-256 unchanged:
+    `992af7a4b4483278445a6f3fb363c818611e79005618dff063460d0aed3bd7f7`
+  - Phase 4F v1 SSL config SHA-256 unchanged:
+    `d0c714f2ec1dc818f140abee21464cc4cf8a25f9a2a882195ae6860fda48ce43`
+  - Phase 4F.1 canary config SHA-256:
+    `3c8ad505be9e2c71c1ad3c15f894d7188f0ca1f8cf1752ad4df7d84d7ce25c4c`
+- sanitized results: Tesla T4; internet off; notebook 14;
+  n_real_unlabelled_studies_pixels_opened=64; first optimizer step
+  crashed on AMP float16 `eigvalsh`; 0 optimizer steps completed;
+  resume not reached; full-run projection not computed; wall ~366 s;
+  dataset/I/O before first step ~296 s; n_report_only_processed=0;
+  competition_submission_written=false; full_ssl_run_authorized=false
+- unresolved failures: canary scientific measurements incomplete;
+  do not treat the ~296 s I/O snippet as a 4349-study runtime proof
+- gold accessed: false (64 non-gold unlabeled images only; IDs not logged)
+- report-only text accessed: false
+- recommended next decision: ChatGPT; freeze kernel v1 as
+  `SSL_CANARY_FAIL`; do not authorize full SSL; do not merge PR #10
 
 CHATGPT_HANDOFF_READY

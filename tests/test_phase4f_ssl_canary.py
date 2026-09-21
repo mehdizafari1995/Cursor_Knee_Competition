@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import subprocess
 import sys
 from pathlib import Path
@@ -194,7 +195,15 @@ def test_sha256_cohort_is_deterministic_and_gold_disjoint():
     assert "n_overlap=1" in exc.value.reason
 
 
-def test_collapse_fixtures_match_frozen_thresholds():
+def test_collapse_diagnostics_accept_float16():
+    cfg = load_canary_config()
+    diverse = torch.randn(16, 32, dtype=torch.float16)
+    collapsed = torch.ones(16, 32, dtype=torch.float16)
+    ok = compute_collapse_diagnostics(diverse, diverse, diverse, cfg=cfg)
+    bad = compute_collapse_diagnostics(collapsed, collapsed, collapsed, cfg=cfg)
+    assert ok["collapsed"] is False
+    assert math.isfinite(ok["effective_rank"])
+    assert bad["collapsed"] is True
     cfg = load_canary_config()
     report = validate_collapse_fixtures(cfg)
     assert report["non_collapsed_detected"] is False
@@ -374,7 +383,8 @@ def test_protocol_notebook_allowlist_and_privacy():
     cfg = load_canary_config()
     text = render_canary_protocol_markdown(cfg)
     protocol = (REPO_ROOT / "reports" / "phase4f_ssl_canary_protocol.md").read_text(encoding="utf-8")
-    for blob in (text, protocol):
+    run = (REPO_ROOT / "reports" / "phase4f_ssl_canary_run.md").read_text(encoding="utf-8")
+    for blob in (text, protocol, run):
         assert KERNEL_SLUG in blob
         assert PROTOCOL in blob
         assert "UNLABELED_IMAGE_SSL_EXECUTION_ALLOWED=false" in blob
@@ -385,11 +395,14 @@ def test_protocol_notebook_allowlist_and_privacy():
             assert uid not in blob
         for patient in REPORT_LABEL_PATIENTS:
             assert patient not in blob
+    assert "SSL_CANARY_FAIL" in run
+    assert "n_real_unlabelled_studies_pixels_opened: 64" in run
     assert would_include("knee/phase4f_ssl_canary.py")
     assert would_include("scripts/run_phase4f_ssl_canary.py")
     assert would_include("configs/unlabeled_image_simsiam_ssl_canary_v1.yaml")
     assert would_include("notebooks/14_kaggle_unlabeled_image_ssl_canary.ipynb")
     assert not would_include("reports/phase4f_ssl_canary_protocol.md")
+    assert not would_include("reports/phase4f_ssl_canary_run.md")
     nb = json.loads(
         (REPO_ROOT / "notebooks" / "14_kaggle_unlabeled_image_ssl_canary.ipynb").read_text(
             encoding="utf-8"

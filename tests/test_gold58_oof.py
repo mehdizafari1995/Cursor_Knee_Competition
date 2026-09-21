@@ -330,6 +330,10 @@ def test_module_never_calls_second_reader_generate():
     assert would_include("scripts/train_gold58_image_oof_v2.py")
     assert would_include("knee/phase4e_rehearsal.py")
     assert would_include("scripts/run_phase4e_rehearsal.py")
+    assert would_include("knee/phase4f_ssl.py")
+    assert would_include("scripts/run_phase4f_ssl.py")
+    assert would_include("notebooks/13_kaggle_unlabeled_image_ssl_v1.ipynb")
+    assert would_include("configs/unlabeled_image_simsiam_ssl_v1.yaml")
     assert sha256_file(REPO_ROOT / "configs" / "second_reader_pilot_v1_4.yaml") == FROZEN_V14
 
 

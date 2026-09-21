@@ -1,0 +1,60 @@
+# Phase 4F image-only SimSiam SSL recipe. Frozen before any real-data run.
+# UNLABELED_IMAGE_SSL_EXECUTION_ALLOWED remains false in this phase.
+protocol: unlabeled-image-simsiam-ssl-v1
+kernel_slug: mahdimzafari/rsna-knee-unlabeled-image-ssl-v1
+seed: 42
+ssl_objective: simsiam
+ssl_citation: "Chen & He, Exploring Simple Siamese Representation Learning, CVPR 2021"
+encoder: resnet18
+pretrained: true
+imagenet_weights_filename: resnet18-f37072fd.pth
+imagenet_weights_source: torchvision.models.ResNet18_Weights.IMAGENET1K_V1
+imagenet_weights_url: https://download.pytorch.org/models/resnet18-f37072fd.pth
+imagenet_weights_sha256: f37072fd47e89c5e827621c5baffa7500819f7896bbacec160b1a16c560e07ec
+image_size: 224
+num_slices: 8
+slice_sampling: linspace
+intensity_percentiles: [1.0, 99.0]
+interpolation: bilinear
+imagenet_normalize: true
+imagenet_mean: [0.485, 0.456, 0.406]
+imagenet_std: [0.229, 0.224, 0.225]
+aggregation: mean
+projector_hidden_dim: 2048
+projector_out_dim: 2048
+predictor_hidden_dim: 512
+crop_scale: [0.6, 1.0]
+hflip_p: 0.5
+intensity_scale: [0.9, 1.1]
+intensity_shift: [-0.05, 0.05]
+batch_size: 8
+epochs: 2
+max_steps: null
+optimizer: sgd
+learning_rate: 0.03
+momentum: 0.9
+weight_decay: 0.0001
+lr_schedule: cosine
+amp: cuda_only
+cudnn_deterministic: true
+num_workers: 0
+checkpoint_every_steps: 200
+checkpoint_rule: last_and_interval
+resume: true
+collapse_std_min: 0.001
+round_trip_atol: 1.0e-5
+series_selection_rule: deterministic-primary-series-v2
+expected_n_unlabeled_real: 4349
+expected_n_gold_real: 58
+exclude_gold_studies: true
+open_unlabeled_pixels: false
+execute_training: false
+process_report_only_text: false
+use_second_reader: false
+use_weak_labels: false
+use_hidden_test: false
+consumes_submission_slot: false
+require_cuda_for_scientific_run: true
+max_wall_seconds: 39600
+safety_factor: 1.2
+output_dirname: rsna_unlabeled_image_ssl_v1

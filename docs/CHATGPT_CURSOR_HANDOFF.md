@@ -28,42 +28,46 @@ resolves to the same repository. PR #10 head branch is
 
 ## Current project state
 
-- current phase: Phase 4E gold58 five-checkpoint visible-test submission
-  rehearsal. Outcome: `SUBMISSION_REHEARSAL_COMPLETE`. Visible example
-  test n=3. Hidden test unavailable on a private kernel
-  (`hidden_test_available: false`). No competition submission was
-  written and no submission slot was consumed. Frozen v1 remains
-  `SERIES_SELECTION_PREFLIGHT_FAIL`. Frozen v2 remains
+- current phase: Phase 4F image-only SimSiam SSL design. Outcome:
+  `SSL_SMOKE_COMPLETE` on synthetic/tiny tensors only.
+  `n_real_unlabelled_studies_processed=0`. No Kaggle kernel. Frozen
+  Phase 4E remains `SUBMISSION_REHEARSAL_COMPLETE`. Frozen v2 remains
   `GOLD58_OOF_COMPLETE` (combined 58-row OOF macro ROC AUC
-  0.6237496021463534). Do not emit `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`.
-  Do not scale or train on weak labels. Do not launch a third OOF run.
-  Do not retune v1 or v2. Do not initiate a scoring/submit kernel.
+  0.6237496021463534). Frozen v1 remains `SERIES_SELECTION_PREFLIGHT_FAIL`.
+  Do not emit `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`. Do not submit the
+  0.62375 OOF baseline. Do not launch unlabeled SSL on real pixels until
+  ChatGPT sets `UNLABELED_IMAGE_SSL_EXECUTION_ALLOWED=true`.
 - latest constrained-canary outcome: frozen kernel
   `mahdimzafari/rsna-knee-second-reader-constrained-canary` version 3 remains
   recorded `CONSTRAINED_CANARY_PASS` and is immutable.
-- latest Kaggle kernel name and version:
+- latest Kaggle kernel name and version (unchanged; 4F kernel not launched):
   `mahdimzafari/rsna-knee-gold58-submission-rehearsal-v1` version 1
   (`SUBMISSION_REHEARSAL_COMPLETE`, Tesla T4, internet off, competition
-  attached, notebook 12). Frozen prior kernels remain:
-  gold58-image-oof-v2 v1 `GOLD58_OOF_COMPLETE`; gold58-image-oof-v1 v1
-  `SERIES_SELECTION_PREFLIGHT_FAIL`; gold-constrained-v14 v1
+  attached, notebook 12). Prepared, not launched:
+  `mahdimzafari/rsna-knee-unlabeled-image-ssl-v1`. Frozen prior kernels
+  remain: gold58-image-oof-v2 v1 `GOLD58_OOF_COMPLETE`; gold58-image-oof-v1
+  v1 `SERIES_SELECTION_PREFLIGHT_FAIL`; gold-constrained-v14 v1
   `PILOT_EXECUTED`; constrained-canary v3 `CONSTRAINED_CANARY_PASS`;
   gold `rsna-knee-second-reader-gold-pilot` v7 `PILOT_EXECUTION_FAIL`;
   phase46-replay v2
   `CONSTRAINED_FORMAT_PASS_SEMANTIC_GATE_NOT_ESTABLISHED`. Notebooks 07,
-  09, 10, and 11 were not executed.
+  09, 10, 11, 12, and 13 were not executed.
 - schema and configuration versions: schema `second-reader-schema-v1.0.0`;
   prompt `second-reader-prompt-v1.2.0`; transport
   `second-reader-transport-v1.4`; protocol `second-reader-pilot-v1.4.0`;
   gold58 v1 recipe `gold58-image-resnet18-grouped-oof-v1` (frozen
   fail-closed); gold58 v2 recipe `gold58-image-resnet18-grouped-oof-v2`;
-  Phase 4E protocol `gold58-image-resnet18-submission-rehearsal-v1`.
+  Phase 4E protocol `gold58-image-resnet18-submission-rehearsal-v1`;
+  Phase 4F protocol `unlabeled-image-simsiam-ssl-v1`.
   v1.4 config hash unchanged.
 - gold second-reader executed this phase: `false`. Prior Phase 4C.7 record
   remains `n_gold_studies_processed: 58` with
   `gold_second_reader_rerun_authorized: false`.
 - report-only studies processed: `false`
   (`n_report_only_studies_processed: 0`).
+- `UNLABELED_IMAGE_SSL_PLANNING_ALLOWED`: `true`
+- `UNLABELED_IMAGE_SSL_EXECUTION_ALLOWED`: `false`
+- `GOLD58_SSL_OOF_EXECUTION_ALLOWED`: `false`
 - `HARD_WEAK_LABEL_TRAINING_ALLOWED`: `false`
 - `SCALE_TO_REPORT_ONLY_SECOND_READER_ALLOWED`: `false`
 - `SECOND_READER_SCORE_BEARING_ALLOWED`: `false`
@@ -288,34 +292,60 @@ remains blocked until `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`.
 - frozen v1 and v2 kernels/configs/reports unchanged
 - forbidden outcome not used: `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`
 
+### Phase 4F image-only SimSiam SSL (synthetic smoke only)
+
+- outcome: `SSL_SMOKE_COMPLETE`
+- kernel prepared, not launched: `mahdimzafari/rsna-knee-unlabeled-image-ssl-v1`
+- protocol: `unlabeled-image-simsiam-ssl-v1`
+- config SHA-256:
+  `d0c714f2ec1dc818f140abee21464cc4cf8a25f9a2a882195ae6860fda48ce43`
+- SSL objective: SimSiam; ImageNet ResNet-18 init; series rule
+  `deterministic-primary-series-v2` unre-tuned
+- synthetic smoke: 3 CPU steps; losses
+  [-0.16626, -0.21457, -0.30531]; representation stds
+  [0.001725, 0.001988, 0.003080]; encoder round-trip 0.0; collapse
+  fixture detected as `SSL_COLLAPSE_FAIL`
+- n_real_unlabelled_studies_processed: 0
+- training_run: false; OOF_run: false; inference_run: false
+- competition_submission_written: false; kaggle_kernel_launched: false
+- resource estimate n=4349 from frozen v2 throughput × 1.5 views:
+  15312 s/epoch; 2 epochs 30623 s; safety 1.2 → 36748 s; fits
+  max_wall 39600 s; does not fit competition 9h scoring (SSL is not a
+  scoring notebook)
+- `UNLABELED_IMAGE_SSL_EXECUTION_ALLOWED=false`
+- `GOLD58_SSL_OOF_EXECUTION_ALLOWED=false`
+- notebooks 07, 09, 10, 11, 12, and 13 not executed
+- forbidden outcome not used: `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`
+
 ## Current blockers
 
-1. The 3-row visible-test rehearsal is not a leaderboard score. Hidden
-   test was unavailable on this private kernel. Do not interpret the
-   rehearsal CSV as competition scoring.
-2. The measured gold-58 image OOF remains a weak first baseline (macro
+1. Unlabeled SSL execution is not authorized. Do not open the 4,349
+   study pixels or launch notebook 13 until ChatGPT flips
+   `UNLABELED_IMAGE_SSL_EXECUTION_ALLOWED`.
+2. The 3-row visible-test rehearsal is not a leaderboard score. Do not
+   submit the 0.62375 OOF baseline.
+3. The measured gold-58 image OOF remains a weak first baseline (macro
    AUC 0.62375, CI 0.572–0.674). MCL and PF OA are at or below chance.
    This is not permission to retune v2.
-3. Frozen v1 remains `SERIES_SELECTION_PREFLIGHT_FAIL`
+4. Frozen v1 remains `SERIES_SELECTION_PREFLIGHT_FAIL`
    (n_unique=48, n_zero=2, n_multi=8). Do not edit v1 history.
-4. The second reader remains parked: 11/12 targets are `PILOT_FAIL` or
+5. The second reader remains parked: 11/12 targets are `PILOT_FAIL` or
    `PILOT_RESTRICTED`. Medial Meniscus `PILOT_PASS` is exploratory
    (coverage 10/58, NPV denom=2), not deployment evidence.
-5. Semantic gate status remains `NOT_PREDECLARED`. Do not invent a
+6. Semantic gate status remains `NOT_PREDECLARED`. Do not invent a
    threshold from 0.815. Do not emit
    `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`.
-6. Gold notebook 07 remains a historical blocked stub. Do not execute
-   notebooks 07, 09, 10, or 11. Do not reopen Phase 4C. Do not launch a
-   third OOF run or a scoring/submit kernel unless ChatGPT authorizes it.
+7. Gold notebook 07 remains a historical blocked stub. Do not execute
+   notebooks 07, 09, 10, 11, 12, or 13. Do not reopen Phase 4C.
 
 ## Next authorized task
 
-Wait for ChatGPT. Accept Phase 4E as `SUBMISSION_REHEARSAL_COMPLETE`.
-Do **not** initiate a Kaggle competition submission or scoring run.
-Do **not** retune `deterministic-primary-series-v2` or
-`sagittal-fluid-sensitive-unique-v1`. Do **not** launch a third OOF
-kernel. Do **not** train, submit, merge, reopen Phase 4C, execute
-notebook 07/09/10/11, or process report-only studies.
+Wait for ChatGPT. Accept Phase 4F as a frozen SSL recipe plus synthetic
+smoke. Do **not** launch `mahdimzafari/rsna-knee-unlabeled-image-ssl-v1`.
+Do **not** open unlabeled pixels. Do **not** run gold58 SSL OOF. Do
+**not** initiate a Kaggle competition submission. Do **not** retune
+series rules. Do **not** train, submit, merge, reopen Phase 4C, or
+execute notebook 07/09/10/11/12/13.
 
 Work on the existing branch `cursor/phase4c-second-reader-pilot-f351` and existing draft PR #10. Do not create another PR, merge anything, rerun gold, process report-only studies, or modify scientific results.
 
@@ -325,11 +355,14 @@ the 4,349 report-only studies. Do not overwrite immutable experiment
 evidence (gold kernel v7, canary v1, smoke v2, smoke/canary v1.3, constrained
 kernel versions 1–3, phase46-replay v1–v2, gold-constrained-v14 v1,
 gold58-image-oof-v1 v1, gold58-image-oof-v2 v1,
-gold58-submission-rehearsal-v1 v1, prompts v1.0–v1.2,
+gold58-submission-rehearsal-v1 v1, unlabeled-image-simsiam-ssl-v1
+recipe, prompts v1.0–v1.2,
 transport configs v1.0–v1.4, gold58 recipes v1 and v2).
 `HARD_WEAK_LABEL_TRAINING_ALLOWED=false`.
 `SCALE_TO_REPORT_ONLY_SECOND_READER_ALLOWED=false`.
 `SECOND_READER_SCORE_BEARING_ALLOWED=false`.
+`UNLABELED_IMAGE_SSL_EXECUTION_ALLOWED=false`.
+`GOLD58_SSL_OOF_EXECUTION_ALLOWED=false`.
 
 ## Cursor completion protocol
 
@@ -772,5 +805,42 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 - recommended next decision: ChatGPT; accept 4E as
   `SUBMISSION_REHEARSAL_COMPLETE`; do not launch a scoring/submit kernel;
   do not merge PR #10
+
+### 2026-09-21T04:40:00Z — Phase 4F image-only SimSiam SSL design
+
+- starting commit SHA: `bd7b5c8d9adfbce9719f8c668c4dbc69213ba3ac`
+- ending commit SHA: pending this commit
+- files changed: `knee/phase4f_ssl.py`,
+  `configs/unlabeled_image_simsiam_ssl_v1.yaml`,
+  `scripts/run_phase4f_ssl.py`,
+  `notebooks/13_kaggle_unlabeled_image_ssl_v1.ipynb`,
+  `reports/phase4f_ssl_protocol.md`,
+  `reports/phase4f_ssl_readiness.md`,
+  `tests/test_phase4f_ssl.py`,
+  `tests/test_agent_configuration.py`,
+  `tests/test_second_reader_pilot.py`,
+  `tests/test_kaggle_bundle.py`,
+  `tests/test_gold58_oof.py`,
+  `docs/CHATGPT_CURSOR_HANDOFF.md`
+- commands and tests run:
+  - synthetic/tiny-tensor CPU smoke only; no Kaggle kernel
+  - `pytest -q`: pending after this commit
+  - v1.4 config SHA-256 unchanged:
+    `992af7a4b4483278445a6f3fb363c818611e79005618dff063460d0aed3bd7f7`
+  - SSL config SHA-256:
+    `d0c714f2ec1dc818f140abee21464cc4cf8a25f9a2a882195ae6860fda48ce43`
+- sanitized results: status `SSL_SMOKE_COMPLETE`; 3 CPU steps with
+  backprop; collapse fixture `SSL_COLLAPSE_FAIL`; gold intersection 0;
+  dataset rejects labels/reports; hidden-test path refused; real
+  execution refused; n_real_unlabelled_studies_processed=0;
+  training_run=false; OOF_run=false; inference_run=false;
+  competition_submission_written=false; kaggle_kernel_launched=false;
+  projected n=4349 with safety 36748 s
+- unresolved failures: unlabeled SSL not authorized on real pixels;
+  0.62375 OOF is not a submission
+- gold accessed: false
+- report-only accessed: false (pixels not opened)
+- recommended next decision: ChatGPT; authorize a later unlabeled-pixel
+  SSL kernel separately; do not launch notebook 13 now; do not merge PR #10
 
 CHATGPT_HANDOFF_READY

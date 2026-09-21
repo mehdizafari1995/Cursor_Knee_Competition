@@ -28,14 +28,17 @@ resolves to the same repository. PR #10 head branch is
 
 ## Current project state
 
-- current phase: Phase 4F.1 repair-replay. Kernel
+- current phase: Phase 4F.2 AMP-safe bounded canary. Phase 4F.1 kernel
   `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v1` version 1 remains
-  frozen `SSL_CANARY_FAIL` (AMP float16 `eigvalsh`). Version 2 is frozen
-  `SSL_CANARY_GPU_PREFLIGHT_FAIL` (`nonfinite_gradient` on the synthetic
-  AMP ResNet-18 software check). `n_real_unlabelled_studies_pixels_opened=0`
-  for v2 (v1 had opened 64). A third canary is not authorized. Do not
-  launch the full 4,349-study SSL job. Frozen Phase 4F v1 remains
-  `SSL_SMOKE_COMPLETE`. Frozen Phase 4E remains
+  frozen `SSL_CANARY_FAIL` (AMP float16 `eigvalsh`). Version 2 remains
+  frozen `SSL_CANARY_GPU_PREFLIGHT_FAIL` (`nonfinite_gradient`).
+  Versioned AMP-safe path is `unlabeled-image-simsiam-ssl-canary-v2` /
+  notebook 15 / slug
+  `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v2`. Local pytest
+  and zero-pixel CPU AMP software preflight passed. One authorized
+  private T4 kernel is in flight or pending after this implementation
+  commit. Do not launch the full 4,349-study SSL job. Frozen Phase 4F v1
+  remains `SSL_SMOKE_COMPLETE`. Frozen Phase 4E remains
   `SUBMISSION_REHEARSAL_COMPLETE`. Frozen v2 remains
   `GOLD58_OOF_COMPLETE` (combined 58-row OOF macro ROC AUC
   0.6237496021463534). Frozen v1 remains `SERIES_SELECTION_PREFLIGHT_FAIL`.
@@ -48,7 +51,9 @@ resolves to the same repository. PR #10 head branch is
   `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v1` version 2
   (`SSL_CANARY_GPU_PREFLIGHT_FAIL` / worker ERROR, Tesla T4, internet
   off, competition attached, notebook 14). Frozen kernel v1 of the same
-  slug remains `SSL_CANARY_FAIL`. Frozen prior kernels remain:
+  slug remains `SSL_CANARY_FAIL`. Phase 4F.2 uses a **new** slug
+  `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v2` (notebook 15)
+  and must not overwrite canary-v1 versions 1–2. Frozen prior kernels remain:
   gold58-submission-rehearsal-v1 v1 `SUBMISSION_REHEARSAL_COMPLETE`;
   unlabeled-image-ssl-v1 prepared not launched; gold58-image-oof-v2 v1
   `GOLD58_OOF_COMPLETE`; gold58-image-oof-v1 v1
@@ -65,7 +70,8 @@ resolves to the same repository. PR #10 head branch is
   fail-closed); gold58 v2 recipe `gold58-image-resnet18-grouped-oof-v2`;
   Phase 4E protocol `gold58-image-resnet18-submission-rehearsal-v1`;
   Phase 4F protocol `unlabeled-image-simsiam-ssl-v1`;
-  Phase 4F.1 protocol `unlabeled-image-simsiam-ssl-canary-v1`.
+  Phase 4F.1 protocol `unlabeled-image-simsiam-ssl-canary-v1`;
+  Phase 4F.2 protocol `unlabeled-image-simsiam-ssl-canary-v2`.
   v1.4 config hash unchanged.
 - gold second-reader executed this phase: `false`. Prior Phase 4C.7 record
   remains `n_gold_studies_processed: 58` with
@@ -77,8 +83,11 @@ resolves to the same repository. PR #10 head branch is
 - `UNLABELED_IMAGE_SSL_PLANNING_ALLOWED`: `true`
 - `UNLABELED_IMAGE_SSL_EXECUTION_ALLOWED`: `false`
 - `UNLABELED_IMAGE_SSL_CANARY_EXECUTION_ALLOWED`: consumed by kernel v1
-  and the one authorized v2 repair-replay; do not launch a third canary
-  without a new ChatGPT authorization
+  and the one authorized v2 repair-replay; do not launch another 4F.1
+  canary
+- `UNLABELED_IMAGE_SSL_CANARY_V2_EXECUTION_ALLOWED`: true for the one
+  authorized Phase 4F.2 kernel only; do not launch a second 4F.2 kernel
+  if it fails
 - `GOLD58_SSL_OOF_EXECUTION_ALLOWED`: `false`
 - `HARD_WEAK_LABEL_TRAINING_ALLOWED`: `false`
 - `SCALE_TO_REPORT_ONLY_SECOND_READER_ALLOWED`: `false`
@@ -928,7 +937,46 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 - gold accessed: false
 - report-only text accessed: false
 - recommended next decision: ChatGPT; freeze kernel v2 as
-  `SSL_CANARY_GPU_PREFLIGHT_FAIL`; do not authorize a third canary or
-  full SSL; do not merge PR #10
+  `SSL_CANARY_GPU_PREFLIGHT_FAIL`; do not authorize a third 4F.1 canary
+  or full SSL; do not merge PR #10
+
+### 2026-09-21T14:30:00Z — Phase 4F.2 AMP-safe canary implementation
+
+- starting commit SHA: `7954af283e6d05731df2f8cb1a98cddc264029da`
+- files added: `knee/phase4f_ssl_canary_v2.py`,
+  `configs/unlabeled_image_simsiam_ssl_canary_v2.yaml`,
+  `scripts/run_phase4f_ssl_canary_v2.py`,
+  `notebooks/15_kaggle_unlabeled_image_ssl_canary_v2.ipynb`,
+  `reports/phase4f_ssl_canary_v2_protocol.md`,
+  `reports/phase4f_ssl_canary_v2_run.md`,
+  `tests/test_phase4f_ssl_canary_v2.py`
+- Phase 4F.1 files not edited. Frozen canary-v1 kernel versions 1–2 not
+  overwritten.
+- commands and tests run:
+  - AMP-safe loss is float32 and does not call frozen v1 `simsiam_loss`
+  - applied-step accounting with one overflow retry; exhaustion after 3
+    consecutive backoffs fails closed without optimizer/scheduler update
+  - per-step std-only does not call `eigvalsh`; probe float32 dim<=16
+  - CPU GPU-preflight path fails closed (`cuda_required`) with zero pixels
+  - local AMP software preflight scientific shape 8x8x1x224x224 passes
+  - `pytest -q`: 651 collected, all passed
+  - v1.4 config SHA-256 unchanged:
+    `992af7a4b4483278445a6f3fb363c818611e79005618dff063460d0aed3bd7f7`
+  - Phase 4F v1 SSL config SHA-256 unchanged:
+    `d0c714f2ec1dc818f140abee21464cc4cf8a25f9a2a882195ae6860fda48ce43`
+  - Phase 4F.1 canary config SHA-256 unchanged:
+    `3c8ad505be9e2c71c1ad3c15f894d7188f0ca1f8cf1752ad4df7d84d7ce25c4c`
+  - Phase 4F.2 canary config SHA-256:
+    `c06e0a78848b20e5ab9c675f3e0df8c4a82aa86519408729b1149d86ab8afb26`
+- sanitized results: kernel not yet launched at this implementation
+  commit; n_report_text_rows_processed=0;
+  n_second_reader_rows_processed=0; full_ssl_run_authorized=false
+- unresolved failures: in-kernel Tesla T4 AMP preflight still required
+  before pixels; do not launch full SSL
+- gold accessed: false
+- report-only text accessed: false
+- recommended next decision: launch at most one private T4 kernel
+  `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v2` version 1; if
+  GPU preflight fails, stop; do not merge PR #10
 
 CHATGPT_HANDOFF_READY

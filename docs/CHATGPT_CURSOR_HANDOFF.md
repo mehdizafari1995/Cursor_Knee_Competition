@@ -28,16 +28,15 @@ resolves to the same repository. PR #10 head branch is
 
 ## Current project state
 
-- current phase: Phase 4F.1 bounded unlabeled-image SimSiam SSL canary.
-  Outcome: `SSL_CANARY_FAIL`. Kernel
-  `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v1` version 1 is
-  frozen ERROR (`linalg_eigh_cuda` not implemented for AMP float16 on
-  the first optimizer step). `n_real_unlabelled_studies_pixels_opened=64`.
-  Resume, losses, and the guarded 4,349-study projection were not
-  measured. Do not launch a second canary unless ChatGPT authorizes a
-  new versioned run. Do not launch the full 4,349-study SSL job.
-  Frozen Phase 4F v1 remains `SSL_SMOKE_COMPLETE`. Frozen Phase 4E
-  remains `SUBMISSION_REHEARSAL_COMPLETE`. Frozen v2 remains
+- current phase: Phase 4F.1 repair-replay. Kernel
+  `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v1` version 1 remains
+  frozen `SSL_CANARY_FAIL` (AMP float16 `eigvalsh`). Version 2 is frozen
+  `SSL_CANARY_GPU_PREFLIGHT_FAIL` (`nonfinite_gradient` on the synthetic
+  AMP ResNet-18 software check). `n_real_unlabelled_studies_pixels_opened=0`
+  for v2 (v1 had opened 64). A third canary is not authorized. Do not
+  launch the full 4,349-study SSL job. Frozen Phase 4F v1 remains
+  `SSL_SMOKE_COMPLETE`. Frozen Phase 4E remains
+  `SUBMISSION_REHEARSAL_COMPLETE`. Frozen v2 remains
   `GOLD58_OOF_COMPLETE` (combined 58-row OOF macro ROC AUC
   0.6237496021463534). Frozen v1 remains `SERIES_SELECTION_PREFLIGHT_FAIL`.
   Do not emit `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`. Do not submit the
@@ -46,9 +45,10 @@ resolves to the same repository. PR #10 head branch is
   `mahdimzafari/rsna-knee-second-reader-constrained-canary` version 3 remains
   recorded `CONSTRAINED_CANARY_PASS` and is immutable.
 - latest Kaggle kernel name and version:
-  `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v1` version 1
-  (`SSL_CANARY_FAIL` / worker ERROR, Tesla T4, internet off, competition
-  attached, notebook 14). Frozen prior kernels remain:
+  `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v1` version 2
+  (`SSL_CANARY_GPU_PREFLIGHT_FAIL` / worker ERROR, Tesla T4, internet
+  off, competition attached, notebook 14). Frozen kernel v1 of the same
+  slug remains `SSL_CANARY_FAIL`. Frozen prior kernels remain:
   gold58-submission-rehearsal-v1 v1 `SUBMISSION_REHEARSAL_COMPLETE`;
   unlabeled-image-ssl-v1 prepared not launched; gold58-image-oof-v2 v1
   `GOLD58_OOF_COMPLETE`; gold58-image-oof-v1 v1
@@ -71,11 +71,13 @@ resolves to the same repository. PR #10 head branch is
   remains `n_gold_studies_processed: 58` with
   `gold_second_reader_rerun_authorized: false`.
 - report-only studies processed: `false`
-  (`n_report_only_studies_processed: 0`).
+  (`n_report_text_rows_processed: 0`; `n_second_reader_rows_processed: 0`).
+  Kernel v2 opened 0 unlabeled image pixels. Kernel v1 had opened 64
+  unlabeled image rows without reading report text.
 - `UNLABELED_IMAGE_SSL_PLANNING_ALLOWED`: `true`
 - `UNLABELED_IMAGE_SSL_EXECUTION_ALLOWED`: `false`
-- `UNLABELED_IMAGE_SSL_CANARY_EXECUTION_ALLOWED`: `true` for the consumed
-  64-study / 40-step canary only; kernel v1 already ran; do not relaunch
+- `UNLABELED_IMAGE_SSL_CANARY_EXECUTION_ALLOWED`: consumed by kernel v1
+  and the one authorized v2 repair-replay; do not launch a third canary
   without a new ChatGPT authorization
 - `GOLD58_SSL_OOF_EXECUTION_ALLOWED`: `false`
 - `HARD_WEAK_LABEL_TRAINING_ALLOWED`: `false`
@@ -888,5 +890,45 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 - report-only text accessed: false
 - recommended next decision: ChatGPT; freeze kernel v1 as
   `SSL_CANARY_FAIL`; do not authorize full SSL; do not merge PR #10
+
+### 2026-09-21T05:30:00Z — Phase 4F.1 repair-replay kernel v2
+
+- starting commit SHA: `26be5d7c38f13927ed9e1fceff767b885d0f066f`
+- ending commit SHA: (this run-record commit)
+- files changed: `knee/phase4f_ssl_canary.py`,
+  `notebooks/14_kaggle_unlabeled_image_ssl_canary.ipynb`,
+  `reports/phase4f_ssl_canary_protocol.md`,
+  `reports/phase4f_ssl_canary_run.md`,
+  `scripts/run_phase4f_ssl_canary.py`,
+  `tests/test_phase4f_ssl_canary.py`,
+  `docs/CHATGPT_CURSOR_HANDOFF.md`
+- commands and tests run:
+  - local AMP diagnostic tests: per-step std-only does not call
+    `eigvalsh`; probe uses float32 16×16 Gram and rejects collapse
+  - `pytest -q`: 627 passed
+  - one authorized private T4 kernel version 2 of
+    `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v1`
+  - worker `KernelWorkerStatus.ERROR`; recorded
+    `SSL_CANARY_GPU_PREFLIGHT_FAIL`
+  - kernel v1 not overwritten; no third canary
+  - v1.4 / SSL v1 / canary config hashes unchanged
+- sanitized results: Tesla T4; internet off; notebook 14;
+  GPU preflight skip_reason `nonfinite_gradient`;
+  n_real_unlabelled_studies_pixels_opened=0;
+  n_report_text_rows_processed=0;
+  n_second_reader_rows_processed=0;
+  report_text_never_read=true;
+  training_run=false; OOF_run=false; inference_run=false;
+  competition_submission_written=false; full_ssl_run_authorized=false;
+  wall ~67 s; optimizer steps 0; resume not reached;
+  full-run projection not computed; eigvalsh meta empty because the
+  AMP backward check failed before the probe eigensolve
+- unresolved failures: GPU AMP preflight did not pass, so the 64-study
+  canary training segment did not start; do not launch full SSL
+- gold accessed: false
+- report-only text accessed: false
+- recommended next decision: ChatGPT; freeze kernel v2 as
+  `SSL_CANARY_GPU_PREFLIGHT_FAIL`; do not authorize a third canary or
+  full SSL; do not merge PR #10
 
 CHATGPT_HANDOFF_READY

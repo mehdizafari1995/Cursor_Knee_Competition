@@ -76,5 +76,59 @@ canary measurement and must not be used to authorize a full SSL run.
 - guarded full-run projection with 25% safety and 3600 s reserve: not computed
 
 Neither this `SSL_CANARY_FAIL` nor a later code fix authorizes the 4,349-study job.
-Kernel v1 is frozen. Do not overwrite it. Do not launch a second canary unless
-ChatGPT authorizes a new versioned run.
+Kernel v1 is frozen. Do not overwrite it as a new v1.
+
+## Kernel version 2 — authorized repair replay (`SSL_CANARY_GPU_PREFLIGHT_FAIL`)
+
+ChatGPT authorized exactly one additional version of the same private slug
+after the diagnostic Gram/std-only fix. Local tests passed (627 pytest).
+Kernel **version 2** then ran the mandatory GPU AMP preflight on Tesla T4
+before `train.csv`, series metadata, or any DICOM. The preflight failed
+closed. Real unlabeled pixels were not opened. A third canary is not
+authorized. The full 4,349-study SSL job remains unauthorized.
+
+- slug: `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v1`
+- version: 2
+- Kaggle worker status: `KernelWorkerStatus.ERROR`
+- recorded status: `SSL_CANARY_GPU_PREFLIGHT_FAIL`
+- skip_reason: `nonfinite_gradient` (synthetic ResNet-18 AMP
+  forward/backward software check; thresholds were not retuned)
+- GPU: Tesla T4
+- internet: off
+- competition attached; notebook 14
+- `n_real_unlabelled_studies_pixels_opened`: 0
+- `n_report_text_rows_processed`: 0
+- `n_second_reader_rows_processed`: 0
+- report text was never read. Version 2 did not open the 64 unlabeled
+  image rows (unlike kernel v1, which opened 64 pixels and then crashed).
+  `n_report_only_studies_processed` remains 0 and must not be read as
+  "no unlabeled image rows were in scope"; v2 stopped before that scope.
+- `training_run`: false
+- `OOF_run`: false
+- `inference_run`: false
+- `competition_submission_written`: false
+- `consumes_submission_slot`: false
+- `full_ssl_run_authorized`: false
+- UNLABELED_IMAGE_SSL_EXECUTION_ALLOWED=false
+- packaged source HEAD: `26be5d7c38f13927ed9e1fceff767b885d0f066f`
+- source zip sha256: `ea749c4acef4ec03f30ea8b284ee0f96fc9b8f3eb9303a69e1ed26139c31d3e7`
+- n_files in zip: 119
+- notebooks 07, 09, 10, 11, 12, and 13 were not executed
+- `/kaggle/working/submission.csv` was not written
+- wall ~67 s (nbconvert complete); GPU preflight fail printed at 60.3 s
+- optimizer steps completed: 0
+- forced resume at step 20: not reached
+- losses / gradient norms / probe diagnostics: not recorded
+  (training segment did not start)
+- eigvalsh dtype/shape: not recorded (`gpu_preflight_eigvalsh={}` because
+  the AMP backward check failed before the probe eigensolve)
+- guarded 4,349-study projection: not computed
+- kernel v1 ERROR / `SSL_CANARY_FAIL` evidence is unchanged
+- Phase 4F v1 config SHA-256 unchanged:
+  `d0c714f2ec1dc818f140abee21464cc4cf8a25f9a2a882195ae6860fda48ce43`
+- Phase 4F.1 canary config SHA-256 unchanged:
+  `3c8ad505be9e2c71c1ad3c15f894d7188f0ca1f8cf1752ad4df7d84d7ce25c4c`
+
+GPU-preflight values are a software check only. They were not used to
+change frozen collapse thresholds or the recipe. No third canary. Do not
+launch the full SSL run.

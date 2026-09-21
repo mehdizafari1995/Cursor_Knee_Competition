@@ -491,6 +491,8 @@ def test_protocol_notebook_allowlist_and_privacy():
             assert patient not in blob
     assert "SSL_CANARY_FAIL" in run
     assert "n_real_unlabelled_studies_pixels_opened: 64" in run
+    assert "SSL_CANARY_GPU_PREFLIGHT_FAIL" in run
+    assert "nonfinite_gradient" in run
     assert would_include("knee/phase4f_ssl_canary.py")
     assert would_include("scripts/run_phase4f_ssl_canary.py")
     assert would_include("configs/unlabeled_image_simsiam_ssl_canary_v1.yaml")

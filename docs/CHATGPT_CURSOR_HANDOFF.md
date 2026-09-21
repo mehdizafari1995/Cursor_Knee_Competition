@@ -300,7 +300,7 @@ remains blocked until `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`.
 - config SHA-256:
   `d0c714f2ec1dc818f140abee21464cc4cf8a25f9a2a882195ae6860fda48ce43`
 - SSL objective: SimSiam; ImageNet ResNet-18 init; series rule
-  `deterministic-primary-series-v2` unre-tuned
+  `deterministic-primary-series-v2` not retuned
 - synthetic smoke: 3 CPU steps; losses
   [-0.16626, -0.21457, -0.30531]; representation stds
   [0.001725, 0.001988, 0.003080]; encoder round-trip 0.0; collapse
@@ -809,7 +809,7 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 ### 2026-09-21T04:40:00Z — Phase 4F image-only SimSiam SSL design
 
 - starting commit SHA: `bd7b5c8d9adfbce9719f8c668c4dbc69213ba3ac`
-- ending commit SHA: pending this commit
+- ending commit SHA: `b76fe507cc0bb3ec0e2a97e2ec5b0aa9ed7fe56a`
 - files changed: `knee/phase4f_ssl.py`,
   `configs/unlabeled_image_simsiam_ssl_v1.yaml`,
   `scripts/run_phase4f_ssl.py`,
@@ -824,7 +824,7 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
   `docs/CHATGPT_CURSOR_HANDOFF.md`
 - commands and tests run:
   - synthetic/tiny-tensor CPU smoke only; no Kaggle kernel
-  - `pytest -q`: pending after this commit
+  - `pytest -q`: 606 passed
   - v1.4 config SHA-256 unchanged:
     `992af7a4b4483278445a6f3fb363c818611e79005618dff063460d0aed3bd7f7`
   - SSL config SHA-256:

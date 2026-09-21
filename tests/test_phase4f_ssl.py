@@ -292,6 +292,7 @@ def test_protocol_notebook_allowlist_and_privacy():
     assert would_include("knee/phase4f_ssl_canary.py")
     assert would_include("knee/phase4f_ssl_canary_v2.py")
     assert would_include("knee/phase4f_ssl_canary_v3.py")
+    assert would_include("knee/gold58_3plane_oof.py")
     assert not would_include("reports/phase4f_ssl_protocol.md")
     assert not would_include("reports/phase4f_ssl_readiness.md")
     assert not would_include("reports/phase4f_ssl_canary_protocol.md")

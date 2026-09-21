@@ -346,6 +346,9 @@ def test_module_never_calls_second_reader_generate():
     assert would_include("configs/unlabeled_image_simsiam_ssl_canary_v1.yaml")
     assert would_include("configs/unlabeled_image_simsiam_ssl_canary_v2.yaml")
     assert would_include("configs/unlabeled_image_simsiam_ssl_canary_v3.yaml")
+    assert would_include("knee/gold58_3plane_oof.py")
+    assert would_include("scripts/run_gold58_3plane_oof.py")
+    assert would_include("configs/gold58_image_resnet18_3plane_oof_v1.yaml")
     assert sha256_file(REPO_ROOT / "configs" / "second_reader_pilot_v1_4.yaml") == FROZEN_V14
 
 

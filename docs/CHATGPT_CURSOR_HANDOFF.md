@@ -19,7 +19,7 @@ private dataset contents in this file.
 - PR draft: `true`
 - branch name: `cursor/phase4c-second-reader-pilot-f351`
 - base branch: `main`
-- current HEAD SHA at handoff creation: `08ca609b6ee3938eaa6f640ea7206c24a3713d7e`
+- current HEAD SHA at handoff creation: `6ff7f4dc85bd3733efe49c421b23a552eb47850c`
 
 GitHub's canonical `nameWithOwner` is `mehdizafari1995/Cursor_Knee_Competition`.
 `origin` uses the lowercase path `mehdizafari1995/cursor_knee_competition` and
@@ -986,6 +986,7 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 ### 2026-09-21T14:45:00Z — Phase 4F.2 kernel v1 GPU preflight fail
 
 - starting commit SHA: `08ca609b6ee3938eaa6f640ea7206c24a3713d7e`
+- ending commit SHA: `6ff7f4dc85bd3733efe49c421b23a552eb47850c`
 - files changed: `reports/phase4f_ssl_canary_v2_run.md`,
   `docs/CHATGPT_CURSOR_HANDOFF.md`
 - Phase 4F.1 files not edited. Frozen canary-v1 kernel versions 1–2 not
@@ -997,6 +998,8 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
   - worker `KernelWorkerStatus.ERROR`; recorded
     `SSL_CANARY_GPU_PREFLIGHT_FAIL`
   - no second 4F.2 kernel
+  - `pytest -q`: 651 passed
+  - `git diff --check`: clean
   - v1.4 / SSL v1 / canary v1 / canary v2 config hashes unchanged
 - sanitized results: Tesla T4; internet off; notebook 15;
   GPU preflight skip_reason `uncaught_ValueError`;

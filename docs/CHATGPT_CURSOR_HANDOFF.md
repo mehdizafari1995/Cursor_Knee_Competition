@@ -856,7 +856,7 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 ### 2026-09-21T05:10:00Z — Phase 4F.1 bounded unlabeled-image SSL canary
 
 - starting commit SHA: `22b78eb1cf19d6da39f388ce10eea6ff238c620d`
-- ending commit SHA: pending SHA-record after this handoff
+- ending commit SHA: `e8439304a5ebfea69720709e7e0128a3001d9ed7`
 - files changed: `knee/phase4f_ssl_canary.py`,
   `tests/test_phase4f_ssl_canary.py`,
   `reports/phase4f_ssl_canary_run.md`,

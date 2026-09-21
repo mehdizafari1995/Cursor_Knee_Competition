@@ -19,7 +19,7 @@ private dataset contents in this file.
 - PR draft: `true`
 - branch name: `cursor/phase4c-second-reader-pilot-f351`
 - base branch: `main`
-- current HEAD SHA at handoff creation: `cf8278edcf3888eb061a6417db7246fb591bc05b`
+- current HEAD SHA at handoff creation: `08ca609b6ee3938eaa6f640ea7206c24a3713d7e`
 
 GitHub's canonical `nameWithOwner` is `mehdizafari1995/Cursor_Knee_Competition`.
 `origin` uses the lowercase path `mehdizafari1995/cursor_knee_competition` and
@@ -28,16 +28,17 @@ resolves to the same repository. PR #10 head branch is
 
 ## Current project state
 
-- current phase: Phase 4F.2 AMP-safe bounded canary. Phase 4F.1 kernel
+- current phase: Phase 4F.2 AMP-safe bounded canary is frozen
+  `SSL_CANARY_GPU_PREFLIGHT_FAIL`. Kernel
+  `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v2` version 1
+  (notebook 15, Tesla T4, internet off) failed closed on
+  `uncaught_ValueError` before `train.csv` / series / DICOM.
+  `n_real_unlabelled_studies_pixels_opened=0`. A second Phase 4F.2
+  kernel is not authorized. Phase 4F.1 kernel
   `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v1` version 1 remains
   frozen `SSL_CANARY_FAIL` (AMP float16 `eigvalsh`). Version 2 remains
   frozen `SSL_CANARY_GPU_PREFLIGHT_FAIL` (`nonfinite_gradient`).
-  Versioned AMP-safe path is `unlabeled-image-simsiam-ssl-canary-v2` /
-  notebook 15 / slug
-  `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v2`. Local pytest
-  and zero-pixel CPU AMP software preflight passed. One authorized
-  private T4 kernel is in flight or pending after this implementation
-  commit. Do not launch the full 4,349-study SSL job. Frozen Phase 4F v1
+  Do not launch the full 4,349-study SSL job. Frozen Phase 4F v1
   remains `SSL_SMOKE_COMPLETE`. Frozen Phase 4E remains
   `SUBMISSION_REHEARSAL_COMPLETE`. Frozen v2 remains
   `GOLD58_OOF_COMPLETE` (combined 58-row OOF macro ROC AUC
@@ -48,12 +49,13 @@ resolves to the same repository. PR #10 head branch is
   `mahdimzafari/rsna-knee-second-reader-constrained-canary` version 3 remains
   recorded `CONSTRAINED_CANARY_PASS` and is immutable.
 - latest Kaggle kernel name and version:
-  `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v1` version 2
+  `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v2` version 1
   (`SSL_CANARY_GPU_PREFLIGHT_FAIL` / worker ERROR, Tesla T4, internet
-  off, competition attached, notebook 14). Frozen kernel v1 of the same
-  slug remains `SSL_CANARY_FAIL`. Phase 4F.2 uses a **new** slug
-  `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v2` (notebook 15)
-  and must not overwrite canary-v1 versions 1–2. Frozen prior kernels remain:
+  off, competition attached, notebook 15). Frozen canary-v1 versions
+  1–2 were not overwritten (`SSL_CANARY_FAIL` and
+  `SSL_CANARY_GPU_PREFLIGHT_FAIL`). Frozen prior kernels remain:
+  unlabeled-image-ssl-canary-v1 v1 `SSL_CANARY_FAIL`;
+  unlabeled-image-ssl-canary-v1 v2 `SSL_CANARY_GPU_PREFLIGHT_FAIL`;
   gold58-submission-rehearsal-v1 v1 `SUBMISSION_REHEARSAL_COMPLETE`;
   unlabeled-image-ssl-v1 prepared not launched; gold58-image-oof-v2 v1
   `GOLD58_OOF_COMPLETE`; gold58-image-oof-v1 v1
@@ -62,7 +64,7 @@ resolves to the same repository. PR #10 head branch is
   gold `rsna-knee-second-reader-gold-pilot` v7 `PILOT_EXECUTION_FAIL`;
   phase46-replay v2
   `CONSTRAINED_FORMAT_PASS_SEMANTIC_GATE_NOT_ESTABLISHED`. Notebooks 07,
-  09, 10, 11, 12, and 13 were not executed.
+  09, 10, 11, 12, 13, and 14 were not executed.
 - schema and configuration versions: schema `second-reader-schema-v1.0.0`;
   prompt `second-reader-prompt-v1.2.0`; transport
   `second-reader-transport-v1.4`; protocol `second-reader-pilot-v1.4.0`;
@@ -78,16 +80,17 @@ resolves to the same repository. PR #10 head branch is
   `gold_second_reader_rerun_authorized: false`.
 - report-only studies processed: `false`
   (`n_report_text_rows_processed: 0`; `n_second_reader_rows_processed: 0`).
-  Kernel v2 opened 0 unlabeled image pixels. Kernel v1 had opened 64
-  unlabeled image rows without reading report text.
+  Phase 4F.2 kernel v1 opened 0 unlabeled image pixels. Phase 4F.1
+  kernel v2 opened 0 unlabeled image pixels. Phase 4F.1 kernel v1 had
+  opened 64 unlabeled image rows without reading report text.
 - `UNLABELED_IMAGE_SSL_PLANNING_ALLOWED`: `true`
 - `UNLABELED_IMAGE_SSL_EXECUTION_ALLOWED`: `false`
 - `UNLABELED_IMAGE_SSL_CANARY_EXECUTION_ALLOWED`: consumed by kernel v1
   and the one authorized v2 repair-replay; do not launch another 4F.1
   canary
-- `UNLABELED_IMAGE_SSL_CANARY_V2_EXECUTION_ALLOWED`: true for the one
-  authorized Phase 4F.2 kernel only; do not launch a second 4F.2 kernel
-  if it fails
+- `UNLABELED_IMAGE_SSL_CANARY_V2_EXECUTION_ALLOWED`: consumed by the one
+  authorized Phase 4F.2 kernel (slug canary-v2 version 1); do not
+  launch a second 4F.2 kernel without a new ChatGPT authorization
 - `GOLD58_SSL_OOF_EXECUTION_ALLOWED`: `false`
 - `HARD_WEAK_LABEL_TRAINING_ALLOWED`: `false`
 - `SCALE_TO_REPORT_ONLY_SECOND_READER_ALLOWED`: `false`
@@ -943,6 +946,7 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 ### 2026-09-21T14:30:00Z — Phase 4F.2 AMP-safe canary implementation
 
 - starting commit SHA: `7954af283e6d05731df2f8cb1a98cddc264029da`
+- ending commit SHA: `08ca609b6ee3938eaa6f640ea7206c24a3713d7e`
 - files added: `knee/phase4f_ssl_canary_v2.py`,
   `configs/unlabeled_image_simsiam_ssl_canary_v2.yaml`,
   `scripts/run_phase4f_ssl_canary_v2.py`,
@@ -978,5 +982,45 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 - recommended next decision: launch at most one private T4 kernel
   `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v2` version 1; if
   GPU preflight fails, stop; do not merge PR #10
+
+### 2026-09-21T14:45:00Z — Phase 4F.2 kernel v1 GPU preflight fail
+
+- starting commit SHA: `08ca609b6ee3938eaa6f640ea7206c24a3713d7e`
+- files changed: `reports/phase4f_ssl_canary_v2_run.md`,
+  `docs/CHATGPT_CURSOR_HANDOFF.md`
+- Phase 4F.1 files not edited. Frozen canary-v1 kernel versions 1–2 not
+  overwritten. Frozen Phase 4F.2 config / notebook 15 / module not
+  retuned after the fail.
+- commands and tests run:
+  - one authorized private T4 kernel version 1 of
+    `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v2`
+  - worker `KernelWorkerStatus.ERROR`; recorded
+    `SSL_CANARY_GPU_PREFLIGHT_FAIL`
+  - no second 4F.2 kernel
+  - v1.4 / SSL v1 / canary v1 / canary v2 config hashes unchanged
+- sanitized results: Tesla T4; internet off; notebook 15;
+  GPU preflight skip_reason `uncaught_ValueError`;
+  n_real_unlabelled_studies_pixels_opened=0;
+  n_report_text_rows_processed=0;
+  n_second_reader_rows_processed=0;
+  report_text_never_read=true;
+  training_run=false; OOF_run=false; inference_run=false;
+  competition_submission_written=false; full_ssl_run_authorized=false;
+  wall ~51 s; GPU preflight fail at ~40.8 s; optimizer steps 0;
+  applied steps 0; resume not reached; full-run projection not computed;
+  eigvalsh / loss dtype / scaler scales / peak GPU unset because the
+  ValueError was caught before software-preflight extra fields merged;
+  packaged source HEAD `08ca609b6ee3938eaa6f640ea7206c24a3713d7e`;
+  source zip sha256
+  `6494cb14fec7eb6f58c31312d6befa794d033287283eb23166ac5a152e003886`
+  (123 files)
+- unresolved failures: in-kernel Tesla T4 AMP preflight did not pass, so
+  the 64-study canary training segment did not start; do not launch a
+  second 4F.2 kernel; do not launch full SSL
+- gold accessed: false
+- report-only text accessed: false
+- recommended next decision: ChatGPT; freeze kernel canary-v2 v1 as
+  `SSL_CANARY_GPU_PREFLIGHT_FAIL`; do not authorize a second 4F.2 canary
+  or full SSL; do not merge PR #10
 
 CHATGPT_HANDOFF_READY

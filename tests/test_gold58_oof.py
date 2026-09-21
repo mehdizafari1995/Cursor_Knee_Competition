@@ -336,12 +336,16 @@ def test_module_never_calls_second_reader_generate():
     assert would_include("configs/unlabeled_image_simsiam_ssl_v1.yaml")
     assert would_include("notebooks/14_kaggle_unlabeled_image_ssl_canary.ipynb")
     assert would_include("notebooks/15_kaggle_unlabeled_image_ssl_canary_v2.ipynb")
+    assert would_include("notebooks/16_kaggle_unlabeled_image_ssl_canary_v3.ipynb")
     assert would_include("knee/phase4f_ssl_canary.py")
     assert would_include("knee/phase4f_ssl_canary_v2.py")
+    assert would_include("knee/phase4f_ssl_canary_v3.py")
     assert would_include("scripts/run_phase4f_ssl_canary.py")
     assert would_include("scripts/run_phase4f_ssl_canary_v2.py")
+    assert would_include("scripts/run_phase4f_ssl_canary_v3.py")
     assert would_include("configs/unlabeled_image_simsiam_ssl_canary_v1.yaml")
     assert would_include("configs/unlabeled_image_simsiam_ssl_canary_v2.yaml")
+    assert would_include("configs/unlabeled_image_simsiam_ssl_canary_v3.yaml")
     assert sha256_file(REPO_ROOT / "configs" / "second_reader_pilot_v1_4.yaml") == FROZEN_V14
 
 

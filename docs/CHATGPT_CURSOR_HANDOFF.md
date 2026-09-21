@@ -894,7 +894,7 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 ### 2026-09-21T05:30:00Z — Phase 4F.1 repair-replay kernel v2
 
 - starting commit SHA: `26be5d7c38f13927ed9e1fceff767b885d0f066f`
-- ending commit SHA: (this run-record commit)
+- ending commit SHA: `f0db37f2b4df6eba85e0b188f037289bb02cf4ef`
 - files changed: `knee/phase4f_ssl_canary.py`,
   `notebooks/14_kaggle_unlabeled_image_ssl_canary.ipynb`,
   `reports/phase4f_ssl_canary_protocol.md`,

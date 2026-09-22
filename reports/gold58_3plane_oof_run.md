@@ -1,12 +1,12 @@
-# Gold-58 three-plane fusion OOF — prepared, not launched
+# Gold-58 three-plane fusion OOF — implementation checkpoint, kernel not yet launched
 
-Protocol `gold58-image-resnet18-3plane-oof-v1` was prepared locally after
-Phase 4F.3 parked SimSiam SSL. Kernel
-`mahdimzafari/rsna-knee-gold58-3plane-oof-v1` was **not** created or
-executed. Frozen gold58 v2 remains the score-bearing comparator.
+Protocol `gold58-image-resnet18-3plane-oof-v1` is the authorized Phase 4G
+scientific path. Kernel `mahdimzafari/rsna-knee-gold58-3plane-oof-v1` has
+not been created or executed yet. Frozen gold58 v2 remains the score-bearing
+comparator. Frozen SSL kernels were not overwritten.
 
 UNLABELED_IMAGE_SSL_EXECUTION_ALLOWED=false
-GOLD58_3PLANE_OOF_EXECUTION_ALLOWED=false
+GOLD58_3PLANE_OOF_EXECUTION_ALLOWED=true
 SSL_ENGINEERING_PATH_PARKED=true
 
 - n_labelled_studies processed: 0
@@ -19,7 +19,8 @@ SSL_ENGINEERING_PATH_PARKED=true
 - competition_submission_written: false
 - consumes_submission_slot: false
 - kaggle_kernel_launched: false
-- notebooks 07, 09, 10, 11, 12, 13, 14, 15, and 16 were not executed for this protocol
+- notebooks 07, 09, 10, 11, 12, 13, 14, 15, 16, and 17 were not executed for this protocol
 - comparator frozen v2 macro ROC AUC: 0.6237496021463534
 - planned Tesla T4 wall with reserve: 34230.4 s (~9.5 h)
-- do not launch until ChatGPT reviews this protocol and resource estimate
+- classifier path: Linear head, no BatchNorm1d; val/inference batch size 1
+- missing-plane fusion: mean of available embeddings with mask and denominator clamp

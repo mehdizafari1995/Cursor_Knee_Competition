@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Prepared gold-58 three-plane OOF. Execution is not authorized."""
+"""Phase 4G gold-58 three-plane image OOF. No submission. No hidden test."""
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -12,6 +13,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from knee.gold58_3plane_oof import (  # noqa: E402
+    DEFAULT_CONFIG_PATH,
     GOLD58_3PLANE_OOF_EXECUTION_ALLOWED,
     run_gold58_3plane_oof,
 )
@@ -25,17 +27,58 @@ from knee.report_labels import (  # noqa: E402
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--config", default=str(DEFAULT_CONFIG_PATH))
+    parser.add_argument("--data-root", default=None)
+    parser.add_argument("--output-dir", default=None)
+    parser.add_argument("--weights", default=None)
+    parser.add_argument("--execute-training", action="store_true")
+    parser.add_argument("--allow-tiny-encoder", action="store_true")
+    parser.add_argument("--no-require-cuda", action="store_true")
+    args = parser.parse_args()
     assert HARD_WEAK_LABEL_TRAINING_ALLOWED is False
     assert SCALE_TO_REPORT_ONLY_SECOND_READER_ALLOWED is False
     assert SECOND_READER_SCORE_BEARING_ALLOWED is False
     assert UNLABELED_IMAGE_SSL_EXECUTION_ALLOWED is False
     assert GOLD58_SSL_OOF_EXECUTION_ALLOWED is False
-    assert GOLD58_3PLANE_OOF_EXECUTION_ALLOWED is False
-    result = run_gold58_3plane_oof(execute_training=False)
-    print(json.dumps(jsonable(result), indent=2, sort_keys=True))
+    assert GOLD58_3PLANE_OOF_EXECUTION_ALLOWED is True
+    result = run_gold58_3plane_oof(
+        data_root=args.data_root,
+        output_dir=args.output_dir,
+        config_path=args.config,
+        weights_path=args.weights,
+        execute_training=args.execute_training,
+        allow_tiny_encoder_for_tests=args.allow_tiny_encoder,
+        require_cuda=False if args.no_require_cuda else None,
+    )
+    print(
+        json.dumps(
+            jsonable(
+                {
+                    "status": result.get("status"),
+                    "ok": result.get("ok"),
+                    "skip_reason": result.get("skip_reason"),
+                    "training_run": result.get("training_run"),
+                    "n_labelled_studies": result.get("n_labelled_studies"),
+                    "n_report_only_studies_processed": result.get(
+                        "n_report_only_studies_processed"
+                    ),
+                    "macro_roc_auc": result.get("macro_roc_auc"),
+                    "competition_submission_written": result.get(
+                        "competition_submission_written"
+                    ),
+                }
+            ),
+            sort_keys=True,
+        )
+    )
     print("DO_NOT_SUBMIT")
-    print("DO_NOT_LAUNCH_3PLANE_OOF")
-    return 0
+    status = str(result.get("status") or "")
+    if status.endswith("PREFLIGHT_FAIL") or status.endswith("FAIL"):
+        return 2
+    if result.get("ok"):
+        return 0
+    return 1
 
 
 if __name__ == "__main__":

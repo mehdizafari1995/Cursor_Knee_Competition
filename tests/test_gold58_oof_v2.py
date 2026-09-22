@@ -224,6 +224,7 @@ def test_v2_protocol_notebook_and_allowlist():
     assert "DummySeriesDesc" not in run
     assert would_include("configs/gold58_image_resnet18_oof_v2.yaml")
     assert would_include("notebooks/11_kaggle_gold58_image_oof_v2.ipynb")
+    assert would_include("notebooks/18_kaggle_gold58_3plane_oof_v1.ipynb")
     assert would_include("scripts/train_gold58_image_oof_v2.py")
     assert not would_include("reports/gold58_image_oof_v2_protocol.md")
     assert not would_include("reports/gold58_image_oof_v2_run.md")

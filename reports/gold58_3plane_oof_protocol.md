@@ -1,10 +1,10 @@
 # Gold-58 image-only three-plane fusion OOF protocol v1
 
-Prepared after SimSiam SSL was parked. Not launched.
-Frozen v2 primary-series OOF remains the comparator.
+Authorized Phase 4G scientific path. Frozen v2 primary-series OOF remains the comparator.
+One private Tesla T4 kernel is authorized. No submission.
 
 - protocol: `gold58-image-resnet18-3plane-oof-v1`
-- kernel slug (not launched): `mahdimzafari/rsna-knee-gold58-3plane-oof-v1`
+- kernel slug: `mahdimzafari/rsna-knee-gold58-3plane-oof-v1`
 - encoder: ImageNet ResNet-18; shared weights across planes
 - ImageNet SHA-256: `f37072fd47e89c5e827621c5baffa7500819f7896bbacec160b1a16c560e07ec`
 - planes: sagittal, coronal, axial
@@ -18,9 +18,12 @@ Frozen v2 primary-series OOF remains the comparator.
 - resource estimate: 3 × frozen v2 wall 8168.106 s = 24504.3 s projected; guarded ×1.25 = 30630.4 s; plus 3600 s reserve = 34230.4 s planned (~9.5 h Tesla T4); fits_private_wall=true (limit 39600 s)
 - peak GPU: sequential per-plane forwards; expected near frozen v2 404743680 bytes
 - no report-only rows, no weak labels, no second reader, no hidden test, no submission
-- GOLD58_3PLANE_OOF_EXECUTION_ALLOWED=false
+- GOLD58_3PLANE_OOF_EXECUTION_ALLOWED=true
 - UNLABELED_IMAGE_SSL_EXECUTION_ALLOWED=false
 - HARD_WEAK_LABEL_TRAINING_ALLOWED=false
 - SSL_ENGINEERING_PATH_PARKED=true
+- classifier path: Linear head; no BatchNorm1d; odd last train batch kept
+- validation/inference: eval mode, batch size 1
+- missing plane: mean of available embeddings; boolean mask; denominator clamp; never fuse a missing-plane zero
 - config SHA-256: `57c8c6f3b8d6f951b9a00ee4e90028fbd1d61abcd68bc3e6c4009b1af5123ec8`
 - forbidden outcome not used: `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`

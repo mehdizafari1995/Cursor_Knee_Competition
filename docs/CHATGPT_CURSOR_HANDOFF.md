@@ -19,7 +19,7 @@ private dataset contents in this file.
 - PR draft: `true`
 - branch name: `cursor/phase4c-second-reader-pilot-f351`
 - base branch: `main`
-- current HEAD SHA at handoff creation: `676979bb615694d8df855d0dd32f6962888301f8`
+- current HEAD SHA at handoff creation: `1956e2f550e2e62ad0f892e3807539edf4cbf013`
 
 GitHub's canonical `nameWithOwner` is `mehdizafari1995/Cursor_Knee_Competition`.
 `origin` uses the lowercase path `mehdizafari1995/cursor_knee_competition` and
@@ -1116,7 +1116,7 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 
 - starting commit SHA: `3203f8491e1a9955f12fc88177057404a8da4e73`
 - implementation commit SHA: `384ea82691eb8a0b23b83ac2cc82e22205536ad1`
-- ending commit SHA: `676979bb615694d8df855d0dd32f6962888301f8` 
+- ending commit SHA: `1956e2f550e2e62ad0f892e3807539edf4cbf013` 
 - files changed: 4F.4 local canary-v4 probe repair (GPU not launched);
   4G `knee/gold58_3plane_oof.py` trainer; notebook 18; reports; tests;
   this handoff

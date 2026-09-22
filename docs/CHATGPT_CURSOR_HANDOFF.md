@@ -19,7 +19,7 @@ private dataset contents in this file.
 - PR draft: `true`
 - branch name: `cursor/phase4c-second-reader-pilot-f351`
 - base branch: `main`
-- current HEAD SHA at handoff creation: `3758a8682a334b50d5f0861841d4cb8cb39dfa9c`
+- current HEAD SHA at handoff creation: `384ea82691eb8a0b23b83ac2cc82e22205536ad1`
 
 GitHub's canonical `nameWithOwner` is `mehdizafari1995/Cursor_Knee_Competition`.
 `origin` uses the lowercase path `mehdizafari1995/cursor_knee_competition` and
@@ -28,16 +28,19 @@ resolves to the same repository. PR #10 head branch is
 
 ## Current project state
 
-- current phase: Phase 4F.3 documented-AMP bounded canary is frozen
-  `SSL_CANARY_GPU_PREFLIGHT_FAIL` on both AMP and the predeclared FP32
-  fallback. Kernel
-  `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v3` version 1
-  (notebook 16, Tesla T4, internet off) failed closed on BatchNorm
-  `ValueError` (`torch.Size([1, 2048])`) with zero unlabeled pixels.
-  SimSiam is parked as `SSL_ENGINEERING_PATH_PARKED`. A second Phase
-  4F.3 kernel is not authorized. The next score-bearing protocol
-  `gold58-image-resnet18-3plane-oof-v1` is prepared locally and is not
-  launched. Phase 4F.2 kernel
+- current phase: Phase 4G three-plane gold-58 OOF kernel v1 is frozen
+  `GOLD58_3PLANE_TRAINING_FAIL`. Kernel
+  `mahdimzafari/rsna-knee-gold58-3plane-oof-v1` version 1 (notebook 18,
+  Tesla T4 requested, internet off, competition attached) ended
+  `KernelWorkerStatus.ERROR` with empty logs, unset failureMessage, and
+  zero output files. No sanitized public JSON. A replacement 3plane
+  kernel is not authorized. Priority correction 5771289671 canceled the
+  unstarted Phase 4F.4 SSL GPU kernel; local BatchNorm-probe repair is
+  committed; `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v4` was
+  never created. SimSiam remains `SSL_ENGINEERING_PATH_PARKED`. Phase
+  4F.3 kernel `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v3`
+  version 1 remains frozen `SSL_CANARY_GPU_PREFLIGHT_FAIL` (BatchNorm
+  `torch.Size([1, 2048])`). Phase 4F.2 kernel
   `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v2` version 1
   remains frozen `SSL_CANARY_GPU_PREFLIGHT_FAIL` (`uncaught_ValueError`).
   Phase 4F.1 kernel
@@ -55,10 +58,12 @@ resolves to the same repository. PR #10 head branch is
   `mahdimzafari/rsna-knee-second-reader-constrained-canary` version 3 remains
   recorded `CONSTRAINED_CANARY_PASS` and is immutable.
 - latest Kaggle kernel name and version:
-  `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v3` version 1
-  (`SSL_CANARY_GPU_PREFLIGHT_FAIL` / worker ERROR, Tesla T4, internet
-  off, competition attached, notebook 16). Frozen canary-v2 version 1
-  was not overwritten (`SSL_CANARY_GPU_PREFLIGHT_FAIL`). Frozen canary-v1
+  `mahdimzafari/rsna-knee-gold58-3plane-oof-v1` version 1
+  (`GOLD58_3PLANE_TRAINING_FAIL` / worker ERROR, Tesla T4 requested,
+  internet off, competition attached, notebook 18, empty logs). Frozen
+  canary-v3 version 1 was not overwritten
+  (`SSL_CANARY_GPU_PREFLIGHT_FAIL`). Frozen canary-v2 version 1 was not
+  overwritten (`SSL_CANARY_GPU_PREFLIGHT_FAIL`). Frozen canary-v1
   versions 1–2 were not overwritten (`SSL_CANARY_FAIL` and
   `SSL_CANARY_GPU_PREFLIGHT_FAIL`). Frozen prior kernels remain:
   unlabeled-image-ssl-canary-v2 v1 `SSL_CANARY_GPU_PREFLIGHT_FAIL`;
@@ -72,8 +77,8 @@ resolves to the same repository. PR #10 head branch is
   gold `rsna-knee-second-reader-gold-pilot` v7 `PILOT_EXECUTION_FAIL`;
   phase46-replay v2
   `CONSTRAINED_FORMAT_PASS_SEMANTIC_GATE_NOT_ESTABLISHED`. Notebooks 07,
-  09, 10, 11, 12, 13, 14, and 15 were not executed. Gold58 3-plane OOF
-  kernel was not launched.
+  09, 10, 11, 12, 13, 14, 15, 16, and 17 were not executed. SSL
+  canary-v4 was never created.
 - schema and configuration versions: schema `second-reader-schema-v1.0.0`;
   prompt `second-reader-prompt-v1.2.0`; transport
   `second-reader-transport-v1.4`; protocol `second-reader-pilot-v1.4.0`;
@@ -84,7 +89,10 @@ resolves to the same repository. PR #10 head branch is
   Phase 4F.1 protocol `unlabeled-image-simsiam-ssl-canary-v1`;
   Phase 4F.2 protocol `unlabeled-image-simsiam-ssl-canary-v2`;
   Phase 4F.3 protocol `unlabeled-image-simsiam-ssl-canary-v3`;
-  parked next protocol `gold58-image-resnet18-3plane-oof-v1` (not launched).
+  Phase 4F.4 protocol `unlabeled-image-simsiam-ssl-canary-v4` (local
+  only; GPU launch canceled);
+  Phase 4G protocol `gold58-image-resnet18-3plane-oof-v1` (kernel v1
+  worker ERROR).
   v1.4 config hash unchanged.
 - gold second-reader executed this phase: `false`. Prior Phase 4C.7 record
   remains `n_gold_studies_processed: 58` with
@@ -104,9 +112,12 @@ resolves to the same repository. PR #10 head branch is
   authorized Phase 4F.2 kernel; do not launch a second 4F.2 kernel
 - `UNLABELED_IMAGE_SSL_CANARY_V3_EXECUTION_ALLOWED`: consumed by the one
   authorized Phase 4F.3 kernel; do not launch a second 4F.3 kernel
+- `UNLABELED_IMAGE_SSL_CANARY_V4_EXECUTION_ALLOWED`: `false` (GPU launch
+  canceled by priority correction; kernel never created)
 - `SSL_ENGINEERING_PATH_PARKED`: `true`
 - `GOLD58_SSL_OOF_EXECUTION_ALLOWED`: `false`
-- `GOLD58_3PLANE_OOF_EXECUTION_ALLOWED`: `false`
+- `GOLD58_3PLANE_OOF_EXECUTION_ALLOWED`: consumed by the one authorized
+  Phase 4G kernel v1; do not launch a replacement
 - `HARD_WEAK_LABEL_TRAINING_ALLOWED`: `false`
 - `SCALE_TO_REPORT_ONLY_SECOND_READER_ALLOWED`: `false`
 - `SECOND_READER_SCORE_BEARING_ALLOWED`: `false`
@@ -375,16 +386,21 @@ remains blocked until `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`.
    threshold from 0.815. Do not emit
    `CONSTRAINED_FORMAT_PASS_SEMANTIC_PASS`.
 7. Gold notebook 07 remains a historical blocked stub. Do not execute
-   notebooks 07, 09, 10, 11, 12, or 13. Do not reopen Phase 4C.
+   notebooks 07, 09, 10, 11, 12, 13, 14, 15, 16, or 17. Do not reopen
+   Phase 4C.
+8. Phase 4G kernel v1 is frozen `GOLD58_3PLANE_TRAINING_FAIL` with empty
+   logs and no public JSON. Do not launch a replacement 3plane kernel
+   without new ChatGPT authorization. Do not relaunch SSL.
 
 ## Next authorized task
 
-Wait for ChatGPT. Accept Phase 4F as a frozen SSL recipe plus synthetic
-smoke. Do **not** launch `mahdimzafari/rsna-knee-unlabeled-image-ssl-v1`.
-Do **not** open unlabeled pixels. Do **not** run gold58 SSL OOF. Do
-**not** initiate a Kaggle competition submission. Do **not** retune
-series rules. Do **not** train, submit, merge, reopen Phase 4C, or
-execute notebook 07/09/10/11/12/13.
+Wait for ChatGPT. Phase 4G kernel v1 is frozen
+`GOLD58_3PLANE_TRAINING_FAIL` (worker ERROR, empty logs). Do **not**
+launch a replacement `mahdimzafari/rsna-knee-gold58-3plane-oof-v1`.
+Do **not** launch `mahdimzafari/rsna-knee-unlabeled-image-ssl-canary-v4`
+or the full SSL job. Do **not** initiate a Kaggle competition submission.
+Do **not** retune series rules. Do **not** train, submit, merge, reopen
+Phase 4C, or execute notebook 07/09/10/11/12/13/14/15/16/17.
 
 Work on the existing branch `cursor/phase4c-second-reader-pilot-f351` and existing draft PR #10. Do not create another PR, merge anything, rerun gold, process report-only studies, or modify scientific results.
 
@@ -395,13 +411,17 @@ evidence (gold kernel v7, canary v1, smoke v2, smoke/canary v1.3, constrained
 kernel versions 1–3, phase46-replay v1–v2, gold-constrained-v14 v1,
 gold58-image-oof-v1 v1, gold58-image-oof-v2 v1,
 gold58-submission-rehearsal-v1 v1, unlabeled-image-simsiam-ssl-v1
-recipe, prompts v1.0–v1.2,
-transport configs v1.0–v1.4, gold58 recipes v1 and v2).
+recipe, unlabeled-image-ssl-canary-v1 versions 1–2,
+unlabeled-image-ssl-canary-v2 v1, unlabeled-image-ssl-canary-v3 v1,
+unlabeled-image-ssl-canary-v4 never created, gold58-3plane-oof-v1 v1,
+prompts v1.0–v1.2,
+transport configs v1.0–v1.4, gold58 recipes v1 and v2, frozen 3plane YAML).
 `HARD_WEAK_LABEL_TRAINING_ALLOWED=false`.
 `SCALE_TO_REPORT_ONLY_SECOND_READER_ALLOWED=false`.
 `SECOND_READER_SCORE_BEARING_ALLOWED=false`.
 `UNLABELED_IMAGE_SSL_EXECUTION_ALLOWED=false`.
 `GOLD58_SSL_OOF_EXECUTION_ALLOWED=false`.
+`SSL_ENGINEERING_PATH_PARKED=true`.
 
 ## Cursor completion protocol
 
@@ -1091,5 +1111,47 @@ Post a sanitized summary to PR #10. Do not merge. Do not create another PR.
 - recommended next decision: ChatGPT; review the three-plane protocol
   and resource estimate before any OOF kernel; do not relaunch SSL;
   do not merge PR #10
+
+### 2026-09-22T06:05:00Z — Phase 4F.4 local probe repair parked; Phase 4G kernel v1 worker ERROR
+
+- starting commit SHA: `3203f8491e1a9955f12fc88177057404a8da4e73`
+- implementation commit SHA: `384ea82691eb8a0b23b83ac2cc82e22205536ad1`
+- ending commit SHA: (this recording commit)
+- files changed: 4F.4 local canary-v4 probe repair (GPU not launched);
+  4G `knee/gold58_3plane_oof.py` trainer; notebook 18; reports; tests;
+  this handoff
+- live Kaggle inspection before launch: canary-v4 did not exist;
+  3plane kernel did not exist; frozen canary-v3 remained ERROR
+- four-item receipt: SSL not started; HEAD `3203f84`; first file
+  `knee/gold58_3plane_oof.py`; next GPU kernel 3plane only.
+  ManagePullRequest post_comment failed (origin case mismatch); not
+  retried via `gh`
+- commands and tests run:
+  - local 4F.4 BatchNorm probe tests (train-mode n=1 error; eval n>=2;
+    BN buffers unchanged)
+  - 4G fusion/mask/BN1d/odd-batch/58-row OOF validators/notebook compile
+  - `pytest -q`: pass
+  - `git diff --check`: clean
+  - v1.4 hash `992af7a4b4483278445a6f3fb363c818611e79005618dff063460d0aed3bd7f7`
+  - 3plane YAML hash `57c8c6f3b8d6f951b9a00ee4e90028fbd1d61abcd68bc3e6c4009b1af5123ec8`
+  - 4F.4 canary YAML hash `73951efca1ce4588e33ee26aea36d70ea73ee3056e0c772922df25fcb81d0aad`
+  - source zip sha256 `28108bab3cf78f289317c6d082e4553aa94f67c7addc18b49aa7f6d6b2319c5f` (135 files)
+- sanitized results:
+  - SSL GPU launch canceled; canary-v4 never created
+  - one authorized 3plane kernel
+    `mahdimzafari/rsna-knee-gold58-3plane-oof-v1` version 1
+    `KernelWorkerStatus.ERROR`; empty logs; unset failureMessage;
+    0 output files; no public JSON
+  - status recorded `GOLD58_3PLANE_TRAINING_FAIL` /
+    `worker_ERROR_empty_logs_and_outputs`
+  - no replacement kernel
+  - no competition submission
+- unresolved failures: kernel worker ERROR with no persisted exception
+  body; 3plane OOF score not measured
+- gold accessed: false (kernel died without a sanitized payload; no
+  additional gold inference/report-text)
+- report-only text accessed: false
+- recommended next decision: ChatGPT; do not relaunch SSL or 3plane
+  without new authorization; do not merge PR #10; do not submit 0.62375
 
 CHATGPT_HANDOFF_READY

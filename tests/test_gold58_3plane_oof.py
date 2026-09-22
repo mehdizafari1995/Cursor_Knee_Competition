@@ -233,7 +233,9 @@ def test_protocol_privacy_and_allowlist():
         for patient in REPORT_LABEL_PATIENTS:
             assert patient not in blob
     assert SERIES_RULE_V2 in protocol or "deterministic-primary-series-v2" in protocol
-    assert "kaggle_kernel_launched: false" in run
+    assert "kaggle_kernel_launched: true" in run
+    assert "KernelWorkerStatus.ERROR" in run
+    assert "GOLD58_3PLANE_TRAINING_FAIL" in run
     assert "SSL_ENGINEERING_PATH_PARKED" in parked
     assert would_include("knee/gold58_3plane_oof.py")
     assert would_include("scripts/run_gold58_3plane_oof.py")

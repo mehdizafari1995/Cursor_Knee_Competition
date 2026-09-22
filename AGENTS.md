@@ -87,6 +87,20 @@ python scripts/generate_weak_labels.py      # 4349 report-only studies; gitignor
 # Fixture tests in Cursor. Real gold/weak evaluation on Kaggle:
 # notebooks/03_kaggle_report_labeler_v2.ipynb (internet off). See
 # reports/report_labeler_v2_protocol.md
+
+# Phase 4C: offline multilingual second-reader gold pilot (no image training)
+# Fixture tests in Cursor. Real 58-study GPU run on Kaggle, internet off:
+# notebooks/04_kaggle_second_reader_gold_pilot.ipynb
+# Do not process the 4,349 report-only studies. See
+# reports/second_reader_pilot_protocol.md
+# Phase 4C.1: diagnose v7 PILOT_EXECUTION_FAIL, v1.1 transport/parser,
+# notebooks/05_kaggle_second_reader_synthetic_canary.ipynb before any gold rerun.
+# Phase 4C.2: JSON-aware generation termination (second-reader-transport-v1.2).
+# Kernel v2 is SMOKE_FAIL (invalid_enum 3/3). Immutable.
+# Phase 4C.3: prompt-only closed-enum correction (second-reader-prompt-v1.2.0,
+# second-reader-pilot-v1.3.0, canary v1.3). Do not rerun gold until the v1.3
+# synthetic canary is ok. Kernel v7, canary v1, and smoke v2 remain immutable.
+# Do not add parser aliases.
 ```
 
 Run the whole suite, not one file. `tests/test_pipeline.py` covers the modelling
@@ -106,4 +120,13 @@ real gold evaluation the coordinator gates are
 adds coverage-aware capture/abstention metrics, target-specific OOF confidence
 policies, an independent offline language detector, private trainable masks,
 and per-target TRAINABLE / NOT_TRAINABLE statuses. It does not train an image
-model.
+model. Phase 4C adds an offline multilingual instruction-model second reader
+on the 58 gold studies only, with a frozen prompt/schema, structured-output
+parser, strict-agreement consensus, and PILOT_PASS / PILOT_RESTRICTED /
+PILOT_FAIL statuses. Kernel version 7 is `PILOT_EXECUTION_FAIL` (all
+second-reader outputs malformed JSON). Protocol v1.1 repairs transport/parsing
+only. Protocol v1.2 adds JSON-aware generation stopping and the pinned Phi
+EOS / end-of-turn token IDs. Protocol v1.3 keeps that transport and adds a
+prompt-only closed-enum correction (`second-reader-prompt-v1.2.0`). It does
+not process the 4,349 report-only studies and
+does not train an image model.

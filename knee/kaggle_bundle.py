@@ -26,12 +26,15 @@ ALLOWLIST_DIRS = (
     "scripts",
     "configs",
     "notebooks",
+    "vendor",
+    "third_party",
 )
 
 ALLOWLIST_FILES = (
     "pyproject.toml",
     "requirements.txt",
     "README.md",
+    "literature/ontology.yaml",
 )
 
 EXCLUDED_DIR_NAMES = {
@@ -111,6 +114,10 @@ EXCLUDED_FILENAMES = {
     "mask_unknown.csv",
     "mask_disagreement.csv",
     "mask_unsupported_language.csv",
+    "gold_second_reader_predictions.csv",
+    "gold_consensus_predictions.csv",
+    "gold_deterministic_predictions.csv",
+    "gold_second_reader_status.csv",
     "id_rsa",
     "id_dsa",
     "id_ecdsa",

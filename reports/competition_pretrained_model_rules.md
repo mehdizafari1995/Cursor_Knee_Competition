@@ -59,14 +59,19 @@ Not done in this revision:
 
 A future coordinator approval is required before attaching checksummed weights.
 
+Phase 4C records that approval for a **gold-only** instruction-model pilot in
+`reports/second_reader_model_compliance.md`. Weights are still never
+downloaded. The selected snapshot is attached locally and restricted to the
+58 gold studies. The 4,349 report-only studies remain out of scope.
+
 ## Second-reader contract (when enabled)
 
 | Field | Requirement |
 | --- | --- |
-| Runtime | Private Kaggle notebook, internet off |
-| Input | Report text in memory only |
-| Output | Per-target `{label, uncertainty, evidence_class}` |
+| Runtime | Private Kaggle notebook, internet off, GPU on for the 4C gold pilot |
+| Input | Report text in memory only; gold studies only in Phase 4C |
+| Output | Per-target `{status, confidence, evidence_category, uncertainty_or_negation_category}` |
 | Evidence class | Closed vocabulary; never a quotation |
 | Gold labels | Forbidden in the function signature |
-| Combiner | Conservative agreement (see `knee/report_second_reader.py`) |
-| Failure modes | missing weights, sha256 mismatch, unsupported language → unknown |
+| Combiner | Strict agreement for the gold pilot (`knee/second_reader_consensus.py`) |
+| Failure modes | missing weights, sha256 mismatch, unsupported language, malformed JSON → unknown |

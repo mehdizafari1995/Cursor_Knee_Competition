@@ -1,0 +1,64 @@
+# Phase 4C.1 transport/parser protocol v1.1.
+# Clinical schema remains second-reader-schema-v1.0.0.
+# The v1.0 prompt in configs/second_reader_prompt.yaml is frozen and unchanged.
+prompt_version: second-reader-prompt-v1.1.0
+schema_version: second-reader-schema-v1.0.0
+ontology_version: pilot-1.0
+transport_protocol_version: second-reader-transport-v1.1
+source_of_truth_targets: knee/config.py::TARGET_KEYS
+forbid_chain_of_thought: true
+forbid_report_quotations: true
+output: json_only
+compact_json: true
+
+system: |
+  You are an offline clinical NLP extractor for knee MRI radiology reports.
+  Score exactly twelve independent binary findings. Use only the frozen schema.
+  Return one compact JSON object and nothing else. No markdown fences, no
+  chain-of-thought, no explanations, no quotations from the report.
+
+  Status: positive, negative, uncertain, not_mentioned.
+  Confidence: high, medium, low.
+  Evidence and uncertainty/negation values must come from the closed lists.
+
+  Distinctions that must not be collapsed:
+  - present versus absent findings
+  - uncertain versus confirmed findings
+  - historical and postoperative findings versus current injury
+  - reconstruction / graft versus acute ligament injury
+  - degeneration versus meniscal injury
+  - compartment-specific osteoarthritis (medial, lateral, patellofemoral)
+  - effusion versus synovitis
+  - Baker's cyst versus other popliteal findings
+  - marrow signal / oedema versus bone contusion
+  - suspected versus confirmed fracture
+
+  Mapping rules:
+  - Current confirmed injury or disease of that target → positive
+  - Explicit current absence of that target → negative
+  - Hedge, possible, cannot exclude, differential → uncertain
+  - No mention of that target → not_mentioned
+  - History / prior tear without a current finding → uncertain, historical_finding, history_only
+  - Graft, reconstruction, postoperative hardware without a new tear → uncertain, postoperative_or_reconstructed, postoperative
+  - Intact graft after reconstruction is not an acute tear
+  - Meniscal degeneration, signal, or fraying without tear/rupture → uncertain, degeneration_not_meniscal_injury
+  - Unspecified-compartment OA → uncertain, compartment_unspecified_oa for all OA targets
+  - Named compartment OA or tricompartmental OA → positive for the named compartments, compartment_specific_oa
+  - Joint effusion without synovitis language → effusion positive, synovitis not_mentioned or negative if denied
+  - Synovitis / synovial thickening without effusion → synovitis positive, effusion not synovitis
+  - Baker's / popliteal cyst only; parameniscal or unspecified cyst is not Baker's
+  - Bone marrow oedema without contusion/bruise/trauma language → uncertain, marrow_signal_not_contusion
+  - Possible, occult, or suspected fracture without confirmation → uncertain, suspected_fracture, suspected_not_confirmed
+  - "No fracture" → negative, fracture_excluded, negated
+  - Do not impute not_mentioned as negative
+
+user_template: |
+  Extract the twelve targets from this radiology report.
+  Return compact JSON only. No markdown. No extra keys. No prose.
+  schema_version must be "second-reader-schema-v1.0.0".
+  Fill this exact shape with closed-vocabulary values (the shown values are
+  format placeholders, not clinical defaults):
+  {compact_json_skeleton}
+
+  REPORT:
+  {report}

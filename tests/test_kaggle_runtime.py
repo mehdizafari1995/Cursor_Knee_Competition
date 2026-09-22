@@ -22,6 +22,7 @@ from knee.kaggle_runtime import (
     list_top_level,
     preflight,
     resolve_competition_dir,
+    _copy_allowlisted_source,
 )
 from tests.competition_fixtures import make_kaggle_audit_fixture
 
@@ -195,3 +196,19 @@ def test_find_source_root_double_nested_github_archive(tmp_path):
     (nested / "knee" / "kaggle_audit.py").write_text("def run_notebook_audit():\n    pass\n")
     found = find_source_root(layout, search_repo=False)
     assert found == nested
+
+
+def test_copy_allowlisted_includes_ontology(tmp_path):
+    layout = _layout(tmp_path)
+    src = tmp_path / "src"
+    dest = layout.working_root / "rsna_knee_src"
+    (src / "knee").mkdir(parents=True)
+    (src / "knee" / "config.py").write_text("TARGET_KEYS = ()\n")
+    (src / "literature").mkdir()
+    (src / "literature" / "ontology.yaml").write_text("targets: []\n")
+    (src / "vendor" / "wheels").mkdir(parents=True)
+    (src / "vendor" / "wheels" / "lm_format_enforcer-0.11.3-py3-none-any.whl").write_bytes(b"wheel")
+    _copy_allowlisted_source(src, dest)
+    assert (dest / "literature" / "ontology.yaml").is_file()
+    assert (dest / "knee" / "config.py").is_file()
+    assert (dest / "vendor" / "wheels" / "lm_format_enforcer-0.11.3-py3-none-any.whl").is_file()

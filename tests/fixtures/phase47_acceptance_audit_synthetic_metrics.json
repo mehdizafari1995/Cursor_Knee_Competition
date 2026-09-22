@@ -1,0 +1,1937 @@
+{
+  "deterministic_v2": {
+    "conditional_sensitivity_is_not_full_set_sensitivity": true,
+    "malformed_output_rate": 0.0,
+    "n_malformed_studies": 0,
+    "n_studies": 58,
+    "per_target": {
+      "ACL": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": 1.0,
+            "low": 0.85,
+            "n_valid_resamples": 1000
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 0.85,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 0,
+        "n_covered": 40,
+        "n_gold_negative": 20,
+        "n_gold_positive": 20,
+        "n_negative_calls": 20,
+        "n_positive_calls": 20,
+        "negative_capture": 1.0,
+        "npv": 1.0,
+        "positive_capture": 1.0,
+        "positive_precision": 1.0,
+        "precision": 1.0,
+        "selective_error": 0.0,
+        "target_key": "acl_injury",
+        "tn": 20,
+        "tp": 20
+      },
+      "Baker's": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 0.25,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.1,
+        "fn": 0,
+        "fp": 2,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 52,
+        "n_covered": 6,
+        "n_gold_negative": 46,
+        "n_gold_positive": 12,
+        "n_negative_calls": 0,
+        "n_positive_calls": 6,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.33,
+        "positive_precision": 0.67,
+        "precision": 0.67,
+        "selective_error": 0.33,
+        "target_key": "baker_cyst",
+        "tn": 0,
+        "tp": 4
+      },
+      "Contusion": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 0.5,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.1,
+        "fn": 0,
+        "fp": 1,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 52,
+        "n_covered": 6,
+        "n_gold_negative": 39,
+        "n_gold_positive": 19,
+        "n_negative_calls": 0,
+        "n_positive_calls": 6,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.26,
+        "positive_precision": 0.83,
+        "precision": 0.83,
+        "selective_error": 0.17,
+        "target_key": "bone_contusion",
+        "tn": 0,
+        "tp": 5
+      },
+      "Effusion": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 0.79,
+            "low": 0.33,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.33,
+        "fn": 0,
+        "fp": 8,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 39,
+        "n_covered": 19,
+        "n_gold_negative": 23,
+        "n_gold_positive": 35,
+        "n_negative_calls": 0,
+        "n_positive_calls": 19,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.31,
+        "positive_precision": 0.58,
+        "precision": 0.58,
+        "selective_error": 0.42,
+        "target_key": "joint_effusion",
+        "tn": 0,
+        "tp": 11
+      },
+      "Fracture": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 1.0,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.07,
+        "fn": 0,
+        "fp": 0,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 54,
+        "n_covered": 4,
+        "n_gold_negative": 40,
+        "n_gold_positive": 18,
+        "n_negative_calls": 0,
+        "n_positive_calls": 4,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.22,
+        "positive_precision": 1.0,
+        "precision": 1.0,
+        "selective_error": 0.0,
+        "target_key": "fracture",
+        "tn": 0,
+        "tp": 4
+      },
+      "Lateral Meniscus": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 0,
+        "n_covered": 20,
+        "n_gold_negative": 20,
+        "n_gold_positive": 20,
+        "n_negative_calls": 10,
+        "n_positive_calls": 10,
+        "negative_capture": 0.5,
+        "npv": 1.0,
+        "positive_capture": 0.5,
+        "positive_precision": 1.0,
+        "precision": 1.0,
+        "selective_error": 0.0,
+        "target_key": "lateral_meniscus_injury",
+        "tn": 10,
+        "tp": 10
+      },
+      "Lateral OA": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.07,
+        "fn": 0,
+        "fp": 2,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 54,
+        "n_covered": 4,
+        "n_gold_negative": 47,
+        "n_gold_positive": 11,
+        "n_negative_calls": 0,
+        "n_positive_calls": 4,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.18,
+        "positive_precision": 0.5,
+        "precision": 0.5,
+        "selective_error": 0.5,
+        "target_key": "lateral_compartment_oa",
+        "tn": 0,
+        "tp": 2
+      },
+      "MCL": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 1.0,
+            "n_valid_resamples": 651
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.03,
+        "fn": 0,
+        "fp": 0,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 28,
+        "n_covered": 1,
+        "n_gold_negative": 20,
+        "n_gold_positive": 9,
+        "n_negative_calls": 0,
+        "n_positive_calls": 1,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.11,
+        "positive_precision": 1.0,
+        "precision": 1.0,
+        "selective_error": 0.0,
+        "target_key": "mcl_injury",
+        "tn": 0,
+        "tp": 1
+      },
+      "Medial Meniscus": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": 1.0,
+            "low": 1.0,
+            "n_valid_resamples": 873
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 1.0,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.17,
+        "fn": 0,
+        "fp": 0,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 48,
+        "n_covered": 10,
+        "n_gold_negative": 32,
+        "n_gold_positive": 26,
+        "n_negative_calls": 2,
+        "n_positive_calls": 8,
+        "negative_capture": 0.06,
+        "npv": 1.0,
+        "positive_capture": 0.31,
+        "positive_precision": 1.0,
+        "precision": 1.0,
+        "selective_error": 0.0,
+        "target_key": "medial_meniscus_injury",
+        "tn": 2,
+        "tp": 8
+      },
+      "Medial OA": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 1.0,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.07,
+        "fn": 0,
+        "fp": 0,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 54,
+        "n_covered": 4,
+        "n_gold_negative": 43,
+        "n_gold_positive": 15,
+        "n_negative_calls": 0,
+        "n_positive_calls": 4,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.27,
+        "positive_precision": 1.0,
+        "precision": 1.0,
+        "selective_error": 0.0,
+        "target_key": "medial_compartment_oa",
+        "tn": 0,
+        "tp": 4
+      },
+      "PF OA": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.09,
+        "fn": 0,
+        "fp": 2,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 53,
+        "n_covered": 5,
+        "n_gold_negative": 37,
+        "n_gold_positive": 21,
+        "n_negative_calls": 0,
+        "n_positive_calls": 5,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.14,
+        "positive_precision": 0.6,
+        "precision": 0.6,
+        "selective_error": 0.4,
+        "target_key": "patellofemoral_oa",
+        "tn": 0,
+        "tp": 3
+      },
+      "Synovitis": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 0.2,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.12,
+        "fn": 0,
+        "fp": 3,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 51,
+        "n_covered": 7,
+        "n_gold_negative": 31,
+        "n_gold_positive": 27,
+        "n_negative_calls": 0,
+        "n_positive_calls": 7,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.15,
+        "positive_precision": 0.57,
+        "precision": 0.57,
+        "selective_error": 0.43,
+        "target_key": "synovitis",
+        "tn": 0,
+        "tp": 4
+      }
+    },
+    "unknown_imputed_as_negative": false
+  },
+  "second_reader": {
+    "conditional_sensitivity_is_not_full_set_sensitivity": true,
+    "malformed_output_rate": 0.0,
+    "n_malformed_studies": 0,
+    "n_studies": 58,
+    "per_target": {
+      "ACL": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": 1.0,
+            "low": 0.85,
+            "n_valid_resamples": 1000
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 0.85,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 0,
+        "n_covered": 40,
+        "n_gold_negative": 20,
+        "n_gold_positive": 20,
+        "n_negative_calls": 20,
+        "n_positive_calls": 20,
+        "negative_capture": 1.0,
+        "npv": 1.0,
+        "positive_capture": 1.0,
+        "positive_precision": 1.0,
+        "precision": 1.0,
+        "selective_error": 0.0,
+        "target_key": "acl_injury",
+        "tn": 20,
+        "tp": 20
+      },
+      "Baker's": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 0.25,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.1,
+        "fn": 0,
+        "fp": 2,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 52,
+        "n_covered": 6,
+        "n_gold_negative": 46,
+        "n_gold_positive": 12,
+        "n_negative_calls": 0,
+        "n_positive_calls": 6,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.33,
+        "positive_precision": 0.67,
+        "precision": 0.67,
+        "selective_error": 0.33,
+        "target_key": "baker_cyst",
+        "tn": 0,
+        "tp": 4
+      },
+      "Contusion": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 0.5,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.1,
+        "fn": 0,
+        "fp": 1,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 52,
+        "n_covered": 6,
+        "n_gold_negative": 39,
+        "n_gold_positive": 19,
+        "n_negative_calls": 0,
+        "n_positive_calls": 6,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.26,
+        "positive_precision": 0.83,
+        "precision": 0.83,
+        "selective_error": 0.17,
+        "target_key": "bone_contusion",
+        "tn": 0,
+        "tp": 5
+      },
+      "Effusion": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 0.79,
+            "low": 0.33,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.33,
+        "fn": 0,
+        "fp": 8,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 39,
+        "n_covered": 19,
+        "n_gold_negative": 23,
+        "n_gold_positive": 35,
+        "n_negative_calls": 0,
+        "n_positive_calls": 19,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.31,
+        "positive_precision": 0.58,
+        "precision": 0.58,
+        "selective_error": 0.42,
+        "target_key": "joint_effusion",
+        "tn": 0,
+        "tp": 11
+      },
+      "Fracture": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 1.0,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.07,
+        "fn": 0,
+        "fp": 0,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 54,
+        "n_covered": 4,
+        "n_gold_negative": 40,
+        "n_gold_positive": 18,
+        "n_negative_calls": 0,
+        "n_positive_calls": 4,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.22,
+        "positive_precision": 1.0,
+        "precision": 1.0,
+        "selective_error": 0.0,
+        "target_key": "fracture",
+        "tn": 0,
+        "tp": 4
+      },
+      "Lateral Meniscus": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 0,
+        "n_covered": 20,
+        "n_gold_negative": 20,
+        "n_gold_positive": 20,
+        "n_negative_calls": 10,
+        "n_positive_calls": 10,
+        "negative_capture": 0.5,
+        "npv": 1.0,
+        "positive_capture": 0.5,
+        "positive_precision": 1.0,
+        "precision": 1.0,
+        "selective_error": 0.0,
+        "target_key": "lateral_meniscus_injury",
+        "tn": 10,
+        "tp": 10
+      },
+      "Lateral OA": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.07,
+        "fn": 0,
+        "fp": 2,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 54,
+        "n_covered": 4,
+        "n_gold_negative": 47,
+        "n_gold_positive": 11,
+        "n_negative_calls": 0,
+        "n_positive_calls": 4,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.18,
+        "positive_precision": 0.5,
+        "precision": 0.5,
+        "selective_error": 0.5,
+        "target_key": "lateral_compartment_oa",
+        "tn": 0,
+        "tp": 2
+      },
+      "MCL": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 1.0,
+            "n_valid_resamples": 651
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.03,
+        "fn": 0,
+        "fp": 0,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 28,
+        "n_covered": 1,
+        "n_gold_negative": 20,
+        "n_gold_positive": 9,
+        "n_negative_calls": 0,
+        "n_positive_calls": 1,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.11,
+        "positive_precision": 1.0,
+        "precision": 1.0,
+        "selective_error": 0.0,
+        "target_key": "mcl_injury",
+        "tn": 0,
+        "tp": 1
+      },
+      "Medial Meniscus": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": 1.0,
+            "low": 1.0,
+            "n_valid_resamples": 873
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 1.0,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.17,
+        "fn": 0,
+        "fp": 0,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 48,
+        "n_covered": 10,
+        "n_gold_negative": 32,
+        "n_gold_positive": 26,
+        "n_negative_calls": 2,
+        "n_positive_calls": 8,
+        "negative_capture": 0.06,
+        "npv": 1.0,
+        "positive_capture": 0.31,
+        "positive_precision": 1.0,
+        "precision": 1.0,
+        "selective_error": 0.0,
+        "target_key": "medial_meniscus_injury",
+        "tn": 2,
+        "tp": 8
+      },
+      "Medial OA": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 1.0,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.07,
+        "fn": 0,
+        "fp": 0,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 54,
+        "n_covered": 4,
+        "n_gold_negative": 43,
+        "n_gold_positive": 15,
+        "n_negative_calls": 0,
+        "n_positive_calls": 4,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.27,
+        "positive_precision": 1.0,
+        "precision": 1.0,
+        "selective_error": 0.0,
+        "target_key": "medial_compartment_oa",
+        "tn": 0,
+        "tp": 4
+      },
+      "PF OA": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.09,
+        "fn": 0,
+        "fp": 2,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 53,
+        "n_covered": 5,
+        "n_gold_negative": 37,
+        "n_gold_positive": 21,
+        "n_negative_calls": 0,
+        "n_positive_calls": 5,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.14,
+        "positive_precision": 0.6,
+        "precision": 0.6,
+        "selective_error": 0.4,
+        "target_key": "patellofemoral_oa",
+        "tn": 0,
+        "tp": 3
+      },
+      "Synovitis": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 0.2,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.12,
+        "fn": 0,
+        "fp": 3,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 51,
+        "n_covered": 7,
+        "n_gold_negative": 31,
+        "n_gold_positive": 27,
+        "n_negative_calls": 0,
+        "n_positive_calls": 7,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.15,
+        "positive_precision": 0.57,
+        "precision": 0.57,
+        "selective_error": 0.43,
+        "target_key": "synovitis",
+        "tn": 0,
+        "tp": 4
+      }
+    },
+    "unknown_imputed_as_negative": false
+  },
+  "strict_agreement": {
+    "conditional_sensitivity_is_not_full_set_sensitivity": true,
+    "malformed_output_rate": 0.0,
+    "n_malformed_studies": 0,
+    "n_studies": 58,
+    "per_target": {
+      "ACL": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": 1.0,
+            "low": 0.85,
+            "n_valid_resamples": 1000
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 0.85,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 0,
+        "n_covered": 40,
+        "n_gold_negative": 20,
+        "n_gold_positive": 20,
+        "n_negative_calls": 20,
+        "n_positive_calls": 20,
+        "negative_capture": 1.0,
+        "npv": 1.0,
+        "positive_capture": 1.0,
+        "positive_precision": 1.0,
+        "precision": 1.0,
+        "selective_error": 0.0,
+        "target_key": "acl_injury",
+        "tn": 20,
+        "tp": 20
+      },
+      "Baker's": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 0.25,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.1,
+        "fn": 0,
+        "fp": 2,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 52,
+        "n_covered": 6,
+        "n_gold_negative": 46,
+        "n_gold_positive": 12,
+        "n_negative_calls": 0,
+        "n_positive_calls": 6,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.33,
+        "positive_precision": 0.67,
+        "precision": 0.67,
+        "selective_error": 0.33,
+        "target_key": "baker_cyst",
+        "tn": 0,
+        "tp": 4
+      },
+      "Contusion": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 0.5,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.1,
+        "fn": 0,
+        "fp": 1,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 52,
+        "n_covered": 6,
+        "n_gold_negative": 39,
+        "n_gold_positive": 19,
+        "n_negative_calls": 0,
+        "n_positive_calls": 6,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.26,
+        "positive_precision": 0.83,
+        "precision": 0.83,
+        "selective_error": 0.17,
+        "target_key": "bone_contusion",
+        "tn": 0,
+        "tp": 5
+      },
+      "Effusion": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 0.79,
+            "low": 0.33,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.33,
+        "fn": 0,
+        "fp": 8,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 39,
+        "n_covered": 19,
+        "n_gold_negative": 23,
+        "n_gold_positive": 35,
+        "n_negative_calls": 0,
+        "n_positive_calls": 19,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.31,
+        "positive_precision": 0.58,
+        "precision": 0.58,
+        "selective_error": 0.42,
+        "target_key": "joint_effusion",
+        "tn": 0,
+        "tp": 11
+      },
+      "Fracture": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 1.0,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.07,
+        "fn": 0,
+        "fp": 0,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 54,
+        "n_covered": 4,
+        "n_gold_negative": 40,
+        "n_gold_positive": 18,
+        "n_negative_calls": 0,
+        "n_positive_calls": 4,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.22,
+        "positive_precision": 1.0,
+        "precision": 1.0,
+        "selective_error": 0.0,
+        "target_key": "fracture",
+        "tn": 0,
+        "tp": 4
+      },
+      "Lateral Meniscus": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 0,
+        "n_covered": 20,
+        "n_gold_negative": 20,
+        "n_gold_positive": 20,
+        "n_negative_calls": 10,
+        "n_positive_calls": 10,
+        "negative_capture": 0.5,
+        "npv": 1.0,
+        "positive_capture": 0.5,
+        "positive_precision": 1.0,
+        "precision": 1.0,
+        "selective_error": 0.0,
+        "target_key": "lateral_meniscus_injury",
+        "tn": 10,
+        "tp": 10
+      },
+      "Lateral OA": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.07,
+        "fn": 0,
+        "fp": 2,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 54,
+        "n_covered": 4,
+        "n_gold_negative": 47,
+        "n_gold_positive": 11,
+        "n_negative_calls": 0,
+        "n_positive_calls": 4,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.18,
+        "positive_precision": 0.5,
+        "precision": 0.5,
+        "selective_error": 0.5,
+        "target_key": "lateral_compartment_oa",
+        "tn": 0,
+        "tp": 2
+      },
+      "MCL": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 1.0,
+            "n_valid_resamples": 651
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.03,
+        "fn": 0,
+        "fp": 0,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 28,
+        "n_covered": 1,
+        "n_gold_negative": 20,
+        "n_gold_positive": 9,
+        "n_negative_calls": 0,
+        "n_positive_calls": 1,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.11,
+        "positive_precision": 1.0,
+        "precision": 1.0,
+        "selective_error": 0.0,
+        "target_key": "mcl_injury",
+        "tn": 0,
+        "tp": 1
+      },
+      "Medial Meniscus": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": 1.0,
+            "low": 1.0,
+            "n_valid_resamples": 873
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 1.0,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.17,
+        "fn": 0,
+        "fp": 0,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 48,
+        "n_covered": 10,
+        "n_gold_negative": 32,
+        "n_gold_positive": 26,
+        "n_negative_calls": 2,
+        "n_positive_calls": 8,
+        "negative_capture": 0.06,
+        "npv": 1.0,
+        "positive_capture": 0.31,
+        "positive_precision": 1.0,
+        "precision": 1.0,
+        "selective_error": 0.0,
+        "target_key": "medial_meniscus_injury",
+        "tn": 2,
+        "tp": 8
+      },
+      "Medial OA": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 1.0,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.07,
+        "fn": 0,
+        "fp": 0,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 54,
+        "n_covered": 4,
+        "n_gold_negative": 43,
+        "n_gold_positive": 15,
+        "n_negative_calls": 0,
+        "n_positive_calls": 4,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.27,
+        "positive_precision": 1.0,
+        "precision": 1.0,
+        "selective_error": 0.0,
+        "target_key": "medial_compartment_oa",
+        "tn": 0,
+        "tp": 4
+      },
+      "PF OA": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.09,
+        "fn": 0,
+        "fp": 2,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 53,
+        "n_covered": 5,
+        "n_gold_negative": 37,
+        "n_gold_positive": 21,
+        "n_negative_calls": 0,
+        "n_positive_calls": 5,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.14,
+        "positive_precision": 0.6,
+        "precision": 0.6,
+        "selective_error": 0.4,
+        "target_key": "patellofemoral_oa",
+        "tn": 0,
+        "tp": 3
+      },
+      "Synovitis": {
+        "ci": {
+          "coverage": {
+            "high": 0.4,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "negative_capture": {
+            "high": 0.2,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          },
+          "npv": {
+            "high": null,
+            "low": null,
+            "n_valid_resamples": 0
+          },
+          "positive_capture": {
+            "high": 0.5,
+            "low": 0.1,
+            "n_valid_resamples": 1000
+          },
+          "precision": {
+            "high": 1.0,
+            "low": 0.2,
+            "n_valid_resamples": 1000
+          },
+          "selective_error": {
+            "high": 0.3,
+            "low": 0.0,
+            "n_valid_resamples": 1000
+          }
+        },
+        "coverage": 0.12,
+        "fn": 0,
+        "fp": 3,
+        "malformed_output_rate": 0.0,
+        "n_abstentions": 51,
+        "n_covered": 7,
+        "n_gold_negative": 31,
+        "n_gold_positive": 27,
+        "n_negative_calls": 0,
+        "n_positive_calls": 7,
+        "negative_capture": 0.0,
+        "npv": null,
+        "positive_capture": 0.15,
+        "positive_precision": 0.57,
+        "precision": 0.57,
+        "selective_error": 0.43,
+        "target_key": "synovitis",
+        "tn": 0,
+        "tp": 4
+      }
+    },
+    "unknown_imputed_as_negative": false
+  }
+}

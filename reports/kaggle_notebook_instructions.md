@@ -142,3 +142,39 @@ Coordinator gates after the real gold evaluation:
 `NOT_READY_FOR_HARD_WEAK_LABEL_TRAINING` and
 `READY_FOR_SELECTIVE_LABEL_REFINEMENT`. Do not train an image model on the
 weak-label CSV as hard 0/1. See `reports/weak_label_training_readiness.md`.
+
+## Phase 4C: gold-only second-reader pilot
+
+Upload `notebooks/04_kaggle_second_reader_gold_pilot.ipynb` with:
+
+1. The competition dataset
+2. The rebuilt private source ZIP
+3. Checksummed instruction-model weights attached as a **Kaggle Model** or
+   private dataset (never downloaded inside the notebook)
+
+Settings: **Internet off**, **GPU on**. Process the **58 gold studies only**.
+Do **not** process the 4,349 report-only studies. Do **not** train an image
+model or write image folds. Retrieve sanitized aggregates and private-file
+hashes only. See `reports/second_reader_pilot_protocol.md`.
+
+Kernel version 7 is `PILOT_EXECUTION_FAIL` and must remain immutable. Before
+another gold run, execute
+`notebooks/05_kaggle_second_reader_synthetic_canary.ipynb` (internet off,
+GPU on, synthetic reports only, no competition rows). If any canary output
+is malformed, stop.
+
+The Phase 4C.1 synthetic canary (kernel
+`mahdimzafari/rsna-knee-second-reader-synthetic-canary` version 1) is
+`CANARY_FAIL` (`malformed_output_rate=1.0`). That version is immutable.
+Phase 4C.2 uses protocol `second-reader-transport-v1.2` on the same canary
+notebook: three-example GPU smoke, then a 14-example repeatable canary if
+smoke passes. Kernel version 2 is `SMOKE_FAIL` (`invalid_enum` 3/3 after
+JSON-aware stopping). Phase 4C.3 reruns the same three synthetic examples with
+prompt `second-reader-prompt-v1.2.0` after a sanitized enum diagnosis of the
+frozen v1.2 stack. Do not add parser aliases. Do not launch another gold
+notebook version until the v1.3 canary is `ok`. See
+`reports/second_reader_synthetic_canary.md`,
+`reports/second_reader_synthetic_canary_v12.md`, and
+`reports/second_reader_synthetic_canary_v13.md`. Kernel version 3 is
+`CANARY_FAIL` (14-example canary; three-example smoke with prompt v1.2.0
+was `ok`). Do not launch another gold notebook version.

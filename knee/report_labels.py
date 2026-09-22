@@ -98,10 +98,16 @@ HARD_WEAK_LABEL_TRAINING_VERDICT = "NOT_READY_FOR_HARD_WEAK_LABEL_TRAINING"
 SELECTIVE_LABEL_REFINEMENT_VERDICT = "READY_FOR_SELECTIVE_LABEL_REFINEMENT"
 HARD_WEAK_LABEL_TRAINING_ALLOWED = False
 SELECTIVE_LABEL_REFINEMENT_ALLOWED = True
+SCALE_TO_REPORT_ONLY_SECOND_READER_ALLOWED = False
+SCALE_TO_REPORT_ONLY_SECOND_READER_VERDICT = "NOT_READY_TO_SCALE_SECOND_READER_TO_REPORT_ONLY"
 
 
 class HardWeakLabelTrainingError(RuntimeError):
     """Raised when image training would treat report weak labels as hard 0/1."""
+
+
+class SecondReaderScaleError(RuntimeError):
+    """Raised when the second reader would process report-only studies."""
 
 
 def assert_hard_weak_label_training_forbidden() -> None:
@@ -112,6 +118,16 @@ def assert_hard_weak_label_training_forbidden() -> None:
         f"{HARD_WEAK_LABEL_TRAINING_VERDICT}: report weak labels must not be "
         "used as hard 0/1 training targets. Unknown stays unknown. "
         f"{SELECTIVE_LABEL_REFINEMENT_VERDICT}."
+    )
+
+
+def assert_second_reader_report_only_scale_forbidden() -> None:
+    """Refuse applying the second reader to the 4,349 report-only studies."""
+    if SCALE_TO_REPORT_ONLY_SECOND_READER_ALLOWED:
+        return
+    raise SecondReaderScaleError(
+        f"{SCALE_TO_REPORT_ONLY_SECOND_READER_VERDICT}: do not process the "
+        "4,349 report-only studies until the gold-only second-reader pilot passes."
     )
 
 PRIVATE_WEAK_FILENAME = "weak_labels.csv"

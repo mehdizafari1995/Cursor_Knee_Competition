@@ -1,0 +1,72 @@
+# Pinned LM Format Enforcer wheels for internet-off Kaggle notebooks.
+# Wheel binaries are gitignored and copied into the private source zip.
+# Do not install these packages from the internet during a Kaggle run.
+
+package: lm-format-enforcer
+version: "0.11.3"
+license: MIT
+upstream_repository: https://github.com/noamgat/lm-format-enforcer
+upstream_tag: v0.11.3
+upstream_tag_object_sha: 29514a40ccc64bdb7fc07b970cd31e5f53d1564e
+upstream_commit_sha: 05c7dc3a46305e39c1a67c8622c433d8deda48a2
+pypi_url: https://pypi.org/project/lm-format-enforcer/0.11.3/
+released_utc: "2025-08-24T19:37:46Z"
+compatible_with:
+  kaggle_transformers: ">=4.43,<6"
+  phi35_tokenizer: microsoft/Phi-3.5-mini-instruct
+  phi35_revision: 2fe192450127e6a83f7441aef6e3ca586c338b77
+  transformers_api:
+    - JsonSchemaParser
+    - build_transformers_prefix_allowed_tokens_fn
+    - model.generate(prefix_allowed_tokens_fn=...)
+install_from_internet_on_kaggle: false
+telemetry_or_runtime_download: false
+
+primary_wheel:
+  filename: lm_format_enforcer-0.11.3-py3-none-any.whl
+  sha256: cf586350875def1ae7a8fba84fcbbfc8371424b6c9d05c1fcba70aa233fbf06f
+  bytes: 45418
+  packagetype: bdist_wheel
+  py_abi: py3-none-any
+  vendor_in_kaggle_dataset: true
+  install_on_kaggle: true
+
+vendored_dependencies:
+  - name: interegular
+    version: "0.3.3"
+    license: MIT
+    filename: interegular-0.3.3-py37-none-any.whl
+    sha256: b0c07007d48c89d6d19f7204972d369b2a77222722e126b6aa63aa721dc3b19c
+    bytes: 23635
+    py_abi: py37-none-any
+    vendor_in_kaggle_dataset: true
+    install_on_kaggle: true
+    reason: required by lm-format-enforcer; not preinstalled on Kaggle
+
+kaggle_preinstalled_dependencies:
+  - name: pydantic
+    specifier: ">=1.10.8"
+    vendor_in_kaggle_dataset: false
+    install_on_kaggle: false
+    reason: already present in the Kaggle Python image; compiled pydantic-core wheels are ABI-specific
+  - name: packaging
+    specifier: "*"
+    vendor_in_kaggle_dataset: false
+    install_on_kaggle: false
+    reason: already present in the Kaggle Python image
+  - name: pyyaml
+    specifier: "*"
+    vendor_in_kaggle_dataset: false
+    install_on_kaggle: false
+    reason: already present in the Kaggle Python image; compiled wheels are ABI-specific
+
+network_scan:
+  scanned_utc: "2026-09-18T03:43:00Z"
+  unexpected_network_access: false
+  telemetry: false
+  runtime_downloads: false
+  unused_adapters_mentioning_huggingface:
+    - lmformatenforcer/integrations/llamacpp.py
+    - lmformatenforcer/integrations/haystackv1.py
+    - lmformatenforcer/integrations/haystackv2.py
+  transformers_integration_network_access: false
